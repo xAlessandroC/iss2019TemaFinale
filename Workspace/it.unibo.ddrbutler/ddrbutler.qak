@@ -1,0 +1,55 @@
+/*
+ * Modello del sistema derivante dall'analisi dei requisiti
+ */
+
+System ddrbutler
+
+/*Messaggi */
+Request req_content : content
+Request req_food : food( FOOD_CODE )
+
+Dispatch res_content : content( CONTENT )
+Dispatch res_food : food( RESULT )
+
+Dispatch prepare : prepare
+Dispatch clear : clear
+Dispatch add_food : add_food( FOOD_CODE )
+
+Dispatch alert : alert( FOOD_CODE )
+Dispatch notify : notify
+
+/*Contexts */
+Context ctxRobotButlerReq ip [host="localhost" port=3030]
+
+//Requisiti: ACCEPT,PREPARE,CLEAR,ADD_FOOD,RETURN,STORE_DESCR,ALERT,NOTIFY,AVOID
+QActor rbr_req context ctxRobotButlerReq{
+	State s0 initial{
+		println("RBR STARTED...")
+	}
+}
+
+//Requisiti: KNOW_STATE,STOP,REACTIVATE,PREPARE,CLEAR,ADD_FOOD
+QActor maitrereq context ctxRobotButlerReq{
+	State s0 initial{
+		println("MAITRE STARTED...")
+	}
+}
+
+//Requisiti: EXPOSE,ANSWER
+QActor fridgereq context ctxRobotButlerReq{
+	State s0 initial{
+		println("FRIDGE STARTED...")
+	}
+}
+
+QActor pantryreq context ctxRobotButlerReq{
+	State s0 initial{
+		println("PANTRY STARTED...")
+	}
+}
+
+QActor dishwasherreq context ctxRobotButlerReq{
+	State s0 initial{
+		println("DISHWASHER STARTED...")
+	}
+}
