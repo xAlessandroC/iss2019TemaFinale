@@ -5,30 +5,33 @@
 System ddrbutler
 
 /*Messaggi */
-Request req_content : content
-Request req_food : food( FOOD_CODE )
+Request req_content : content					//maitre->fridge: chiede contenuto
+Request req_food : food( FOOD_CODE )			//rbr->fridge: chiede disponibilità FOOD_CODE
 
-Dispatch res_content : content( CONTENT )
-Dispatch res_food : food( RESULT )
+Dispatch res_content : content( CONTENT )		//fridge->maitre: risposta sul contenuto
+Dispatch res_food : food( ANSWER )				//fridge->rbr: risposta sulla disponibilità
 
-Dispatch prepare : prepare
-Dispatch clear : clear
-Dispatch add_food : add_food( FOOD_CODE )
+Dispatch prepare : prepare						//maitre->rbr: comando prepare
+Dispatch clear : clear							//maitre->rbr: comando clear
+Dispatch add_food : add_food( FOOD_CODE )		//maitre->rbr: comando add_food su un FOOD_CODE
 
-Dispatch alert : alert( FOOD_CODE )
-Dispatch notify : notify
+Dispatch alert : alert( FOOD_CODE )				//rbr->maitre: allarme sulla mancanza di FOOD_CODE
+Dispatch notify : notify						//rbr->maitre: notifica completamento task
+
+Dispatch stop : stop							//maitre->rbr: interruzione task
+Dispatch reactivate : reactivate				//maitre->rbr: riattivazione task	
 
 /*Contexts */
 Context ctxRobotButlerReq ip [host="localhost" port=3030]
 
-//Requisiti: ACCEPT,PREPARE,CLEAR,ADD_FOOD,RETURN,STORE_DESCR,ALERT,NOTIFY,AVOID
+//Requisiti: ACCEPT,PREPARE,CLEAR,ADD_FOOD,RETURN,STORE_DESCR,ALERT,NOTIFY,AVOID,ANSWER
 QActor rbr_req context ctxRobotButlerReq{
 	State s0 initial{
 		println("RBR STARTED...")
 	}
 }
 
-//Requisiti: KNOW_STATE,STOP,REACTIVATE,PREPARE,CLEAR,ADD_FOOD
+//Requisiti: KNOW_STATE,STOP,REACTIVATE,PREPARE,CLEAR,ADD_FOOD,EXPOSE
 QActor maitrereq context ctxRobotButlerReq{
 	State s0 initial{
 		println("MAITRE STARTED...")
