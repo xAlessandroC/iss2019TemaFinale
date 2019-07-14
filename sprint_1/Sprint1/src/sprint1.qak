@@ -1,0 +1,84 @@
+System sprint1
+
+Dispatch prepare : prepare()
+Dispatch add_food : add_food(FOODCODE)
+Dispatch clear : clear()
+
+Dispatch check : check(FOODCODE)
+Dispatch response : response(FOODCODE, AMOUNT)
+
+Dispatch warning : warning(FOODCODE)
+
+Context ctxRobot ip [host="localhost" port=8005]
+
+QActor robot context ctxRobot {
+	State s0 initial { println("[RBR]: starts...")}
+	Goto waitCmd
+	
+	State waitCmd{}
+	Transition t0 whenMsg prepare -> prepareCmd
+				whenMsg add_food -> addCmd
+				whenMsg clear -> clearCmd
+				
+	State prepareCmd { println("[RBR]: preparing room...")	}
+	Goto waitCmd
+	
+	State addCmd { 
+		println("[RBR]: adding food...")
+		onMsg(add_food : add_food(FOODCODE)) {
+			["val FC = payloadArg(0)"]
+			forward fridge -m check : check(FC) //controllare l'uso delle variabili
+		}
+	}
+	Goto warningCmd
+	
+	State warningCmd {
+		onMsg(response : response(FOODCODE, AMOUNT)) {
+			["val A = Integer.parseInt(payloadArg(1))"]
+			["val FC = payloadArg(0)"]
+			["if(A == 0)"] //si può fare in altro modo?
+			forward maitre -m warning : warning(FC)
+		}
+	}
+	Goto waitCmd
+	
+	State clearCmd { println("[RBR]: clearing the room...")}
+	Goto waitCmd 
+}
+
+/* Maitre = utente, come rappresentarlo come automa? */
+QActor maitre context ctxRobot {
+	State s0 initial { println("[MAITRE]: starts...")}
+}
+
+QActor fridge context ctxRobot {
+	State s0 initial { 
+		println("[FRIDGE]: starts...")
+		//Inserisce la sua posizione nella base di conoscenza
+	}
+	Goto waitCmd
+	
+	State waitCmd {}
+	Transition t0 whenMsg check -> checkCmd
+	
+	State checkCmd {
+		onMsg(check : check(FOODCODE)) {
+			["val FC = payloadArg(0)"]
+			//Come conoscere la quantità di ogni alimento?
+			forward robot -m response : response(FC, AMOUNT)
+		}
+	}
+}
+
+
+//QActor pantry context ctxRobot {
+//	State s0 initial { 	
+//		//Inserisce la sua posizione nella base di conoscenza  
+//	}
+//}
+//
+//QActor dishwasher context ctxRobot {
+//	State s0 initial { 	
+//		//Inserisce la sua posizione nella base di conoscenza  
+//	}
+//}
