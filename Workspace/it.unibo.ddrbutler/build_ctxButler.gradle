@@ -1,16 +1,16 @@
 /*
 ================================================================================
-build_ctxRobotButlerReq.gradle
+build_ctxButler.gradle
 GENERATED ONLY ONCE
 USAGE:	 
 	gradle build eclipse		//to set the dependency on the library
-	gradle   -b build_ctxRobotButlerReq.gradle distZip //for executable jar and distribution
+	gradle   -b build_ctxButler.gradle distZip //for executable jar and distribution
 	
-	gradle   -b build_ctxRobotButlerReq.gradle qawrapper
-	gradlew  -b build_ctxRobotButlerReq.gradle eclipse		//to set the dependency on the library
-	gradlew  -b build_ctxRobotButlerReq.gradle build
-	gradlew  -b build_ctxRobotButlerReq.gradle -q tasks --all
-	gradlew  -b build_ctxRobotButlerReq.gradle cleanDistDir	//to clean the src directory
+	gradle   -b build_ctxButler.gradle qawrapper
+	gradlew  -b build_ctxButler.gradle eclipse		//to set the dependency on the library
+	gradlew  -b build_ctxButler.gradle build
+	gradlew  -b build_ctxButler.gradle -q tasks --all
+	gradlew  -b build_ctxButler.gradle cleanDistDir	//to clean the src directory
 ================================================================================
 */
 plugins {

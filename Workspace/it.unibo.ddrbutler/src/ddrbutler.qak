@@ -1,58 +1,376 @@
-/*
- * Modello del sistema derivante dall'analisi dei requisiti
- */
-
 System ddrbutler
 
-/*Messaggi */
-Request req_content : content					//maitre->fridge: chiede contenuto
-Request req_food : food( FOOD_CODE )			//rbr->fridge: chiede disponibilità FOOD_CODE
+/*BUTLER MESSAGES */
+Dispatch prepare : prepare
+Dispatch addFood : addFood( FOODCODE )
+Dispatch clear : clear
 
-Dispatch res_content : content( CONTENT )		//fridge->maitre: risposta sul contenuto
-Dispatch res_food : food( ANSWER )				//fridge->rbr: risposta sulla disponibilità
+Dispatch calibrazioneCompleted : calibrazioneCompleted
+Dispatch prepareCompleted : prepareCompleted
+Dispatch addFoodCompleted : addFoodCompleted
+Dispatch clearCompleted : clearCompleted
 
-Dispatch prepare : prepare						//maitre->rbr: comando prepare
-Dispatch clear : clear							//maitre->rbr: comando clear
-Dispatch add_food : add_food( FOOD_CODE )		//maitre->rbr: comando add_food su un FOOD_CODE
+Dispatch stopPrepare : stopPrepare
+Dispatch stopAddFood : stopAddFood
+Dispatch stopClear : stopClear
 
-Dispatch alert : alert( FOOD_CODE )				//rbr->maitre: allarme sulla mancanza di FOOD_CODE
-Dispatch notify : notify						//rbr->maitre: notifica completamento task
+Dispatch reactivatePrepare : reactivatePrepare
+Dispatch reactivateAddFood : reactivateAddFood
+Dispatch reactivateClear : reactivateClear
 
-Dispatch stop : stop							//maitre->rbr: interruzione task
-Dispatch reactivate : reactivate				//maitre->rbr: riattivazione task	
+/*MAITRE MESSAGES */
+Dispatch prepareSended : prepareSended
+Dispatch addFoodSended : addFoodSended
+Dispatch clearSended : clearSended
 
-/*Contexts */
-Context ctxRobotButlerReq ip [host="localhost" port=3030]
 
-//Requisiti: ACCEPT,PREPARE,CLEAR,ADD_FOOD,RETURN,STORE_DESCR,ALERT,NOTIFY,AVOID,ANSWER
-QActor rbr_req context ctxRobotButlerReq{
+/*FRIDGE MESSAGES */
+Dispatch query : query( FOODCODE, QNT )
+Dispatch putFood : putFood( FOODCODE, QNT )
+Dispatch takeFood : takeFood( FOODCODE, QNT )
+
+Dispatch fridgePutCompleted : putCompleted
+Dispatch fridgeTakeCompleted : takeCompleted
+Dispatch fridgeAnswerCompleted : answerCompleted
+
+/*PANTRY MESSAGES */
+Dispatch pantryPutDish : putDish( QNT )
+Dispatch pantryTakeDish : takeDish( QNT )
+
+Dispatch pantryPutCompleted : pantryPutCompleted
+Dispatch pantryTakeCompleted : pantryTakeCompleted
+
+/*DISHWASHER MESSAGES */
+Dispatch dishwasherPutDish : putDish( QNT )
+Dispatch dishwasherTakeDish : takeDish( QNT )
+
+Dispatch dishwasherPutCompleted : dishwasherPutCompleted
+Dispatch dishwasherTakeCompleted : dishwasherTakeCompleted
+
+/*TABLE MESSAGES */
+Dispatch putElement : putElement( TYPE, CODE, QNT )
+Dispatch takeElement : takeElement( TYPE, CODE, QNT )
+
+Dispatch tablePutCompleted : tablePutCompleted
+Dispatch tableTakeCompleted : tableTakeCompleted
+
+/*AGGIORNAMENTO STATO STANZA */
+Event updateContent : updateContent(DEVICE,CODE,QNT)
+
+Context ctxButler ip [host="localhost" port=3030]
+
+QActor butler context ctxButler{
 	State s0 initial{
-		println("RBR STARTED...")
+		println("[BUTLER]: Started...")
 	}
+	Goto calibrazione
+	
+	State calibrazione{
+		println("[BUTLER]: Sono in calibrazione")
+		
+		delay 2000			//simulazione calibrazione
+		
+		forward butler -m calibrazioneCompleted : calibrazioneCompleted
+	}
+	Transition t0 whenMsg calibrazioneCompleted -> waitPrepare
+	
+	State waitPrepare{
+		println("[BUTLER]: Sono in waitPrepare")
+		
+	}
+	Transition t0 whenMsg prepare -> preparing
+	
+	State preparing{
+		println("[BUTLER]: Sono in preparing")
+		
+		delay 1000
+		
+		forward butler -m prepareCompleted : prepareCompleted
+		forward maitre -m prepareCompleted : prepareCompleted
+		
+	}
+	Transition t0 whenMsg 	prepareCompleted -> waitAC
+				  whenMsg	stopPrepare -> prepareSuspend
+							
+	State prepareSuspend{
+		println("[BUTLER]: Sono in prepareSuspend")
+	}
+	Transition t0 whenMsg reactivatePrepare -> preparing
+	
+	State waitAC{
+		println("[BUTLER]: Sono in waitAC")
+		
+	}
+	Transition t0 whenMsg addFood -> adding
+				  whenMsg clear -> clearing
+				  
+	State adding{
+		println("[BUTLER]: Sono in adding")
+		
+		delay 1000
+		
+		forward butler -m addFoodCompleted : addFoodCompleted
+		forward maitre -m addFoodCompleted : addFoodCompleted		
+	}
+	Transition t0 whenMsg addFoodCompleted -> waitAC
+				  whenMsg stopAddFood -> addFoodSuspend
+				  
+	
+	State clearing{
+		println("[BUTLER]: Sono in clearing")
+		
+		delay 1000
+		
+		forward butler -m clearCompleted : clearCompleted
+		forward maitre -m clearCompleted : clearCompleted		
+	}
+	Transition t0 whenMsg clearCompleted -> waitPrepare
+				  whenMsg stopClear -> clearSuspend
+				  
+	State addFoodSuspend{
+		println("[BUTLER]: Sono in addFoodSuspend")
+		
+	}
+	Transition t0 whenMsg reactivateAddFood -> adding
+	
+	State clearSuspend{
+		println("[BUTLER]: Sono in clearSuspend")
+		
+	}
+	Transition t0 whenMsg reactivateClear -> clearing
 }
 
-//Requisiti: KNOW_STATE,STOP,REACTIVATE,PREPARE,CLEAR,ADD_FOOD,EXPOSE
-QActor maitrereq context ctxRobotButlerReq{
+QActor maitre context ctxButler{
 	State s0 initial{
-		println("MAITRE STARTED...")
+		println("[MAITRE]: Started...")
 	}
+	Goto sendingPrepare
+	
+	State sendingPrepare{
+		println("[MAITRE]: Sono in sendingPrepare")
+		
+		delay 4000
+		
+		//simulo
+		forward butler -m prepare : prepare
+		forward maitre -m prepareSended : prepareSended
+		
+	}
+	Transition t0 whenMsg prepareSended -> waitingPrepCompletion
+				  
+	
+	State waitingPrepCompletion{
+		println("[MAITRE]: Sono in waitingPrepCompletion")
+		
+	}
+	Transition t0 whenMsg prepareCompleted -> sendingAC
+				  whenEvent updateContent -> updateP
+	
+	State sendingAC{
+		println("[MAITRE]: Sono in sendingAC")
+	}
+	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompletion
+				  whenMsg clearSended -> waitingClearCompletion
+				  
+	State waitingAddFoodCompletion{
+		println("[MAITRE]: Sono in waitingAddFoodCompletion")
+		
+	}
+	Transition t0 whenMsg addFoodCompleted -> sendingAC
+				  whenEvent updateContent -> updateA
+	
+	State waitingClearCompletion{
+		println("[MAITRE]: Sono in waitingClearCompletion")
+		
+	}
+	Transition t0 whenMsg clearCompleted -> sendingPrepare
+				  whenEvent updateContent -> updateC
+				  
+	State updateP{
+		println("[MAITRE]: Sono in updateP")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitingPrepCompletion
+	
+	State updateA{
+		println("[MAITRE]: Sono in updateA")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitingAddFoodCompletion
+	
+	State updateC{
+		println("[MAITRE]: Sono in updateC")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitingClearCompletion
 }
 
-//Requisiti: EXPOSE,ANSWER
-QActor fridgereq context ctxRobotButlerReq{
+QActor fridge context ctxButler{
 	State s0 initial{
-		println("FRIDGE STARTED...")
+		println("[FRIDGE]: Started...")
 	}
+	Goto initialize
+	
+	State initialize{
+		//invio contenuto iniziale tramite eventi
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[FRIDGE]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg query -> answering
+				  whenMsg putFood -> puttingFood
+				  whenMsg takeFood -> takingFood
+				  
+	State answering{
+		println("[FRIDGE]: Sono in answering")
+		
+		onMsg( query : query(FOODCODE, QNT)){
+			
+		}
+		
+	}
+	Transition t0 whenMsg fridgeAnswerCompleted -> waitCmd
+	
+	State puttingFood{
+		println("[FRIDGE]: Sono in puttingFood")
+		
+		onMsg( putFood : putFood(FOODCODE, QNT)){
+			
+		}
+	}
+	Transition t0 whenMsg fridgePutCompleted -> waitCmd
+	
+	State takingFood{
+		println("[FRIDGE]: Sono in takingFood")
+		
+		onMsg( takeFood : takeFood(FOODCODE, QNT)){
+			
+		}
+		
+	}
+	Transition t0 whenMsg fridgeTakeCompleted -> waitCmd
+	
 }
 
-QActor pantryreq context ctxRobotButlerReq{
+QActor pantry context ctxButler{
 	State s0 initial{
-		println("PANTRY STARTED...")
+		println("[PANTRY]: Started...")
 	}
+	Goto initialize
+	
+	State initialize{
+		//invio contenuto iniziale tramite eventi
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[PANTRY]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg pantryPutDish -> puttingDish
+				  whenMsg pantryTakeDish -> takingDish
+	
+	State puttingDish{
+		println("[PANTRY]: Sono in puttingDish")
+		
+		onMsg( pantryPutDish : pantryPutDish(QNT)){
+			
+		}
+		
+	}
+	Transition t0 whenMsg pantryPutCompleted -> waitCmd
+	
+	State takingDish{
+		println("[PANTRY]: Sono in takingDish")
+		
+		onMsg( pantryTakeDish : pantryTakeDish(QNT)){
+			
+		}
+		
+	}
+	Transition t0 whenMsg pantryTakeCompleted -> waitCmd
+	
 }
 
-QActor dishwasherreq context ctxRobotButlerReq{
+QActor dishwasher context ctxButler{
 	State s0 initial{
-		println("DISHWASHER STARTED...")
+		println("[DISHWASHER]: Started...")
 	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[DISHWASHER]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg dishwasherPutDish -> puttingDish
+				  whenMsg dishwasherTakeDish -> takingDish
+	
+	State puttingDish{
+		println("[DISHWASHER]: Sono in puttingDish")
+		
+		onMsg( dishwasherPutDish : dishwasherPutDish(QNT)){
+			
+		}
+		
+	}
+	Transition t0 whenMsg dishwasherPutCompleted -> waitCmd
+	
+	State takingDish{
+		println("[DISHWASHER]: Sono in takingDish")
+		
+		onMsg( dishwasherTakeDish : dishwasherTakeDish(QNT)){
+			
+		}
+	}
+	Transition t0 whenMsg dishwasherTakeCompleted -> waitCmd
+	
+}
+
+QActor table context ctxButler{
+	State s0 initial{
+		println("[TABLE]: Started...")
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[TABLE]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg putElement -> puttingElement
+				  whenMsg takeElement -> takingElement
+	
+	State puttingElement{
+		println("[TABLE]: Sono in puttingDish")
+		
+		onMsg( putElement : putElement( TYPE, CODE, QNT)){
+			
+		}
+		
+	}
+	Transition t0 whenMsg tablePutCompleted -> waitCmd
+	
+	State takingElement{
+		println("[TABLE]: Sono in takingDish")
+		
+		onMsg( takeElement : takeElement( TYPE, CODE, QNT)){
+			
+		}
+	}
+	Transition t0 whenMsg tableTakeCompleted -> waitCmd
+	
 }

@@ -1,9 +1,10 @@
 %====================================================================================
 % ddrbutler description   
 %====================================================================================
-context(ctxrobotbutlerreq, "localhost",  "TCP", "3030" ).
- qactor( rbr_req, ctxrobotbutlerreq, "it.unibo.rbr_req.Rbr_req").
-  qactor( maitrereq, ctxrobotbutlerreq, "it.unibo.maitrereq.Maitrereq").
-  qactor( fridgereq, ctxrobotbutlerreq, "it.unibo.fridgereq.Fridgereq").
-  qactor( pantryreq, ctxrobotbutlerreq, "it.unibo.pantryreq.Pantryreq").
-  qactor( dishwasherreq, ctxrobotbutlerreq, "it.unibo.dishwasherreq.Dishwasherreq").
+context(ctxbutler, "localhost",  "TCP", "3030" ).
+ qactor( butler, ctxbutler, "it.unibo.butler.Butler").
+  qactor( maitre, ctxbutler, "it.unibo.maitre.Maitre").
+  qactor( fridge, ctxbutler, "it.unibo.fridge.Fridge").
+  qactor( pantry, ctxbutler, "it.unibo.pantry.Pantry").
+  qactor( dishwasher, ctxbutler, "it.unibo.dishwasher.Dishwasher").
+  qactor( table, ctxbutler, "it.unibo.table.Table").
