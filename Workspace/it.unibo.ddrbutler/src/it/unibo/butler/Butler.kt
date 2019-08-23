@@ -41,9 +41,8 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in preparing")
 						delay(1000) 
 						forward("prepareCompleted", "prepareCompleted" ,"butler" ) 
-						forward("prepareCompleted", "prepareCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t02",targetState="waitAC",cond=whenDispatch("prepareCompleted"))
+					 transition(edgeName="t02",targetState="wait2",cond=whenDispatch("prepareCompleted"))
 					transition(edgeName="t03",targetState="prepareSuspend",cond=whenDispatch("stopPrepare"))
 				}	 
 				state("prepareSuspend") { //this:State
@@ -52,9 +51,9 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					}
 					 transition(edgeName="t04",targetState="preparing",cond=whenDispatch("reactivatePrepare"))
 				}	 
-				state("waitAC") { //this:State
+				state("wait2") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in waitAC")
+						println("[BUTLER]: Sono in wait2")
 					}
 					 transition(edgeName="t05",targetState="adding",cond=whenDispatch("addFood"))
 					transition(edgeName="t06",targetState="clearing",cond=whenDispatch("clear"))
@@ -64,9 +63,8 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in adding")
 						delay(1000) 
 						forward("addFoodCompleted", "addFoodCompleted" ,"butler" ) 
-						forward("addFoodCompleted", "addFoodCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t07",targetState="waitAC",cond=whenDispatch("addFoodCompleted"))
+					 transition(edgeName="t07",targetState="wait2",cond=whenDispatch("addFoodCompleted"))
 					transition(edgeName="t08",targetState="addFoodSuspend",cond=whenDispatch("stopAddFood"))
 				}	 
 				state("clearing") { //this:State
@@ -74,7 +72,6 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in clearing")
 						delay(1000) 
 						forward("clearCompleted", "clearCompleted" ,"butler" ) 
-						forward("clearCompleted", "clearCompleted" ,"maitre" ) 
 					}
 					 transition(edgeName="t09",targetState="waitPrepare",cond=whenDispatch("clearCompleted"))
 					transition(edgeName="t010",targetState="clearSuspend",cond=whenDispatch("stopClear"))

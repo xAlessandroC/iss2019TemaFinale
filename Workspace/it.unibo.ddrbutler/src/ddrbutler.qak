@@ -2,7 +2,7 @@ System ddrbutler
 
 /*BUTLER MESSAGES */
 Dispatch prepare : prepare
-Dispatch addFood : addFood( FOODCODE )
+Dispatch addFood : addFood( FOODCODE, QNT )
 Dispatch clear : clear
 
 Dispatch calibrazioneCompleted : calibrazioneCompleted
@@ -29,30 +29,18 @@ Dispatch query : query( FOODCODE, QNT )
 Dispatch putFood : putFood( FOODCODE, QNT )
 Dispatch takeFood : takeFood( FOODCODE, QNT )
 
-Dispatch fridgePutCompleted : putCompleted
-Dispatch fridgeTakeCompleted : takeCompleted
-Dispatch fridgeAnswerCompleted : answerCompleted
-
 /*PANTRY MESSAGES */
 Dispatch pantryPutDish : putDish( QNT )
 Dispatch pantryTakeDish : takeDish( QNT )
-
-Dispatch pantryPutCompleted : pantryPutCompleted
-Dispatch pantryTakeCompleted : pantryTakeCompleted
 
 /*DISHWASHER MESSAGES */
 Dispatch dishwasherPutDish : putDish( QNT )
 Dispatch dishwasherTakeDish : takeDish( QNT )
 
-Dispatch dishwasherPutCompleted : dishwasherPutCompleted
-Dispatch dishwasherTakeCompleted : dishwasherTakeCompleted
 
 /*TABLE MESSAGES */
 Dispatch putElement : putElement( TYPE, CODE, QNT )
 Dispatch takeElement : takeElement( TYPE, CODE, QNT )
-
-Dispatch tablePutCompleted : tablePutCompleted
-Dispatch tableTakeCompleted : tableTakeCompleted
 
 /*AGGIORNAMENTO STATO STANZA */
 Event updateContent : updateContent(DEVICE,CODE,QNT)
@@ -84,10 +72,6 @@ QActor butler context ctxButler{
 		println("[BUTLER]: Sono in preparing")
 		
 		delay 1000
-		
-		forward butler -m prepareCompleted : prepareCompleted
-		forward maitre -m prepareCompleted : prepareCompleted
-		
 	}
 	Transition t0 whenMsg 	prepareCompleted -> waitAC
 				  whenMsg	stopPrepare -> prepareSuspend
@@ -96,6 +80,7 @@ QActor butler context ctxButler{
 		println("[BUTLER]: Sono in prepareSuspend")
 	}
 	Transition t0 whenMsg reactivatePrepare -> preparing
+				  whenMsg stopPrepare -> prepareSuspend
 	
 	State waitAC{
 		println("[BUTLER]: Sono in waitAC")
@@ -132,12 +117,14 @@ QActor butler context ctxButler{
 		
 	}
 	Transition t0 whenMsg reactivateAddFood -> adding
+				  whenMsg stopAddFood -> addFoodSuspend
 	
 	State clearSuspend{
 		println("[BUTLER]: Sono in clearSuspend")
 		
 	}
 	Transition t0 whenMsg reactivateClear -> clearing
+				  whenMsg stopClear -> clearSuspend
 }
 
 QActor maitre context ctxButler{
@@ -162,6 +149,17 @@ QActor maitre context ctxButler{
 	State waitingPrepCompletion{
 		println("[MAITRE]: Sono in waitingPrepCompletion")
 		
+		/*forward butler -m stopPrepare : stopPrepare
+		
+		delay 1000
+		
+		forward butler -m stopPrepare : stopPrepare
+		forward butler -m stopPrepare : stopPrepare
+		
+		delay 2000
+		
+		forward butler -m reactivatePrepare : reactivatePrepare
+		*/
 	}
 	Transition t0 whenMsg prepareCompleted -> sendingAC
 				  whenEvent updateContent -> updateP
@@ -244,7 +242,7 @@ QActor fridge context ctxButler{
 		}
 		
 	}
-	Transition t0 whenMsg fridgeAnswerCompleted -> waitCmd
+	Goto waitCmd
 	
 	State puttingFood{
 		println("[FRIDGE]: Sono in puttingFood")
@@ -253,7 +251,7 @@ QActor fridge context ctxButler{
 			
 		}
 	}
-	Transition t0 whenMsg fridgePutCompleted -> waitCmd
+	Goto waitCmd
 	
 	State takingFood{
 		println("[FRIDGE]: Sono in takingFood")
@@ -263,7 +261,7 @@ QActor fridge context ctxButler{
 		}
 		
 	}
-	Transition t0 whenMsg fridgeTakeCompleted -> waitCmd
+	Goto waitCmd
 	
 }
 
@@ -293,7 +291,7 @@ QActor pantry context ctxButler{
 		}
 		
 	}
-	Transition t0 whenMsg pantryPutCompleted -> waitCmd
+	Goto waitCmd
 	
 	State takingDish{
 		println("[PANTRY]: Sono in takingDish")
@@ -303,7 +301,7 @@ QActor pantry context ctxButler{
 		}
 		
 	}
-	Transition t0 whenMsg pantryTakeCompleted -> waitCmd
+	Goto waitCmd
 	
 }
 
@@ -328,7 +326,7 @@ QActor dishwasher context ctxButler{
 		}
 		
 	}
-	Transition t0 whenMsg dishwasherPutCompleted -> waitCmd
+	Goto waitCmd
 	
 	State takingDish{
 		println("[DISHWASHER]: Sono in takingDish")
@@ -337,7 +335,7 @@ QActor dishwasher context ctxButler{
 			
 		}
 	}
-	Transition t0 whenMsg dishwasherTakeCompleted -> waitCmd
+	Goto waitCmd
 	
 }
 
@@ -362,7 +360,7 @@ QActor table context ctxButler{
 		}
 		
 	}
-	Transition t0 whenMsg tablePutCompleted -> waitCmd
+	Goto waitCmd
 	
 	State takingElement{
 		println("[TABLE]: Sono in takingDish")
@@ -371,6 +369,6 @@ QActor table context ctxButler{
 			
 		}
 	}
-	Transition t0 whenMsg tableTakeCompleted -> waitCmd
+	Goto waitCmd
 	
 }
