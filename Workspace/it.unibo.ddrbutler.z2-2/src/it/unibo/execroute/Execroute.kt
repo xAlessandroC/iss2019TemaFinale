@@ -42,7 +42,7 @@ class Execroute ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("[EXEC-ROUTE]: Sono in executing")
 						if( checkMsgContent( Term.createTerm("move(X)"), Term.createTerm("move(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("robotCmd", "robotCmd(execroute,${payloadArg(0)})" ,"basicrobot" ) 
+								forward("actionChanged", "actionChanged(execroute,${payloadArg(0)})" ,"modelmanagerbutler" ) 
 						}
 					}
 					 transition(edgeName="t024",targetState="handleObstacle",cond=whenEvent("obstacle"))

@@ -32,7 +32,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("backtracking") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in backtracking")
-						forward("robotCmd", "robotCmd(butler,s)" ,"basicrobot" ) 
+						forward("actionChanged", "actionChanged(butler,s)" ,"modelmanagerbutler" ) 
 					}
 					 transition(edgeName="t03",targetState="turnLeft",cond=whenDispatch("movementCompleted"))
 				}	 

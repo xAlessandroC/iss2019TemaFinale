@@ -12,3 +12,6 @@ context(ctxbutler, "localhost",  "TCP", "3030" ).
   qactor( pantry, ctxbutler, "it.unibo.pantry.Pantry").
   qactor( dishwasher, ctxbutler, "it.unibo.dishwasher.Dishwasher").
   qactor( table, ctxbutler, "it.unibo.table.Table").
+  qactor( modelmanagerbutler, ctxbutler, "it.unibo.modelmanagerbutler.Modelmanagerbutler").
+  qactor( modelmanagermaitre, ctxbutler, "it.unibo.modelmanagermaitre.Modelmanagermaitre").
+  qactor( modelmanagerfridge, ctxbutler, "it.unibo.modelmanagerfridge.Modelmanagerfridge").
