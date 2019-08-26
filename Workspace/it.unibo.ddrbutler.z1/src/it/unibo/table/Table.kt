@@ -26,8 +26,8 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					action { //it:State
 						println("[TABLE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t056",targetState="puttingElement",cond=whenDispatch("putElement"))
-					transition(edgeName="t057",targetState="takingElement",cond=whenDispatch("takeElement"))
+					 transition(edgeName="t054",targetState="puttingElement",cond=whenDispatch("putElement"))
+					transition(edgeName="t055",targetState="takingElement",cond=whenDispatch("takeElement"))
 				}	 
 				state("puttingElement") { //this:State
 					action { //it:State

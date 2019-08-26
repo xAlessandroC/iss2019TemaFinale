@@ -119,27 +119,20 @@ QActor butler context ctxButler{
 		println("[BUTLER]: Started...")
 		
 	}
-	Goto forwardStepStart
+	Goto forwardStep
 	
-	State forwardStepStart{
-		println("[BUTLER]: Sono in forwardStepStart")
+	State forwardStep{
+		println("[BUTLER]: Sono in forwardStep")
 		
 	}
-	Transition t0 whenTime 300 -> forwardStepStop
-				  whenEvent obstacle -> turnLeft
-				  
-	State forwardStepStop{
-		println("[BUTLER]: Sono in forwardStepStop")
-		
-	}
-	Goto forwardStepStart
+	Goto turnLeft
 	
 	State turnLeft{
 		println("[BUTLER]: Sono in turnLeft")
 		
 		["numeroOstacoli++"]
 	}
-	Goto waitPrepare if "(numeroOstacoli==4)" else forwardStepStart
+	Goto waitPrepare if "(numeroOstacoli==4)" else forwardStep
 	
 	State waitPrepare{
 		println("[BUTLER]: Sono in waitPrepare")

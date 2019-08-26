@@ -26,8 +26,8 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					action { //it:State
 						println("[TABLE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t036",targetState="puttingElement",cond=whenDispatch("putElement"))
-					transition(edgeName="t037",targetState="takingElement",cond=whenDispatch("takeElement"))
+					 transition(edgeName="t032",targetState="puttingElement",cond=whenDispatch("putElement"))
+					transition(edgeName="t033",targetState="takingElement",cond=whenDispatch("takeElement"))
 				}	 
 				state("puttingElement") { //this:State
 					action { //it:State
@@ -36,7 +36,7 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition(edgeName="t038",targetState="waitCmd",cond=whenDispatch("tablePutCompleted"))
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("takingElement") { //this:State
 					action { //it:State
@@ -45,7 +45,7 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition(edgeName="t039",targetState="waitCmd",cond=whenDispatch("tableTakeCompleted"))
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 			}
 		}
