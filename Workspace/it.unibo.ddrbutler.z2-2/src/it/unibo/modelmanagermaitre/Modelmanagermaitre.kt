@@ -26,8 +26,8 @@ class Modelmanagermaitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 					action { //it:State
 						println("[MODELMANAGER MAITRE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t057",targetState="handleCommand",cond=whenDispatch("stateChanged"))
-					transition(edgeName="t058",targetState="handleCommand",cond=whenDispatch("taskChanged"))
+					 transition(edgeName="t058",targetState="handleCommand",cond=whenDispatch("stateChanged"))
+					transition(edgeName="t059",targetState="handleCommand",cond=whenDispatch("taskChanged"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State

@@ -118,8 +118,11 @@ QActor butler context ctxButler{
 	State forwardStep{
 		println("[BUTLER]: Sono in forwardStep")
 		
+		forward basicrobot -m robotCmd : robotCmd(butler,w)
+		
 	}
 	Transition t0 whenEvent obstacle -> backtracking
+				  whenMsg movementCompleted -> forwardStep
 	
 	State backtracking{
 		println("[BUTLER]: Sono in backtracking")

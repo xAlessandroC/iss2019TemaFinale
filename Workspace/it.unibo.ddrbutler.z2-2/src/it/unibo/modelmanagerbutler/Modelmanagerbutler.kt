@@ -26,15 +26,15 @@ class Modelmanagerbutler ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 					action { //it:State
 						println("[MODELMANAGER MAITRE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t048",targetState="handleCommand",cond=whenDispatch("stateChanged"))
-					transition(edgeName="t049",targetState="handleCommand",cond=whenDispatch("taskChanged"))
-					transition(edgeName="t050",targetState="handleCommand",cond=whenDispatch("actionChanged"))
-					transition(edgeName="t051",targetState="handleCommand",cond=whenDispatch("fillBuffer"))
-					transition(edgeName="t052",targetState="handleCommand",cond=whenDispatch("emptyBuffer"))
-					transition(edgeName="t053",targetState="handleCommand",cond=whenDispatch("boardDishChanged"))
-					transition(edgeName="t054",targetState="handleCommand",cond=whenDispatch("boardFoodChanged"))
-					transition(edgeName="t055",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
-					transition(edgeName="t056",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
+					 transition(edgeName="t049",targetState="handleCommand",cond=whenDispatch("stateChanged"))
+					transition(edgeName="t050",targetState="handleCommand",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t051",targetState="handleCommand",cond=whenDispatch("actionChanged"))
+					transition(edgeName="t052",targetState="handleCommand",cond=whenDispatch("fillBuffer"))
+					transition(edgeName="t053",targetState="handleCommand",cond=whenDispatch("emptyBuffer"))
+					transition(edgeName="t054",targetState="handleCommand",cond=whenDispatch("boardDishChanged"))
+					transition(edgeName="t055",targetState="handleCommand",cond=whenDispatch("boardFoodChanged"))
+					transition(edgeName="t056",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
+					transition(edgeName="t057",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State

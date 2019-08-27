@@ -26,15 +26,17 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("forwardStep") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in forwardStep")
+						forward("robotCmd", "robotCmd(butler,w)" ,"basicrobot" ) 
 					}
 					 transition(edgeName="t02",targetState="backtracking",cond=whenEvent("obstacle"))
+					transition(edgeName="t03",targetState="forwardStep",cond=whenDispatch("movementCompleted"))
 				}	 
 				state("backtracking") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in backtracking")
 						forward("robotCmd", "robotCmd(butler,s)" ,"basicrobot" ) 
 					}
-					 transition(edgeName="t03",targetState="turnLeft",cond=whenDispatch("movementCompleted"))
+					 transition(edgeName="t04",targetState="turnLeft",cond=whenDispatch("movementCompleted"))
 				}	 
 				state("turnLeft") { //this:State
 					action { //it:State
@@ -48,7 +50,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[BUTLER]: Sono in waitPrepare")
 					}
-					 transition(edgeName="t04",targetState="calcPathToPantryA1",cond=whenDispatch("prepare"))
+					 transition(edgeName="t05",targetState="calcPathToPantryA1",cond=whenDispatch("prepare"))
 				}	 
 				state("calcPathToPantryA1") { //this:State
 					action { //it:State
@@ -61,7 +63,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToPantryA1")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t05",targetState="prepTakingDishA1",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t06",targetState="prepTakingDishA1",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepTakingDishA1") { //this:State
 					action { //it:State
@@ -82,7 +84,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToTableA1")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t06",targetState="prepPuttingDishA1",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t07",targetState="prepPuttingDishA1",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepPuttingDishA1") { //this:State
 					action { //it:State
@@ -102,7 +104,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToFridgeA2")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t07",targetState="prepTakingFoodA2",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t08",targetState="prepTakingFoodA2",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepTakingFoodA2") { //this:State
 					action { //it:State
@@ -121,7 +123,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToTableA2")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t08",targetState="prepPuttingFoodA2",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t09",targetState="prepPuttingFoodA2",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepPuttingFoodA2") { //this:State
 					action { //it:State
@@ -140,7 +142,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToRHPrep")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t09",targetState="prepareComplete",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t010",targetState="prepareComplete",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepareComplete") { //this:State
 					action { //it:State
@@ -153,8 +155,8 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[BUTLER]: Sono in waitAC")
 					}
-					 transition(edgeName="t010",targetState="makeQuery",cond=whenDispatch("addFood"))
-					transition(edgeName="t011",targetState="calcPathToTableA4",cond=whenDispatch("clear"))
+					 transition(edgeName="t011",targetState="makeQuery",cond=whenDispatch("addFood"))
+					transition(edgeName="t012",targetState="calcPathToTableA4",cond=whenDispatch("clear"))
 				}	 
 				state("makeQuery") { //this:State
 					action { //it:State
@@ -170,7 +172,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[BUTLER]: Sono in waitAnswer")
 					}
-					 transition(edgeName="t012",targetState="checkAnswer",cond=whenDispatch("answer"))
+					 transition(edgeName="t013",targetState="checkAnswer",cond=whenDispatch("answer"))
 				}	 
 				state("checkAnswer") { //this:State
 					action { //it:State
@@ -194,7 +196,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToFridgeA7")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t013",targetState="prepTakingFoodA7",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t014",targetState="prepTakingFoodA7",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepTakingFoodA7") { //this:State
 					action { //it:State
@@ -213,7 +215,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToTableA7")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t014",targetState="prepPuttingFoodA7",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t015",targetState="prepPuttingFoodA7",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepPuttingFoodA7") { //this:State
 					action { //it:State
@@ -232,7 +234,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToRHAdd")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t015",targetState="addComplete",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t016",targetState="addComplete",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("addComplete") { //this:State
 					action { //it:State
@@ -252,7 +254,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToTableA4")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t016",targetState="prepTakingFoodA4",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t017",targetState="prepTakingFoodA4",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepTakingFoodA4") { //this:State
 					action { //it:State
@@ -271,7 +273,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToFridgeA4")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t017",targetState="prepPuttingFoodA4",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t018",targetState="prepPuttingFoodA4",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepPuttingFoodA4") { //this:State
 					action { //it:State
@@ -290,7 +292,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToTableA5")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t018",targetState="prepTakingDishA5",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t019",targetState="prepTakingDishA5",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepTakingDishA5") { //this:State
 					action { //it:State
@@ -309,7 +311,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToDishawasherA5")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t019",targetState="prepPuttingDishA5",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t020",targetState="prepPuttingDishA5",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("prepPuttingDishA5") { //this:State
 					action { //it:State
@@ -328,7 +330,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in execPathToRHClear")
 						forward("startPlanning", "startPlanning" ,"execroute" ) 
 					}
-					 transition(edgeName="t020",targetState="clearComplete",cond=whenDispatch("movementCompleted"))
+					 transition(edgeName="t021",targetState="clearComplete",cond=whenDispatch("movementCompleted"))
 				}	 
 				state("clearComplete") { //this:State
 					action { //it:State

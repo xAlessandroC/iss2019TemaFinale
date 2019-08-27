@@ -130,13 +130,16 @@ QActor butler context ctxButler{
 	State forwardStep{
 		println("[BUTLER]: Sono in forwardStep")
 		
+		forward modelmanagerbutler -m actionChanged : actionChanged(butler, w)
+		
 	}
 	Transition t0 whenEvent obstacle -> backtracking
+				  whenMsg movementCompleted -> forwardStep
 	
 	State backtracking{
 		println("[BUTLER]: Sono in backtracking")
 		
-		forward modelmanagerbutler -m actionChanged : actionChanged(butler,s)
+		forward modelmanagerbutler -m actionChanged : actionChanged(butler, s)
 	}
 	Transition t0 whenMsg movementCompleted -> turnLeft
 	
@@ -511,7 +514,7 @@ QActor execroute context ctxButler{
 	State backtracking{
 		println("[EXEC-ROUTE]: Sono in backtracking")
 		
-		forward basicrobot -m robotCmd : robotCmd(execroute, s)
+		forward modelmanagerbutler -m actionChanged : actionChanged(execroute, s)
 		
 	}
 	Transition t0 whenMsg movementCompleted -> waitObstacleMoving
@@ -913,7 +916,7 @@ QActor modelmanagerbutler context ctxButler{
 			["if(payloadArg(0).equals(\"basicrobot\")){"]
 			
 				//ricavo il destinatario dell'azione e mando la risposta
-				//forward execroute -m movementCompleted : movementCompleted
+				//forward $DESTINATARIO -m movementCompleted : movementCompleted
 			
 			["}else{"]
 			

@@ -26,9 +26,9 @@ class Modelmanagerfridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 					action { //it:State
 						println("[MODELMANAGER MAITRE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t059",targetState="handleCommand",cond=whenDispatch("stateChanged"))
-					transition(edgeName="t060",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
-					transition(edgeName="t061",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
+					 transition(edgeName="t060",targetState="handleCommand",cond=whenDispatch("stateChanged"))
+					transition(edgeName="t061",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
+					transition(edgeName="t062",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State
