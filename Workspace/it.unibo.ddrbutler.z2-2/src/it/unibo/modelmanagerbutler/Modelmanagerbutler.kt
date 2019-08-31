@@ -24,21 +24,21 @@ class Modelmanagerbutler ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
-						println("[MODELMANAGER MAITRE]: Sono in waitCmd")
+						println("[MODELMANAGER BUTLER]: Sono in waitCmd")
 					}
-					 transition(edgeName="t049",targetState="handleCommand",cond=whenDispatch("stateChanged"))
-					transition(edgeName="t050",targetState="handleCommand",cond=whenDispatch("taskChanged"))
-					transition(edgeName="t051",targetState="handleCommand",cond=whenDispatch("actionChanged"))
-					transition(edgeName="t052",targetState="handleCommand",cond=whenDispatch("fillBuffer"))
-					transition(edgeName="t053",targetState="handleCommand",cond=whenDispatch("emptyBuffer"))
-					transition(edgeName="t054",targetState="handleCommand",cond=whenDispatch("boardDishChanged"))
-					transition(edgeName="t055",targetState="handleCommand",cond=whenDispatch("boardFoodChanged"))
-					transition(edgeName="t056",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
-					transition(edgeName="t057",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
+					 transition(edgeName="t057",targetState="handleCommand",cond=whenDispatch("stateChanged"))
+					transition(edgeName="t058",targetState="handleCommand",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t059",targetState="handleCommand",cond=whenDispatch("actionChange"))
+					transition(edgeName="t060",targetState="handleCommand",cond=whenDispatch("fillBuffer"))
+					transition(edgeName="t061",targetState="handleCommand",cond=whenDispatch("emptyBuffer"))
+					transition(edgeName="t062",targetState="handleCommand",cond=whenDispatch("boardDishChanged"))
+					transition(edgeName="t063",targetState="handleCommand",cond=whenDispatch("boardFoodChanged"))
+					transition(edgeName="t064",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
+					transition(edgeName="t065",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State
-						println("[MODELMANAGER MAITRE]: Sono in waitCmd")
+						println("[MODELMANAGER BUTLER]: Sono in handleCommand")
 						if( checkMsgContent( Term.createTerm("stateChanged(DEVICE,STATE)"), Term.createTerm("stateChanged(pantry,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
@@ -78,12 +78,9 @@ class Modelmanagerbutler ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 						if( checkMsgContent( Term.createTerm("boardFoodChanged(DEVICE,FOODCODE,QNT)"), Term.createTerm("boardFoodChanged(butler,FOODCODE,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
-						if( checkMsgContent( Term.createTerm("actionChanged(DEVICE,ACTION)"), Term.createTerm("actionChanged(X,ACTION)"), 
+						if( checkMsgContent( Term.createTerm("actionChange(ACTION)"), Term.createTerm("actionChange(ACTION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								if(payloadArg(0).equals("basicrobot")){
-								}else{
-								forward("robotCmd", "robotCmd(${payloadArg(1)})" ,"basicrobot" ) 
-								}
+								forward("robotCmd", "robotCmd(${payloadArg(0)})" ,"basicrobot" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

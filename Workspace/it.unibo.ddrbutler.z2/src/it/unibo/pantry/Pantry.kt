@@ -31,8 +31,8 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[PANTRY]: Sono in waitCmd")
 					}
-					 transition(edgeName="t043",targetState="puttingDish",cond=whenDispatch("pantryPutDish"))
-					transition(edgeName="t044",targetState="takingDish",cond=whenDispatch("pantryTakeDish"))
+					 transition(edgeName="t051",targetState="puttingDish",cond=whenDispatch("pantryPutDish"))
+					transition(edgeName="t052",targetState="takingDish",cond=whenDispatch("pantryTakeDish"))
 				}	 
 				state("puttingDish") { //this:State
 					action { //it:State

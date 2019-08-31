@@ -26,19 +26,13 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BASICROBOT]: Sono in waitCmd")
 					}
-					 transition(edgeName="t030",targetState="handleCommand",cond=whenDispatch("robotCmd"))
+					 transition(edgeName="t037",targetState="handleCommand",cond=whenDispatch("robotCmd"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State
 						println("[BASICROBOT]: Sono in handleCommand")
-						if( checkMsgContent( Term.createTerm("robotCmd(MITTENTE,X)"), Term.createTerm("robotCmd(MITTENTE,X)"), 
+						if( checkMsgContent( Term.createTerm("robotCmd(X)"), Term.createTerm("robotCmd(MITTENTE,X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								delay(1000) 
-								if(payloadArg(0).equals("execroute")){
-								forward("movementCompleted", "movementCompleted" ,"execroute" ) 
-								}else{
-								forward("movementCompleted", "movementCompleted" ,"butler" ) 
-								}
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

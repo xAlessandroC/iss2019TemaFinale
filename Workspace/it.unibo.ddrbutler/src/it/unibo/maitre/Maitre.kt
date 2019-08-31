@@ -50,14 +50,21 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[MAITRE]: Sono in waitingAddFoodCompletion")
 					}
 					 transition(edgeName="t021",targetState="sendingAC",cond=whenDispatch("addFoodCompleted"))
-					transition(edgeName="t022",targetState="updateA",cond=whenEvent("updateContent"))
+					transition(edgeName="t022",targetState="handleWarning",cond=whenDispatch("warning"))
+					transition(edgeName="t023",targetState="updateA",cond=whenEvent("updateContent"))
+				}	 
+				state("handleWarning") { //this:State
+					action { //it:State
+						println("[MAITRE]: Sono in handleWarning")
+					}
+					 transition( edgeName="goto",targetState="waitingAddFoodCompletion", cond=doswitch() )
 				}	 
 				state("waitingClearCompletion") { //this:State
 					action { //it:State
 						println("[MAITRE]: Sono in waitingClearCompletion")
 					}
-					 transition(edgeName="t023",targetState="sendingPrepare",cond=whenDispatch("clearCompleted"))
-					transition(edgeName="t024",targetState="updateC",cond=whenEvent("updateContent"))
+					 transition(edgeName="t024",targetState="sendingPrepare",cond=whenDispatch("clearCompleted"))
+					transition(edgeName="t025",targetState="updateC",cond=whenEvent("updateContent"))
 				}	 
 				state("updateP") { //this:State
 					action { //it:State

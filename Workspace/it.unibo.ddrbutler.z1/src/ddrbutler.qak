@@ -27,6 +27,8 @@ Dispatch prepareCompleted : prepareCompleted
 Dispatch addFoodCompleted : addFoodCompleted
 Dispatch clearCompleted : clearCompleted
 
+Dispatch warning : warning
+
 //maitre
 Dispatch prepareSended : prepareSended
 Dispatch addFoodSended : addFoodSended
@@ -370,7 +372,14 @@ QActor maitre context ctxButler{
 		
 	}
 	Transition t0 whenMsg addFoodCompleted -> sendingAC
+				  whenMsg warning -> handleWarning
 				  whenEvent updateContent -> updateA
+
+	State handleWarning{
+		println("[MAITRE]: Sono in handleWarning")
+		
+	}
+	Goto waitingAddFoodCompletion
 	
 	State waitingClearCompletion{
 		println("[MAITRE]: Sono in waitingClearCompletion")
