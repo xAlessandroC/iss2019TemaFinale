@@ -1,0 +1,863 @@
+System ddrbutler
+
+/*MESSAGGI */
+Event sonarRobot : sonarRobot(DISTANCE)
+Event obstacle : obstacle
+
+//butler
+Dispatch prepare : prepare
+Dispatch addFood : addFood(FOODCODE,QNT)
+Dispatch clear : clear
+Dispatch stop : stop											//basta un unico stop per tutti
+Dispatch reactivate : reactivate
+
+Dispatch prepareCompleted : prepareCompleted
+Dispatch addFoodCompleted : addFoodCompleted
+Dispatch clearCompleted : clearCompleted
+
+Dispatch warning : warning
+
+//exec route
+Dispatch startPlanning : startPlanning
+Dispatch move : move (X)
+Dispatch routeCompleted : routeCompleted
+
+//movementmind
+Dispatch exec : exec(MITTENTE, X)
+
+//basicrobot
+Dispatch robotCmd : robotCmd(X)
+Dispatch movementCompleted : movementCompleted
+
+//maitre
+Dispatch prepareSended : prepareSended
+Dispatch addFoodSended : addFoodSended
+Dispatch clearSended : clearSended
+
+//fridge
+Dispatch query : query( FOODCODE, QNT )
+Dispatch answer : answer(FOODCODE, ANS)
+
+Dispatch putFood : putFood( FOODCODE, QNT )
+Dispatch takeFood : takeFood( FOODCODE, QNT )
+
+//pantry
+Dispatch pantryPutDish : putDish( QNT )
+Dispatch pantryTakeDish : takeDish( QNT )
+
+//dishwasher
+Dispatch dishwasherPutDish : putDish( QNT )
+Dispatch dishwasherTakeDish : takeDish( QNT )
+
+//table
+Dispatch putElement : putElement( TYPE, CODE, QNT )
+Dispatch takeElement : takeElement( TYPE, CODE, QNT )
+
+//aggiornamento stato stanza
+Event updateContent : updateContent(DEVICE,CODE,QNT)
+
+Context ctxButler ip [host="localhost" port=3030]
+
+QActor sonarhandler context ctxButler{
+	/*
+	 * Ha il compito di ricevere i dati dal sonar,
+	 * in realtà questo viene già fatto da robotSupport
+	 */
+	State s0 initial{
+		println("[SONAR HANDLER]: Started...")
+	}
+	Goto waitData
+	
+	State waitData {
+		println("[SONAR HANDLER]: Sono in waitData")
+		
+	}
+	Transition t0 whenEvent sonarRobot -> handleData
+	
+	State handleData{
+		println("[SONAR HANDLER]: Sono in handleData")
+		
+	}
+	Goto waitData
+}
+
+QActor obstacledetector context ctxButler{
+	State s0 initial{
+		println("[OBSTACLE DETECTOR]: Started...")
+		
+	}
+	Goto waitSonarData
+	
+	State waitSonarData{
+		println("[OBSTACLE DETECTOR]: Sono in waitSonarData")
+		
+		delay 1000
+		emit obstacle:obstacle
+		delay 1000
+		emit obstacle:obstacle
+		delay 1000
+		emit obstacle:obstacle
+		delay 1000
+		emit obstacle:obstacle
+	}
+	Transition t0 whenEvent sonarRobot -> handleSonarData
+	
+	State handleSonarData{
+		println("[OBSTACLE DETECTOR]: Sono in handleSonarData")
+		
+		/*Determina se ci si trova di fronte ad un ostacolo ed emette un evento */
+	}
+	Goto waitSonarData
+}
+
+QActor butler context ctxButler{
+	["var numeroOstacoli=0; var positive=false; var DishCarrello=0"]
+	
+	State s0 initial{
+		println("[BUTLER]: Started...")
+		
+	}
+	Goto forwardStep
+	
+	State forwardStep{
+		println("[BUTLER]: Sono in forwardStep")
+		
+		forward movementmind -m exec : exec(butler,w)
+		
+	}
+	Transition t0 whenEvent obstacle -> backtracking
+				  whenMsg movementCompleted -> forwardStep
+	
+	State backtracking{
+		println("[BUTLER]: Sono in backtracking ---------------")
+		
+		forward movementmind -m exec : exec(butler,s)
+	}
+	Transition t0 whenMsg movementCompleted -> turnLeft
+	
+	State turnLeft{
+		println("[BUTLER]: Sono in turnLeft")
+		
+		["numeroOstacoli++"]
+		
+		forward movementmind -m exec : exec(butler,a)
+	}
+	Transition t0 whenMsg movementCompleted and "(numeroOstacoli==4)" -> waitPrepare
+				  whenMsg movementCompleted and "(numeroOstacoli!=4)" -> forwardStep
+	//Goto waitPrepare if "(numeroOstacoli==4)" else forwardStep
+	
+	State waitPrepare{
+		println("[BUTLER]: Sono in waitPrepare")
+		
+	}
+	Transition t0 whenMsg prepare -> calcPathToPantryA1
+	
+	//PREPARING
+	//A1
+	State calcPathToPantryA1{
+		println("[BUTLER]: Sono in calcPathToPantryA1")
+		
+	}
+	Goto execPathToPantryA1
+	
+	State execPathToPantryA1{
+		println("[BUTLER]: Sono in execPathToPantryA1")
+		
+		forward execroute -m startPlanning : startPlanning
+	}
+	Transition t0 whenMsg routeCompleted -> prepTakingDishA1
+	
+	State prepTakingDishA1{
+		println("[BUTLER]: Sono in prepTakingDishA1")
+		
+		["DishCarrello=5"]
+		forward pantry -m pantryTakeDish : takeDish(5)
+	}
+	Goto calcPathToTableA1
+	
+	State calcPathToTableA1{
+		println("[BUTLER]: Sono in calcPathToTableA1")
+		
+	}
+	Goto execPathToTableA1
+	
+	State execPathToTableA1{
+		println("[BUTLER]: Sono in execPathToTableA1")
+		
+		forward execroute -m startPlanning : startPlanning
+	}
+	Transition t0 whenMsg routeCompleted -> prepPuttingDishA1
+				  
+	State prepPuttingDishA1{
+		println("[BUTLER]: Sono in prepPuttingDishA1")
+		
+		forward table -m putElement : putElement( dish, CODE, $DishCarrello )
+		
+	}
+	Goto calcPathToFridgeA2
+	//Fine A1
+	
+	//A2
+	State calcPathToFridgeA2{
+		println("[BUTLER]: Sono in calcPathToFridgeA2")
+		
+	}
+	Goto execPathToFridgeA2
+	
+	State execPathToFridgeA2{
+		println("[BUTLER]: Sono in execPathToFridgeA2")
+		
+		forward execroute -m startPlanning : startPlanning
+	}
+	Transition t0 whenMsg routeCompleted -> prepTakingFoodA2
+				  
+	State prepTakingFoodA2{
+		println("[BUTLER]: Sono in prepTakingFoodA2")
+		
+	}
+	Goto calcPathToTableA2
+	
+	State calcPathToTableA2{
+		println("[BUTLER]: Sono in calcPathToTableA2")
+		
+	}
+	Goto execPathToTableA2
+	
+	State execPathToTableA2{
+		println("[BUTLER]: Sono in execPathToTableA2")
+		
+		forward execroute -m startPlanning : startPlanning
+	}
+	Transition t0 whenMsg routeCompleted -> prepPuttingFoodA2
+				  
+	State prepPuttingFoodA2{
+		println("[BUTLER]: Sono in prepPuttingFoodA2")
+		
+	}
+	Goto calcPathToRHPrep
+	//Fine A2
+	
+	//A3
+	State calcPathToRHPrep{
+		println("[BUTLER]: Sono in calcPathToRHPrep")
+		
+	}
+	Goto execPathToRHPrep
+	
+	State execPathToRHPrep{
+		println("[BUTLER]: Sono in execPathToRHPrep")
+		
+		forward execroute -m startPlanning : startPlanning
+		
+	}
+	Transition t0 whenMsg routeCompleted -> prepareComplete
+	
+	State prepareComplete{
+		println("[BUTLER]: Sono in prepareComplete")
+		
+		forward maitre -m prepareCompleted : prepareCompleted
+	}
+	Goto waitAC
+	//Fine A3
+	//fine PREPARING
+	  
+	State waitAC{
+		println("[BUTLER]: Sono in waitAC")
+		
+	}
+	Transition t0 whenMsg addFood -> makeQuery
+				  whenMsg clear -> calcPathToTableA4
+				  
+	//ADDING
+	//A6
+	State makeQuery{
+		println("[BUTLER]: Sono in makeQuery")
+		
+		onMsg( addFood : addFood(FOODCODE,QNT)){
+			//mando richiesta al frigo
+			forward fridge -m query : query($payloadArg(0),$payloadArg(1))	
+		}
+		
+	}
+	Goto waitAnswer
+	
+	State waitAnswer{
+		println("[BUTLER]: Sono in waitAnswer")
+		
+	}
+	Transition t0 whenMsg answer -> checkAnswer
+	
+	State checkAnswer{
+		println("[BUTLER]: Sono in checkAnswer")
+		
+		onMsg( answer : answer(FOODCODE, ANS)){
+			["positive=payloadArg(1).equals(\"yes\")"]			
+		}
+	}
+	Goto calcPathToFridgeA7 if "positive" else calcPathToRHAdd
+	
+	//fine A6
+	//A7
+	State calcPathToFridgeA7{
+		println("[BUTLER]: Sono in calcPathToFridgeA7")
+		
+	}
+	Goto execPathToFridgeA7
+	
+	State execPathToFridgeA7{
+		println("[BUTLER]: Sono in execPathToFridgeA7")
+		
+		forward execroute -m startPlanning : startPlanning		
+	}
+	Transition t0 whenMsg routeCompleted -> prepTakingFoodA7
+				  
+	State prepTakingFoodA7{
+		println("[BUTLER]: Sono in prepTakingFoodA7")
+		
+	}
+	Goto calcPathToTableA7
+	
+	State calcPathToTableA7{
+		println("[BUTLER]: Sono in calcPathToTableA7")
+		
+	}
+	Goto execPathToTableA7
+	
+	State execPathToTableA7{
+		println("[BUTLER]: Sono in execPathToTableA7")
+		
+		forward execroute -m startPlanning : startPlanning		
+	}
+	Transition t0 whenMsg routeCompleted -> prepPuttingFoodA7
+				  
+	State prepPuttingFoodA7{
+		println("[BUTLER]: Sono in prepPuttingFoodA7")
+		
+	}
+	Goto calcPathToRHAdd
+	//fine A7
+	//returnRH
+	State calcPathToRHAdd{
+		println("[BUTLER]: Sono in calcPathToRHAdd")
+		
+	}
+	Goto execPathToRHAdd
+	
+	State execPathToRHAdd{
+		println("[BUTLER]: Sono in execPathToRHAdd")
+		
+		forward execroute -m startPlanning : startPlanning
+		
+	}
+	Transition t0 whenMsg routeCompleted -> addComplete
+				  
+	State addComplete{
+		println("[BUTLER]: Sono in addComplete")
+		
+		forward maitre -m addFoodCompleted : addFoodCompleted
+	}
+	Goto waitAC
+	//fine returnRH
+	//fine ADDING
+
+	//CLEARING
+	//A4
+	State calcPathToTableA4{
+		println("[BUTLER]: Sono in calcPathToTableA4")
+		
+	}
+	Goto execPathToTableA4
+	
+	State execPathToTableA4{
+		println("[BUTLER]: Sono in execPathToTableA4")
+		
+		forward execroute -m startPlanning : startPlanning		
+	}
+	Transition t0 whenMsg routeCompleted -> prepTakingFoodA4
+				  
+	State prepTakingFoodA4{
+		println("[BUTLER]: Sono in prepTakingFoodA4")
+		
+	}
+	Goto calcPathToFridgeA4
+	
+	State calcPathToFridgeA4{
+		println("[BUTLER]: Sono in calcPathToFridgeA4")
+		
+	}
+	Goto execPathToFridgeA4
+	
+	State execPathToFridgeA4{
+		println("[BUTLER]: Sono in execPathToFridgeA4")
+		
+		forward execroute -m startPlanning : startPlanning		
+	}
+	Transition t0 whenMsg routeCompleted -> prepPuttingFoodA4
+				  
+	State prepPuttingFoodA4{
+		println("[BUTLER]: Sono in prepPuttingFoodA4")
+		
+	}
+	Goto calcPathToTableA5
+	//fine A4
+	//A5
+	State calcPathToTableA5{
+		println("[BUTLER]: Sono in calcPathToTableA5")
+		
+	}
+	Goto execPathToTableA5
+	
+	State execPathToTableA5{
+		println("[BUTLER]: Sono in execPathToTableA5")
+		
+		forward execroute -m startPlanning : startPlanning		
+	}
+	Transition t0 whenMsg routeCompleted -> prepTakingDishA5
+				  
+	State prepTakingDishA5{
+		println("[BUTLER]: Sono in prepTakingDishA5")
+		
+	}
+	Goto calcPathToDishawasherA5
+	
+	State calcPathToDishawasherA5{
+		println("[BUTLER]: Sono in calcPathToDishawasherA5")
+		
+	}
+	Goto execPathToDishawasherA5
+	
+	State execPathToDishawasherA5{
+		println("[BUTLER]: Sono in execPathToDishawasherA5")
+		
+		forward execroute -m startPlanning : startPlanning		
+	}
+	Transition t0 whenMsg routeCompleted -> prepPuttingDishA5
+				  
+	State prepPuttingDishA5{
+		println("[BUTLER]: Sono in prepPuttingDishA5")
+		
+	}
+	Goto calcPathToRHClear
+	//fine A5
+	//returnRH
+	State calcPathToRHClear{
+		println("[BUTLER]: Sono in calcPathToRHClear")
+		
+	}
+	Goto execPathToRHClear
+	
+	State execPathToRHClear{
+		println("[BUTLER]: Sono in execPathToRHClear")
+		
+		forward execroute -m startPlanning : startPlanning
+	}
+	Transition t0 whenMsg routeCompleted -> clearComplete
+				  
+	State clearComplete{
+		println("[BUTLER]: Sono in clearComplete")
+		
+		forward maitre -m clearCompleted : clearCompleted
+	}
+	Goto waitPrepare
+	//fine returnRH
+	//fine CLEARING
+}
+
+QActor execroute context ctxButler{
+	State s0 initial{
+		println("[EXEC-ROUTE]: Started...")
+		
+	}
+	Goto waitStart
+	
+	State waitStart{
+		println("[EXEC-ROUTE]: Sono in waitStart")
+		
+	}
+	Transition t0 whenMsg startPlanning -> scheduling
+	
+	State scheduling {
+		println("[EXEC-ROUTE]: Sono in scheduling")
+	
+		//inoltro mossa
+		//delay 250
+		//forward execroute -m move : move(w)
+		
+		//quando ho finito
+		forward butler -m routeCompleted : routeCompleted
+		forward execroute -m routeCompleted : routeCompleted
+	}
+	Transition t0 whenMsg move -> executing
+				  whenMsg stop -> suspendedScheduling
+				  whenMsg routeCompleted -> waitStart
+	
+	State executing {
+		println("[EXEC-ROUTE]: Sono in executing")
+	
+		onMsg(move : move(X)){
+			forward movementmind -m exec : exec(execroute, $payloadArg(0))
+		}
+	}
+	Transition t0 whenEvent obstacle -> handleObstacle
+				  whenMsg movementCompleted -> scheduling
+				  
+	State handleObstacle{
+		println("[EXEC-ROUTE]: Sono in handleObstacle")
+		
+		//ripristino buffer
+		
+	}
+	Goto backtracking
+	  
+	State backtracking{
+		println("[EXEC-ROUTE]: Sono in backtracking")
+		
+		forward movementmind -m exec : exec(execroute, s)
+		
+	}
+	Transition t0 whenMsg movementCompleted -> waitObstacleMoving
+	
+	State waitObstacleMoving{
+		println("[EXEC-ROUTE]: Sono in waitObstacleMoving")
+		
+		//simulo
+		delay 1000
+		
+	}
+	Goto scheduling
+	
+	State suspendedScheduling{
+		println("[EXEC-ROUTE]: Sono in suspendedScheduling")
+		
+		//ripristino buffer
+	}
+	Transition t0 whenMsg stop -> suspendedScheduling
+				  whenMsg reactivate -> scheduling
+	
+}
+
+QActor movementmind context ctxButler{
+	["var mittente=\"\""]
+	State s0 initial{
+		println("[MOVEMENT-MIND]: Started...")
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[MOVEMENT-MIND]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg exec -> handleCommand
+	
+	State handleCommand{
+		println("[MOVEMENT-MIND]: Sono in handleCommand")
+		
+		onMsg( exec : exec(MITTENTE, X)){
+			["mittente=payloadArg(0)"]
+			//simulo movimento
+			forward basicrobot -m robotCmd : robotCmd($payloadArg(1))
+			
+		}
+	}
+	Transition t0 whenTime 350 -> answer
+				  whenEvent obstacle -> waitCmd
+	
+	State answer{
+		println("[MOVEMENT-MIND]: Sono in answer")
+		
+		//inoltro risposta
+		["if(mittente.equals(\"execroute\")){"]
+		
+		forward execroute -m movementCompleted : movementCompleted
+		
+		["}else{"]
+		
+		forward butler -m movementCompleted : movementCompleted
+		
+		["}"]
+	}
+	Transition t0 whenMsg exec -> handleCommand
+}
+
+QActor basicrobot context ctxButler{
+	State s0 initial{
+		println("[BASICROBOT]: Started...")
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[BASICROBOT]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg robotCmd -> handleCommand
+	
+	State handleCommand{
+		println("[BASICROBOT]: Sono in handleCommand")
+	
+		onMsg ( robotCmd : robotCmd(MITTENTE, X)){
+			//simulo movimento
+			
+		}	
+	}
+	Goto waitCmd 
+}
+
+QActor maitre context ctxButler{
+	State s0 initial{
+		println("[MAITRE]: Started...")
+	}
+	Goto sendingPrepare
+	
+	State sendingPrepare{
+		println("[MAITRE]: Sono in sendingPrepare")
+		
+		delay 6000
+		
+		forward butler -m prepare : prepare
+		forward maitre -m prepareSended : prepareSended
+		
+	}
+	Transition t0 whenMsg prepareSended -> waitingPrepCompletion
+				  
+	
+	State waitingPrepCompletion{
+		println("[MAITRE]: Sono in waitingPrepCompletion")
+		
+		/*forward butler -m stopPrepare : stopPrepare
+		
+		delay 1000
+		
+		forward butler -m stopPrepare : stopPrepare
+		forward butler -m stopPrepare : stopPrepare
+		
+		delay 2000
+		
+		forward butler -m reactivatePrepare : reactivatePrepare
+		*/
+	}
+	Transition t0 whenMsg prepareCompleted -> sendingAC
+				  whenEvent updateContent -> updateP
+	
+	State sendingAC{
+		println("[MAITRE]: Sono in sendingAC")
+		
+		/*forward butler -m addFood : addFood(aaaa,10)
+		forward maitre -m addFoodSended : addFoodSended*/
+		
+		forward butler -m clear : clear
+		forward maitre -m clearSended : clearSended
+	}
+	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompletion
+				  whenMsg clearSended -> waitingClearCompletion
+				  
+	State waitingAddFoodCompletion{
+		println("[MAITRE]: Sono in waitingAddFoodCompletion")
+		
+	}
+	Transition t0 whenMsg addFoodCompleted -> sendingAC
+				  whenMsg warning -> handleWarning
+				  whenEvent updateContent -> updateA
+
+	State handleWarning{
+		println("[MAITRE]: Sono in handleWarning")
+		
+	}
+	Goto waitingAddFoodCompletion
+	
+	State waitingClearCompletion{
+		println("[MAITRE]: Sono in waitingClearCompletion")
+		
+	}
+	Transition t0 whenMsg clearCompleted -> sendingPrepare
+				  whenEvent updateContent -> updateC
+				  
+	State updateP{
+		println("[MAITRE]: Sono in updateP")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitingPrepCompletion
+	
+	State updateA{
+		println("[MAITRE]: Sono in updateA")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitingAddFoodCompletion
+	
+	State updateC{
+		println("[MAITRE]: Sono in updateC")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitingClearCompletion
+}
+
+QActor fridge context ctxButler{
+	State s0 initial{
+		println("[FRIDGE]: Started...")
+	}
+	Goto initialize
+	
+	State initialize{
+		//invio contenuto iniziale tramite eventi
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[FRIDGE]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg query -> answering
+				  whenMsg putFood -> puttingFood
+				  whenMsg takeFood -> takingFood
+				  
+	State answering{
+		println("[FRIDGE]: Sono in answering")
+		
+		onMsg( query : query(FOODCODE, QNT)){
+			
+			forward butler -m answer : answer($payloadArg(0),yes)
+		}
+		
+	}
+	Goto waitCmd
+	
+	State puttingFood{
+		println("[FRIDGE]: Sono in puttingFood")
+		
+		onMsg( putFood : putFood(FOODCODE, QNT)){
+			
+		}
+	}
+	Goto waitCmd
+	
+	State takingFood{
+		println("[FRIDGE]: Sono in takingFood")
+		
+		onMsg( takeFood : takeFood(FOODCODE, QNT)){
+			
+		}
+		
+	}
+	Goto waitCmd
+	
+}
+
+QActor pantry context ctxButler{
+	State s0 initial{
+		println("[PANTRY]: Started...")
+	}
+	Goto initialize
+	
+	State initialize{
+		//invio contenuto iniziale tramite eventi
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[PANTRY]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg pantryPutDish -> puttingDish
+				  whenMsg pantryTakeDish -> takingDish
+	
+	State puttingDish{
+		println("[PANTRY]: Sono in puttingDish")
+		
+		onMsg( pantryPutDish : pantryPutDish(QNT)){
+			
+		}
+		
+	}
+	Goto waitCmd
+	
+	State takingDish{
+		println("[PANTRY]: Sono in takingDish")
+		
+		onMsg( pantryTakeDish : pantryTakeDish(QNT)){
+			
+		}
+		
+	}
+	Goto waitCmd
+	
+}
+
+QActor dishwasher context ctxButler{
+	State s0 initial{
+		println("[DISHWASHER]: Started...")
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[DISHWASHER]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg dishwasherPutDish -> puttingDish
+				  whenMsg dishwasherTakeDish -> takingDish
+	
+	State puttingDish{
+		println("[DISHWASHER]: Sono in puttingDish")
+		
+		onMsg( dishwasherPutDish : dishwasherPutDish(QNT)){
+			
+		}
+		
+	}
+	Goto waitCmd
+	
+	State takingDish{
+		println("[DISHWASHER]: Sono in takingDish")
+		
+		onMsg( dishwasherTakeDish : dishwasherTakeDish(QNT)){
+			
+		}
+	}
+	Goto waitCmd
+	
+}
+
+QActor table context ctxButler{
+	State s0 initial{
+		println("[TABLE]: Started...")
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		println("[TABLE]: Sono in waitCmd")
+		
+	}
+	Transition t0 whenMsg putElement -> puttingElement
+				  whenMsg takeElement -> takingElement
+	
+	State puttingElement{
+		println("[TABLE]: Sono in puttingElement")
+		
+		onMsg( putElement : putElement( TYPE, CODE, QNT)){
+			["var stringa= \"[TABLE]: Sto depositando \"+payloadArg(2)+\" \"+payloadArg(0)"]
+			println(stringa)
+		}
+		
+	}
+	Goto waitCmd
+	
+	State takingElement{
+		println("[TABLE]: Sono in takingElement")
+		
+		onMsg( takeElement : takeElement( TYPE, CODE, QNT)){
+			
+		}
+	}
+	Goto waitCmd
+	
+}
