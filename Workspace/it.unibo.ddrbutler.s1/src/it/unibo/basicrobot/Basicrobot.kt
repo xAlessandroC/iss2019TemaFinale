@@ -19,26 +19,24 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						println("[BASICROBOT]: Started...")
+						solve("consult('basicRobotConfig.pl')","") //set resVar	
+						solve("robot(R,PORT)","") //set resVar	
+						if(currentSolution.isSuccess()) println("USING ROBOT : ${getCurSol("R")},  port= ${getCurSol("PORT")} ")
+						 		else{
+						 			 println("no robot")
+						 		}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
-						println("[BASICROBOT]: Sono in waitCmd")
 					}
-					 transition(edgeName="t029",targetState="handleCommand",cond=whenDispatch("robotCmd"))
+					 transition(edgeName="t00",targetState="handleCmd",cond=whenDispatch("robotCmd"))
 				}	 
-				state("handleCommand") { //this:State
+				state("handleCmd") { //this:State
 					action { //it:State
-						println("[BASICROBOT]: Sono in handleCommand")
-						if( checkMsgContent( Term.createTerm("robotCmd(MITTENTE,X)"), Term.createTerm("robotCmd(MITTENTE,X)"), 
+						if( checkMsgContent( Term.createTerm("robotCmd(CMD)"), Term.createTerm("robotCmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								delay(1000) 
-								if(payloadArg(0).equals("execroute")){
-								forward("movementCompleted", "movementCompleted" ,"execroute" ) 
-								}else{
-								forward("movementCompleted", "movementCompleted" ,"butler" ) 
-								}
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
