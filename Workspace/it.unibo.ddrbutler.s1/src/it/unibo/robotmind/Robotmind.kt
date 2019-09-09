@@ -34,6 +34,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								forward("robotChange", "robotChange(robot,${payloadArg(0)})" ,"resourcemodel" ) 
+								forward("robotCmd", "robotCmd(${payloadArg(0)})" ,"basicrobot" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -41,6 +42,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("turn") { //this:State
 					action { //it:State
 						forward("robotChange", "robotChange(robot,d)" ,"resourcemodel" ) 
+						forward("robotCmd", "robotCmd(d)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_turn", 
 							scope, context!!, "local_tout_robotmind_turn", 300.toLong() )
 					}
@@ -49,6 +51,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("stop") { //this:State
 					action { //it:State
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
+						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

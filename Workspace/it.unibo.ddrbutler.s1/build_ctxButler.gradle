@@ -91,7 +91,7 @@ sourceSets {
     main.java.srcDirs += 'resources'
 }
 
-mainClassName = 'it.unibo.MainCtxButlerKt'
+mainClassName = 'it.unibo.ctxButler.MainCtxButlerKt'
 
 jar {
     println("executing jar")
