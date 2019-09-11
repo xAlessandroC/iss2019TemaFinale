@@ -1,0 +1,327 @@
+System ddrbutler
+
+Event sonarRobot : sonar(DISTANCE)
+Event obstacle : obstacle
+
+Dispatch robotCmd : robotCmd(CMD)
+Dispatch mindCmd : mindCmd(CMD)
+Dispatch moveReceived : moveReceived
+
+Dispatch robotChange : robotChange(TARGET, VALUE)
+Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
+
+Dispatch startCalibration : startCalibration
+Dispatch calibrationCompleted : calibrationCompleted
+Dispatch moveCompleted : moveCompleted
+Dispatch moveFailed : moveFailed
+Dispatch endBoundary : endBoundary
+
+Context ctxButler ip [host="localhost" port=3030]
+
+QActor basicrobot context ctxButler{
+	State s0 initial{
+		println("[BASICROBOT]: Started...")
+		
+		solve( consult("basicRobotConfig.pl") )   
+ 		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
+  		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  		 else println("no robot")
+   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg robotCmd -> handleCmd
+	
+	State handleCmd{
+		
+		onMsg ( robotCmd : robotCmd(X)){
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+		}
+		
+	}
+	Goto waitCmd
+	
+}
+
+QActor obstacledetector context ctxButler{
+	["var distance=9999"]
+	State s0 initial{
+		println("[OBSTACLE-DETECTOR]: Started...")
+		
+		solve(consult("sonarConfig.pl"))
+		solve( detection(X) )
+		ifSolved println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
+  		 else println("no distance")
+   	
+   		["distance=Integer.parseInt(getCurSol(\"X\").toString())"]	
+	}
+	Transition t0 whenMsg sonarRobot -> handleSonarData
+	
+	State handleSonarData{
+		
+		onMsg(sonarRobot : sonar(DISTANCE)){
+			printCurrentMessage
+			[" val D = Integer.parseInt( payloadArg(0) )"]
+			["if(D<=distance){"]
+				forward resourcemodel -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
+				emit obstacle : obstacle
+			["}else{"]
+				forward resourcemodel -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
+			["}"]
+		}
+	}
+	Transition t0 whenMsg sonarRobot -> handleSonarData
+}
+
+/*QActor robotmind context ctxButler{
+	State s0 initial{
+		println("[ROBOT MIND]: Started...")
+		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg mindCmd -> handleCmd
+				  whenEvent obstacle -> turn
+				  
+	State handleCmd {
+		
+		onMsg(mindCmd : mindCmd(X)){
+			printCurrentMessage
+			forward resourcemodel -m robotChange : robotChange(robot, $payloadArg(0))
+			forward basicrobot -m robotCmd : robotCmd($payloadArg(0))
+		}
+	}
+	Goto waitCmd
+	
+	State turn{
+		forward resourcemodel -m robotChange : robotChange(robot, d)
+		forward basicrobot -m robotCmd : robotCmd(d)
+	}
+	Transition t0 whenTime 300 -> stop
+	
+	State stop{
+		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward basicrobot -m robotCmd : robotCmd(h)
+	}
+	Goto waitCmd
+}*/
+
+QActor robotmind context ctxButler{
+	["var input=\"\""]
+	
+	State s0 initial{
+		println("[ROBOT MIND]: Started...")
+		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+		onMsg(obstacle : obstacle){
+			//forward basicrobot -m robotCmd : robotCmd(h)
+			forward calibration -m moveFailed : moveFailed
+		}
+	}
+	Transition t0 whenMsg mindCmd -> handleCmd
+				  
+	State handleCmd {
+		
+		onMsg(mindCmd : mindCmd(X)){
+			printCurrentMessage
+			
+			["input=payloadArg(0)"]
+			
+			forward robotmind -m moveReceived : moveReceived
+		}
+	}
+	Transition to whenMsg moveReceived and "input.equals(\"w\")" -> startForward
+				  whenMsg moveReceived and "input.equals(\"s\")" -> startBacktracking
+				  whenMsg moveReceived and "input.equals(\"a\")" -> startTurnLeft
+				  whenMsg moveReceived and "input.equals(\"d\")" -> startTurnRight
+				  
+	State startForward{
+		printCurrentMessage
+		
+		forward resourcemodel -m robotChange : robotChange(robot, w)
+		forward basicrobot -m robotCmd : robotCmd(w)
+	}
+	Transition t0 whenTime 1000 -> stopForward
+				  whenEvent obstacle -> waitCmd
+				  
+	State stopForward{
+		printCurrentMessage
+		
+		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward basicrobot -m robotCmd : robotCmd(h)
+		
+		forward calibration -m moveCompleted : moveCompleted
+	}
+	Goto waitCmd
+	
+	State startTurnLeft{
+		forward resourcemodel -m robotChange : robotChange(robot, a)
+		forward basicrobot -m robotCmd : robotCmd(a)
+	}
+	Transition t0 whenTime 1750 -> stopTurnLeft
+				 // whenEvent obstacle -> waitCmd
+				  
+	State stopTurnLeft{
+		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward basicrobot -m robotCmd : robotCmd(h)
+		
+		forward calibration -m moveCompleted : moveCompleted
+	}
+	Goto waitCmd
+	
+	State startTurnRight{
+		forward resourcemodel -m robotChange : robotChange(robot, d)
+		forward basicrobot -m robotCmd : robotCmd(d)
+	}
+	Transition t0 whenTime 1750 -> stopTurnRight
+				  //whenEvent obstacle -> waitCmd
+				  
+	State stopTurnRight{
+		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward basicrobot -m robotCmd : robotCmd(h)
+		
+		forward calibration -m moveCompleted : moveCompleted
+	}
+	Goto waitCmd
+	
+	State startBacktracking{
+		forward resourcemodel -m robotChange : robotChange(robot, s)
+		forward basicrobot -m robotCmd : robotCmd(s)
+	}
+	Transition t0 whenTime 500 -> stopBacktracking
+				  //whenEvent obstacle -> waitCmd
+				  
+	State stopBacktracking{
+		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward basicrobot -m robotCmd : robotCmd(h)
+		
+		forward calibration -m moveCompleted : moveCompleted
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodel context ctxButler{
+	State s0 initial{
+		println("[RESOURCE MODEL]: Started...")
+		
+		solve( consult("sysRules.pl")	 )
+		solve(consult("robotState.pl"))
+		
+	}
+	Goto waitCmd
+
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg robotChange -> handleChange
+				  whenMsg sonarChange -> handleChange
+	
+	State handleChange{
+		onMsg(robotChange : robotChange(robot, X)){
+			printCurrentMessage
+			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+		}
+		
+		onMsg(sonarChange : sonarChange(sonar, VALUE, OBSTACLE)){
+			printCurrentMessage
+			["var obstacle=payloadArg(2).equals(\"obstacle\")"]
+			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1), obstacle )
+		}
+	}
+	Goto waitCmd
+}
+
+QActor butlermind context ctxButler{
+	State s0 initial{
+		println("[BUTLERMIND]: Started...")
+		
+		delay 3000
+	}
+	Goto calibration
+	
+	State calibration{
+		printCurrentMessage
+		
+		forward calibration -m startCalibration : startCalibration
+	}
+	Transition t0 whenMsg calibrationCompleted -> endCalibration
+	
+	State endCalibration{
+		printCurrentMessage
+	}
+}
+
+QActor calibration context ctxButler{
+	State s0 initial{
+		println("[CALIBRATION]: Started...")
+		
+		run itunibo.planner.plannerUtil.initAI()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg startCalibration -> forwardStep
+	
+	State forwardStep{
+		
+		onMsg(moveCompleted: moveCompleted){
+			["
+			  	var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+			  	["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+			  	
+			  	["if(positionX==0 && positionY==0){
+			"]
+				
+				forward calibration -m endBoundary : endBoundary
+			["}else{"]
+				run itunibo.planner.moveUtils.moveAhead(myself)
+			["}"]
+		}
+		
+		onMsg(startCalibration : startCalibration){
+			run itunibo.planner.moveUtils.moveAhead(myself)
+		}
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> forwardStep
+				  whenMsg moveFailed -> backtracking
+				  whenMsg endBoundary -> terminazioneboundary
+	
+	State backtracking{
+		
+		run itunibo.planner.moveUtils.backToCompensate(myself)
+	}
+	Transition t0 whenMsg moveCompleted -> turnLeft
+				  
+    State turnLeft{
+    	
+		//run itunibo.planner.moveUtils.rotateLeft(myself)
+		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+		//forward calibration -m moveCompleted:moveCompleted
+	}
+	Transition t0 whenMsg moveCompleted -> forwardStep
+	
+	State terminazioneboundary{
+		printCurrentMessage
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+}
+
+/*QActor console context ctxButler{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/
