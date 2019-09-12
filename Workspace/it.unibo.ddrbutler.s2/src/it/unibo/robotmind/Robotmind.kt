@@ -68,6 +68,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("startTurnLeft") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,a)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(a)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_startTurnLeft", 
@@ -77,6 +78,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("stopTurnLeft") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
@@ -85,6 +87,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("startTurnRight") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,d)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(d)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_startTurnRight", 
@@ -94,6 +97,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("stopTurnRight") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
@@ -102,6 +106,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("startBacktracking") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,s)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(s)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_startBacktracking", 
@@ -111,6 +116,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("stopBacktracking") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 

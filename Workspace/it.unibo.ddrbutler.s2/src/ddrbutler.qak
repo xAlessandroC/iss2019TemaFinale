@@ -26,7 +26,7 @@ QActor basicrobot context ctxButler{
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
   		 else println("no robot")
-   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+   		//ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
 	}
 	Goto waitCmd
 	
@@ -38,7 +38,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -165,6 +165,8 @@ QActor robotmind context ctxButler{
 	Goto waitCmd
 	
 	State startTurnLeft{
+		printCurrentMessage
+		
 		forward resourcemodel -m robotChange : robotChange(robot, a)
 		forward basicrobot -m robotCmd : robotCmd(a)
 	}
@@ -172,6 +174,8 @@ QActor robotmind context ctxButler{
 				 // whenEvent obstacle -> waitCmd
 				  
 	State stopTurnLeft{
+		printCurrentMessage
+		
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
 		
@@ -180,6 +184,8 @@ QActor robotmind context ctxButler{
 	Goto waitCmd
 	
 	State startTurnRight{
+		printCurrentMessage
+		
 		forward resourcemodel -m robotChange : robotChange(robot, d)
 		forward basicrobot -m robotCmd : robotCmd(d)
 	}
@@ -187,6 +193,8 @@ QActor robotmind context ctxButler{
 				  //whenEvent obstacle -> waitCmd
 				  
 	State stopTurnRight{
+		printCurrentMessage
+		
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
 		
@@ -195,6 +203,8 @@ QActor robotmind context ctxButler{
 	Goto waitCmd
 	
 	State startBacktracking{
+		printCurrentMessage
+		
 		forward resourcemodel -m robotChange : robotChange(robot, s)
 		forward basicrobot -m robotCmd : robotCmd(s)
 	}
@@ -202,6 +212,8 @@ QActor robotmind context ctxButler{
 				  //whenEvent obstacle -> waitCmd
 				  
 	State stopBacktracking{
+		printCurrentMessage
+		
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
 		
@@ -262,6 +274,11 @@ QActor butlermind context ctxButler{
 }
 
 QActor calibration context ctxButler{
+	["
+		var terminato=false
+		var nextDir=\"\"
+	"]
+		
 	State s0 initial{
 		println("[CALIBRATION]: Started...")
 		
@@ -278,27 +295,45 @@ QActor calibration context ctxButler{
 			  	["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
 			  	
 			  	["if(positionX==0 && positionY==0){
-			"]
+					terminato=true
+			}"]
+			/*	
 				
-				forward calibration -m endBoundary : endBoundary
 			["}else{"]
-				run itunibo.planner.moveUtils.moveAhead(myself)
+				//run itunibo.planner.moveUtils.moveAhead(myself)
+				
 			["}"]
+			*/
 		}
 		
-		onMsg(startCalibration : startCalibration){
-			run itunibo.planner.moveUtils.moveAhead(myself)
-		}
+		/*onMsg(startCalibration : startCalibration){
+			//run itunibo.planner.moveUtils.moveAhead(myself)
+			forward robotmind -m mindCmd : mindCmd(w)
+		}*/
+		
+		["if(terminato){"]
+			forward calibration -m endBoundary : endBoundary
+		["}else{"]
+			forward robotmind -m mindCmd : mindCmd(w)
+		["}"]
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
-	Transition t0 whenMsg moveCompleted -> forwardStep
+	Transition t0 whenMsg moveCompleted -> confirmForwardStep
 				  whenMsg moveFailed -> backtracking
 				  whenMsg endBoundary -> terminazioneboundary
+	
+	State confirmForwardStep{
+		
+		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
+	
+	}Goto forwardStep
 	
 	State backtracking{
 		
 		run itunibo.planner.moveUtils.backToCompensate(myself)
+		run itunibo.planner.plannerUtil.wallFound()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
 	Transition t0 whenMsg moveCompleted -> turnLeft
 				  
@@ -306,7 +341,7 @@ QActor calibration context ctxButler{
     	
 		//run itunibo.planner.moveUtils.rotateLeft(myself)
 		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
-		//forward calibration -m moveCompleted:moveCompleted
+		forward calibration -m moveCompleted:moveCompleted
 	}
 	Transition t0 whenMsg moveCompleted -> forwardStep
 	
@@ -314,14 +349,124 @@ QActor calibration context ctxButler{
 		printCurrentMessage
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
+		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
+	}
+	Goto startExploration
+	
+	State startExploration{
+		println("---START EXPLORATION ROOM---")
+		println("---SNAKE STRATEGY---")
+		
+	}
+	Goto snakeForwardStep
+	
+	State snakeForwardStep{
+		//assumo che non ci siano ostacoli in questa fase
+		run itunibo.planner.moveUtils.moveAhead(myself)
+		//forward robotmind -m mindCmd : mindCmd(w)
+		
+		//controllo direzione successiva
+		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+		["var dimX="]run itunibo.planner.moveUtils.getMapDimX()
+		["var dimY="]run itunibo.planner.moveUtils.getMapDimY()
+		
+		["if(positionX == 0){
+				nextDir=\"left\"
+		}else{
+			if(positionX == dimX - 2)
+				nextDir=\"right\"
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"left\")" -> snakeTurnLeft
+				  whenMsg moveCompleted and "nextDir.equals(\"right\")" -> snakeTurnRight
+	
+	State snakeTurnLeft{
+		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+		forward calibration -m moveCompleted:moveCompleted
+		
+		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
+		
+		["if(direction.equals(\"downDir\")){
+			nextDir=\"forward\"
+		}else{
+			nextDir=\"goAhead\"
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"forward\")" -> snakeForwardStep
+				  whenMsg moveCompleted and "nextDir.equals(\"goAhead\")" -> snakeGoAhead
+	
+	
+	State snakeTurnRight{
+		run itunibo.planner.moveUtils.rotateRight90tuning(myself)
+		forward calibration -m moveCompleted:moveCompleted
+		
+		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
+		
+		["if(direction.equals(\"downDir\")){
+			nextDir=\"forward\"
+		}else{
+			nextDir=\"goAhead\"
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"forward\")" -> snakeForwardStep
+				  whenMsg moveCompleted and "nextDir.equals(\"goAhead\")" -> snakeGoAhead
+	
+	State snakeGoAhead{
+		//assumo che non ci siano ostacoli in questa fase
+		run itunibo.planner.moveUtils.moveAhead(myself)
+		
+		//controllo direzione successiva
+		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+		["var dimX="]run itunibo.planner.moveUtils.getMapDimX()
+		["var dimY="]run itunibo.planner.moveUtils.getMapDimY()
+		
+		["nextDir=\"straight\""]
+		["if(positionX == 0){
+				if(positionY == dimY - 3)
+					nextDir=\"completed\"
+				else
+					nextDir=\"left\"
+		}else{
+			if(positionX == dimX - 2){
+				if(positionY == dimY -3 )
+					nextDir=\"completed\"
+				else
+					nextDir=\"right\"
+			}
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"completed\")" -> endExploration
+				  whenMsg moveCompleted and "nextDir.equals(\"left\")" -> snakeTurnLeft
+				  whenMsg moveCompleted and "nextDir.equals(\"right\")" -> snakeTurnRight
+				  whenMsg moveCompleted and "nextDir.equals(\"straight\")" -> snakeGoAhead
+				  
+	State endExploration{
+		println("END EXPLORATION")
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
 	}
 }
 
-/*QActor console context ctxButler{
+QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}*/
+}

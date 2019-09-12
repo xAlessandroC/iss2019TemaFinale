@@ -15,6 +15,9 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				var terminato=false
+				var nextDir=""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -34,30 +37,38 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 								var positionY=
 								itunibo.planner.moveUtils.getPosY(myself)
 								if(positionX==0 && positionY==0){
-								forward("endBoundary", "endBoundary" ,"calibration" ) 
-								}else{
-								itunibo.planner.moveUtils.moveAhead(myself)
-								}
+													terminato=true
+											}
 						}
-						if( checkMsgContent( Term.createTerm("startCalibration"), Term.createTerm("startCalibration"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								itunibo.planner.moveUtils.moveAhead(myself)
+						if(terminato){
+						forward("endBoundary", "endBoundary" ,"calibration" ) 
+						}else{
+						forward("mindCmd", "mindCmd(w)" ,"robotmind" ) 
 						}
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t017",targetState="forwardStep",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t017",targetState="confirmForwardStep",cond=whenDispatch("moveCompleted"))
 					transition(edgeName="t018",targetState="backtracking",cond=whenDispatch("moveFailed"))
 					transition(edgeName="t019",targetState="terminazioneboundary",cond=whenDispatch("endBoundary"))
+				}	 
+				state("confirmForwardStep") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.doPlannedMove(myself ,"w" )
+					}
+					 transition( edgeName="goto",targetState="forwardStep", cond=doswitch() )
 				}	 
 				state("backtracking") { //this:State
 					action { //it:State
 						itunibo.planner.moveUtils.backToCompensate(myself)
+						itunibo.planner.plannerUtil.wallFound(  )
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
 					 transition(edgeName="t020",targetState="turnLeft",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("turnLeft") { //this:State
 					action { //it:State
 						itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
 					}
 					 transition(edgeName="t021",targetState="forwardStep",cond=whenDispatch("moveCompleted"))
 				}	 
@@ -65,6 +76,112 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
+						itunibo.planner.moveUtils.saveMap(myself ,"mapRoom" )
+					}
+					 transition( edgeName="goto",targetState="startExploration", cond=doswitch() )
+				}	 
+				state("startExploration") { //this:State
+					action { //it:State
+						println("---START EXPLORATION ROOM---")
+						println("---SNAKE STRATEGY---")
+					}
+					 transition( edgeName="goto",targetState="snakeForwardStep", cond=doswitch() )
+				}	 
+				state("snakeForwardStep") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.moveAhead(myself)
+						var positionX=
+						itunibo.planner.moveUtils.getPosX(myself)
+						var positionY=
+						itunibo.planner.moveUtils.getPosY(myself)
+						var dimX=
+						itunibo.planner.moveUtils.getMapDimX(  )
+						var dimY=
+						itunibo.planner.moveUtils.getMapDimY(  )
+						if(positionX == 0){
+										nextDir="left"
+								}else{
+									if(positionX == dimX - 2)
+										nextDir="right"
+								}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+						println("NEXT DIR: ${nextDir.toUpperCase()}")
+					}
+					 transition(edgeName="t022",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
+					transition(edgeName="t023",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
+				}	 
+				state("snakeTurnLeft") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						var direction=
+						itunibo.planner.moveUtils.getDirection(myself)
+						if(direction.equals("downDir")){
+									nextDir="forward"
+								}else{
+									nextDir="goAhead"
+								}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+						println("NEXT DIR: ${nextDir.toUpperCase()}")
+					}
+					 transition(edgeName="t024",targetState="snakeForwardStep",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("forward")}))
+					transition(edgeName="t025",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("goAhead")}))
+				}	 
+				state("snakeTurnRight") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.rotateRight90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						var direction=
+						itunibo.planner.moveUtils.getDirection(myself)
+						if(direction.equals("downDir")){
+									nextDir="forward"
+								}else{
+									nextDir="goAhead"
+								}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+						println("NEXT DIR: ${nextDir.toUpperCase()}")
+					}
+					 transition(edgeName="t026",targetState="snakeForwardStep",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("forward")}))
+					transition(edgeName="t027",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("goAhead")}))
+				}	 
+				state("snakeGoAhead") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.moveAhead(myself)
+						var positionX=
+						itunibo.planner.moveUtils.getPosX(myself)
+						var positionY=
+						itunibo.planner.moveUtils.getPosY(myself)
+						var dimX=
+						itunibo.planner.moveUtils.getMapDimX(  )
+						var dimY=
+						itunibo.planner.moveUtils.getMapDimY(  )
+						nextDir="straight"
+						if(positionX == 0){
+										if(positionY == dimY - 3)
+											nextDir="completed"
+										else
+											nextDir="left"
+								}else{
+									if(positionX == dimX - 2){
+										if(positionY == dimY -3 )
+											nextDir="completed"
+										else
+											nextDir="right"
+									}
+								}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+						println("NEXT DIR: ${nextDir.toUpperCase()}")
+					}
+					 transition(edgeName="t028",targetState="endExploration",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("completed")}))
+					transition(edgeName="t029",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
+					transition(edgeName="t030",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
+					transition(edgeName="t031",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("straight")}))
+				}	 
+				state("endExploration") { //this:State
+					action { //it:State
+						println("END EXPLORATION")
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+						itunibo.planner.moveUtils.saveMap(myself ,"mapRoom" )
 					}
 				}	 
 			}

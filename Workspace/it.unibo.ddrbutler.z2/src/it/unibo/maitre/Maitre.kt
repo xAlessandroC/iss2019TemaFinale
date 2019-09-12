@@ -25,18 +25,18 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("sendingPrepare") { //this:State
 					action { //it:State
 						println("[MAITRE]: Sono in sendingPrepare")
-						delay(6000) 
+						delay(4000) 
 						forward("prepare", "prepare" ,"butler" ) 
 						forward("prepareSended", "prepareSended" ,"maitre" ) 
 					}
-					 transition(edgeName="t038",targetState="waitingPrepCompletion",cond=whenDispatch("prepareSended"))
+					 transition(edgeName="t047",targetState="waitingPrepCompletion",cond=whenDispatch("prepareSended"))
 				}	 
 				state("waitingPrepCompletion") { //this:State
 					action { //it:State
 						println("[MAITRE]: Sono in waitingPrepCompletion")
 					}
-					 transition(edgeName="t039",targetState="sendingAC",cond=whenDispatch("prepareCompleted"))
-					transition(edgeName="t040",targetState="updateP",cond=whenEvent("updateContent"))
+					 transition(edgeName="t048",targetState="sendingAC",cond=whenDispatch("prepareCompleted"))
+					transition(edgeName="t049",targetState="updateP",cond=whenEvent("updateContent"))
 				}	 
 				state("sendingAC") { //this:State
 					action { //it:State
@@ -44,29 +44,22 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("clear", "clear" ,"butler" ) 
 						forward("clearSended", "clearSended" ,"maitre" ) 
 					}
-					 transition(edgeName="t041",targetState="waitingAddFoodCompletion",cond=whenDispatch("addFoodSended"))
-					transition(edgeName="t042",targetState="waitingClearCompletion",cond=whenDispatch("clearSended"))
+					 transition(edgeName="t050",targetState="waitingAddFoodCompletion",cond=whenDispatch("addFoodSended"))
+					transition(edgeName="t051",targetState="waitingClearCompletion",cond=whenDispatch("clearSended"))
 				}	 
 				state("waitingAddFoodCompletion") { //this:State
 					action { //it:State
 						println("[MAITRE]: Sono in waitingAddFoodCompletion")
 					}
-					 transition(edgeName="t043",targetState="sendingAC",cond=whenDispatch("addFoodCompleted"))
-					transition(edgeName="t044",targetState="handleWarning",cond=whenDispatch("warning"))
-					transition(edgeName="t045",targetState="updateA",cond=whenEvent("updateContent"))
-				}	 
-				state("handleWarning") { //this:State
-					action { //it:State
-						println("[MAITRE]: Sono in handleWarning")
-					}
-					 transition( edgeName="goto",targetState="waitingAddFoodCompletion", cond=doswitch() )
+					 transition(edgeName="t052",targetState="sendingAC",cond=whenDispatch("addFoodCompleted"))
+					transition(edgeName="t053",targetState="updateA",cond=whenEvent("updateContent"))
 				}	 
 				state("waitingClearCompletion") { //this:State
 					action { //it:State
 						println("[MAITRE]: Sono in waitingClearCompletion")
 					}
-					 transition(edgeName="t046",targetState="sendingPrepare",cond=whenDispatch("clearCompleted"))
-					transition(edgeName="t047",targetState="updateC",cond=whenEvent("updateContent"))
+					 transition(edgeName="t054",targetState="sendingPrepare",cond=whenDispatch("clearCompleted"))
+					transition(edgeName="t055",targetState="updateC",cond=whenEvent("updateContent"))
 				}	 
 				state("updateP") { //this:State
 					action { //it:State

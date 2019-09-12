@@ -25,15 +25,13 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t03",targetState="handleCmd",cond=whenDispatch("mindCmd"))
+					 transition(edgeName="t03",targetState="handleCmd",cond=whenDispatch("robotCmd"))
 					transition(edgeName="t04",targetState="turn",cond=whenEvent("obstacle"))
 				}	 
 				state("handleCmd") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("mindCmd(CMD)"), Term.createTerm("mindCmd(X)"), 
+						if( checkMsgContent( Term.createTerm("robotCmd(CMD)"), Term.createTerm("robotCmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								forward("robotChange", "robotChange(robot,${payloadArg(0)})" ,"resourcemodel" ) 
 								forward("robotCmd", "robotCmd(${payloadArg(0)})" ,"basicrobot" ) 
 						}
 					}
@@ -41,8 +39,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("turn") { //this:State
 					action { //it:State
-						forward("robotChange", "robotChange(robot,d)" ,"resourcemodel" ) 
-						forward("robotCmd", "robotCmd(d)" ,"basicrobot" ) 
+						forward("robotCmd", "robotCmd(s)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_turn", 
 							scope, context!!, "local_tout_robotmind_turn", 300.toLong() )
 					}
@@ -50,7 +47,6 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("stop") { //this:State
 					action { //it:State
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
