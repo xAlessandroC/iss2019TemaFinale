@@ -15,19 +15,28 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var numeroOstacoli=0; var positive=false; var DishCarrello=0
+		var numeroOstacoli=0; var positive=false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[BUTLER]: Started...")
 					}
-					 transition( edgeName="goto",targetState="forwardStep", cond=doswitch() )
+					 transition( edgeName="goto",targetState="forwardStepStart", cond=doswitch() )
 				}	 
-				state("forwardStep") { //this:State
+				state("forwardStepStart") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in forwardStep")
+						println("[BUTLER]: Sono in forwardStepStart")
+						stateTimer = TimerActor("timer_forwardStepStart", 
+							scope, context!!, "local_tout_butler_forwardStepStart", 300.toLong() )
 					}
-					 transition( edgeName="goto",targetState="turnLeft", cond=doswitch() )
+					 transition(edgeName="t02",targetState="forwardStepStop",cond=whenTimeout("local_tout_butler_forwardStepStart"))   
+					transition(edgeName="t03",targetState="turnLeft",cond=whenEvent("obstacle"))
+				}	 
+				state("forwardStepStop") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in forwardStepStop")
+					}
+					 transition( edgeName="goto",targetState="forwardStepStart", cond=doswitch() )
 				}	 
 				state("turnLeft") { //this:State
 					action { //it:State
@@ -35,169 +44,79 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						numeroOstacoli++
 					}
 					 transition( edgeName="goto",targetState="waitPrepare", cond=doswitchGuarded({(numeroOstacoli==4)}) )
-					transition( edgeName="goto",targetState="forwardStep", cond=doswitchGuarded({! (numeroOstacoli==4)}) )
+					transition( edgeName="goto",targetState="forwardStepStart", cond=doswitchGuarded({! (numeroOstacoli==4)}) )
 				}	 
 				state("waitPrepare") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in waitPrepare")
 					}
-					 transition(edgeName="t02",targetState="calcPathToPantryA1",cond=whenDispatch("prepare"))
+					 transition(edgeName="t04",targetState="preparingA1",cond=whenDispatch("prepare"))
 				}	 
-				state("calcPathToPantryA1") { //this:State
+				state("preparingA1") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in calcPathToPantryA1")
-					}
-					 transition( edgeName="goto",targetState="execPathToPantryA1", cond=doswitch() )
-				}	 
-				state("execPathToPantryA1") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToPantryA1")
+						println("[BUTLER]: Sono in preparingA1")
 						delay(1000) 
-						forward("completedExecToPantryA1", "completedExecToPantryA1" ,"butler" ) 
+						forward("preparingCompletedA1", "preparingCompletedA1" ,"butler" ) 
 					}
-					 transition(edgeName="t03",targetState="suspendedExecToPantryA1",cond=whenDispatch("stop"))
-					transition(edgeName="t04",targetState="prepTakingDishA1",cond=whenDispatch("completedExecToPantryA1"))
+					 transition(edgeName="t05",targetState="suspendedA1",cond=whenDispatch("stop"))
+					transition(edgeName="t06",targetState="preparingA2",cond=whenDispatch("preparingCompletedA1"))
 				}	 
-				state("suspendedExecToPantryA1") { //this:State
+				state("suspendedA1") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToPantryA1")
+						println("[BUTLER]: Sono in suspendedA1")
 					}
-					 transition(edgeName="t05",targetState="suspendedExecToPantryA1",cond=whenDispatch("stop"))
+					 transition(edgeName="t07",targetState="suspendedA1",cond=whenDispatch("stop"))
+					transition(edgeName="t08",targetState="preparingA1",cond=whenDispatch("reactivate"))
 				}	 
-				state("prepTakingDishA1") { //this:State
+				state("preparingA2") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in prepTakingDishA1")
-						DishCarrello=5
-						forward("pantryTakeDish", "takeDish(5)" ,"pantry" ) 
-					}
-					 transition( edgeName="goto",targetState="calcPathToTableA1", cond=doswitch() )
-				}	 
-				state("calcPathToTableA1") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToTableA1")
-					}
-					 transition( edgeName="goto",targetState="execPathToTableA1", cond=doswitch() )
-				}	 
-				state("execPathToTableA1") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToTableA1")
+						println("[BUTLER]: Sono in preparingA2")
 						delay(1000) 
-						forward("completedExecToTableA1", "completedExecToTableA1" ,"butler" ) 
+						forward("preparingCompletedA2", "preparingCompletedA2" ,"butler" ) 
 					}
-					 transition(edgeName="t06",targetState="suspendedExecToTableA1",cond=whenDispatch("stop"))
-					transition(edgeName="t07",targetState="prepPuttingDishA1",cond=whenDispatch("completedExecToTableA1"))
+					 transition(edgeName="t09",targetState="suspendedA2",cond=whenDispatch("stop"))
+					transition(edgeName="t010",targetState="preparingReturnRH",cond=whenDispatch("preparingCompletedA2"))
 				}	 
-				state("suspendedExecToTableA1") { //this:State
+				state("suspendedA2") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToTableA1")
+						println("[BUTLER]: Sono in suspendedA2")
 					}
-					 transition(edgeName="t08",targetState="suspendedExecToTableA1",cond=whenDispatch("stop"))
+					 transition(edgeName="t011",targetState="suspendedA2",cond=whenDispatch("stop"))
+					transition(edgeName="t012",targetState="preparingA2",cond=whenDispatch("reactivate"))
 				}	 
-				state("prepPuttingDishA1") { //this:State
+				state("preparingReturnRH") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in prepPuttingDishA1")
-						forward("putElement", "putElement(dish,CODE,$DishCarrello)" ,"table" ) 
-					}
-					 transition( edgeName="goto",targetState="calcPathToFridgeA2", cond=doswitch() )
-				}	 
-				state("calcPathToFridgeA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToFridgeA2")
-					}
-					 transition( edgeName="goto",targetState="execPathToFridgeA2", cond=doswitch() )
-				}	 
-				state("execPathToFridgeA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToFridgeA2")
+						println("[BUTLER]: Sono in preparingReturnRH")
 						delay(1000) 
-						forward("completedExecToFridgeA2", "completedExecToFridgeA2" ,"butler" ) 
-					}
-					 transition(edgeName="t09",targetState="suspendedExecToFridgeA2",cond=whenDispatch("stop"))
-					transition(edgeName="t010",targetState="prepTakingFoodA2",cond=whenDispatch("completedExecToFridgeA2"))
-				}	 
-				state("suspendedExecToFridgeA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToFridgeA2")
-					}
-					 transition(edgeName="t011",targetState="suspendedExecToFridgeA2",cond=whenDispatch("stop"))
-				}	 
-				state("prepTakingFoodA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in prepTakingFoodA2")
-					}
-					 transition( edgeName="goto",targetState="calcPathToTableA2", cond=doswitch() )
-				}	 
-				state("calcPathToTableA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToTableA2")
-					}
-					 transition( edgeName="goto",targetState="execPathToTableA2", cond=doswitch() )
-				}	 
-				state("execPathToTableA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToTableA2")
-						delay(1000) 
-						forward("completedExecToTableA2", "completedExecToTableA2" ,"butler" ) 
-					}
-					 transition(edgeName="t012",targetState="suspendedExecToTableA2",cond=whenDispatch("stop"))
-					transition(edgeName="t013",targetState="prepPuttingFoodA2",cond=whenDispatch("completedExecToTableA2"))
-				}	 
-				state("suspendedExecToTableA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToTableA2")
-					}
-					 transition(edgeName="t014",targetState="suspendedExecToTableA2",cond=whenDispatch("stop"))
-				}	 
-				state("prepPuttingFoodA2") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in prepPuttingFoodA2")
-					}
-					 transition( edgeName="goto",targetState="calcPathToRHPrep", cond=doswitch() )
-				}	 
-				state("calcPathToRHPrep") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToRHPrep")
-					}
-					 transition( edgeName="goto",targetState="execPathToRHPrep", cond=doswitch() )
-				}	 
-				state("execPathToRHPrep") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToRHPrep")
-						delay(1000) 
-						forward("completedExecToRHPrep", "completedExecToRHPrep" ,"butler" ) 
+						forward("preparingCompletedReturnRH", "preparingCompletedReturnRH" ,"butler" ) 
 						forward("prepareCompleted", "prepareCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t015",targetState="suspendedExecToRHPrep",cond=whenDispatch("stop"))
-					transition(edgeName="t016",targetState="waitAC",cond=whenDispatch("completedExecToRHPrep"))
+					 transition(edgeName="t013",targetState="suspendedReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t014",targetState="waitAC",cond=whenDispatch("preparingCompletedReturnRH"))
 				}	 
-				state("suspendedExecToRHPrep") { //this:State
+				state("suspendedReturnRH") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToRHPrep")
+						println("[BUTLER]: Sono in suspendedReturnRH")
 					}
-					 transition(edgeName="t017",targetState="suspendedExecToRHPrep",cond=whenDispatch("stop"))
+					 transition(edgeName="t015",targetState="suspendedReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t016",targetState="preparingReturnRH",cond=whenDispatch("reactivate"))
 				}	 
 				state("waitAC") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in waitAC")
 					}
-					 transition(edgeName="t018",targetState="makeQuery",cond=whenDispatch("addFood"))
-					transition(edgeName="t019",targetState="calcPathToTableA4",cond=whenDispatch("clear"))
+					 transition(edgeName="t017",targetState="addingA6",cond=whenDispatch("addFood"))
+					transition(edgeName="t018",targetState="clearingA4",cond=whenDispatch("clear"))
 				}	 
-				state("makeQuery") { //this:State
+				state("addingA6") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in makeQuery")
+						println("[BUTLER]: Sono in addingA6")
 						if( checkMsgContent( Term.createTerm("addFood(FOODCODE,QNT)"), Term.createTerm("addFood(FOODCODE,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("query", "query(${payloadArg(0)},${payloadArg(1)})" ,"fridge" ) 
 						}
 					}
-					 transition( edgeName="goto",targetState="waitAnswer", cond=doswitch() )
-				}	 
-				state("waitAnswer") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in waitAnswer")
-					}
-					 transition(edgeName="t020",targetState="checkAnswer",cond=whenDispatch("answer"))
+					 transition(edgeName="t019",targetState="checkAnswer",cond=whenDispatch("answer"))
 				}	 
 				state("checkAnswer") { //this:State
 					action { //it:State
@@ -207,214 +126,90 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								positive=payloadArg(1).equals("yes")
 						}
 					}
-					 transition( edgeName="goto",targetState="calcPathToFridgeA7", cond=doswitchGuarded({positive}) )
-					transition( edgeName="goto",targetState="calcPathToRHAdd", cond=doswitchGuarded({! positive}) )
+					 transition( edgeName="goto",targetState="addingA7", cond=doswitchGuarded({positive}) )
+					transition( edgeName="goto",targetState="addingReturnRH", cond=doswitchGuarded({! positive}) )
 				}	 
-				state("calcPathToFridgeA7") { //this:State
+				state("addingA7") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in calcPathToFridgeA7")
-					}
-					 transition( edgeName="goto",targetState="execPathToFridgeA7", cond=doswitch() )
-				}	 
-				state("execPathToFridgeA7") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToFridgeA7")
+						println("[BUTLER]: Sono in addingA7")
 						delay(1000) 
-						forward("completedExecToFridgeA7", "completedExecToFridgeA7" ,"butler" ) 
+						forward("addingCompletedA7", "addingCompletedA7" ,"butler" ) 
 					}
-					 transition(edgeName="t021",targetState="suspendedExecToFridgeA7",cond=whenDispatch("stop"))
-					transition(edgeName="t022",targetState="prepTakingFoodA7",cond=whenDispatch("completedExecToFridgeA7"))
+					 transition(edgeName="t020",targetState="suspendedA7",cond=whenDispatch("stop"))
+					transition(edgeName="t021",targetState="addingReturnRH",cond=whenDispatch("addingCompletedA7"))
 				}	 
-				state("suspendedExecToFridgeA7") { //this:State
+				state("suspendedA7") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToFridgeA7")
+						println("[BUTLER]: Sono in suspendedA7")
 					}
-					 transition(edgeName="t023",targetState="suspendedExecToFridgeA7",cond=whenDispatch("stop"))
+					 transition(edgeName="t022",targetState="suspendedA7",cond=whenDispatch("stop"))
+					transition(edgeName="t023",targetState="addingA7",cond=whenDispatch("reactivate"))
 				}	 
-				state("prepTakingFoodA7") { //this:State
+				state("addingReturnRH") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in prepTakingFoodA7")
-					}
-					 transition( edgeName="goto",targetState="calcPathToTableA7", cond=doswitch() )
-				}	 
-				state("calcPathToTableA7") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToTableA7")
-					}
-					 transition( edgeName="goto",targetState="execPathToTableA7", cond=doswitch() )
-				}	 
-				state("execPathToTableA7") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToTableA7")
+						println("[BUTLER]: Sono in addingReturnRH")
 						delay(1000) 
-						forward("completedExecToTableA7", "completedExecToTableA7" ,"butler" ) 
-					}
-					 transition(edgeName="t024",targetState="suspendedExecToTableA7",cond=whenDispatch("stop"))
-					transition(edgeName="t025",targetState="prepPuttingFoodA7",cond=whenDispatch("completedExecToTableA7"))
-				}	 
-				state("suspendedExecToTableA7") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToTableA7")
-					}
-					 transition(edgeName="t026",targetState="suspendedExecToTableA7",cond=whenDispatch("stop"))
-				}	 
-				state("prepPuttingFoodA7") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in prepPuttingFoodA7")
-					}
-					 transition( edgeName="goto",targetState="calcPathToRHAdd", cond=doswitch() )
-				}	 
-				state("calcPathToRHAdd") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToRHAdd")
-					}
-					 transition( edgeName="goto",targetState="execPathToRHAdd", cond=doswitch() )
-				}	 
-				state("execPathToRHAdd") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToRHAdd")
-						delay(1000) 
-						forward("completedExecToRHAdd", "completedExecToRHAdd" ,"butler" ) 
+						forward("addingCompletedReturnRH", "addingCompletedReturnRH" ,"butler" ) 
 						forward("addFoodCompleted", "addFoodCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t027",targetState="suspendedExecToRHAdd",cond=whenDispatch("stop"))
-					transition(edgeName="t028",targetState="waitAC",cond=whenDispatch("completedExecToRHAdd"))
+					 transition(edgeName="t024",targetState="suspendedAddingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t025",targetState="waitAC",cond=whenDispatch("addingCompletedReturnRH"))
 				}	 
-				state("suspendedExecToRHAdd") { //this:State
+				state("suspendedAddingReturnRH") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToRHAdd")
+						println("[BUTLER]: Sono in suspendedAddingReturnRH")
 					}
-					 transition(edgeName="t029",targetState="suspendedExecToRHAdd",cond=whenDispatch("stop"))
+					 transition(edgeName="t026",targetState="suspendedAddingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t027",targetState="addingReturnRH",cond=whenDispatch("reactivate"))
 				}	 
-				state("calcPathToTableA4") { //this:State
+				state("clearingA4") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in calcPathToTableA4")
-					}
-					 transition( edgeName="goto",targetState="execPathToTableA4", cond=doswitch() )
-				}	 
-				state("execPathToTableA4") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToTableA4")
+						println("[BUTLER]: Sono in clearingA4")
 						delay(1000) 
-						forward("completedExecToTableA4", "completedExecToTableA4" ,"butler" ) 
+						forward("clearingCompletedA4", "clearingCompletedA4" ,"butler" ) 
 					}
-					 transition(edgeName="t030",targetState="suspendedExecToTableA4",cond=whenDispatch("stop"))
-					transition(edgeName="t031",targetState="prepTakingFoodA4",cond=whenDispatch("completedExecToTableA4"))
+					 transition(edgeName="t028",targetState="suspendedA4",cond=whenDispatch("stop"))
+					transition(edgeName="t029",targetState="clearingA5",cond=whenDispatch("clearingCompletedA4"))
 				}	 
-				state("suspendedExecToTableA4") { //this:State
+				state("suspendedA4") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToTableA4")
+						println("[BUTLER]: Sono in suspendedA4")
 					}
-					 transition(edgeName="t032",targetState="suspendedExecToTableA4",cond=whenDispatch("stop"))
+					 transition(edgeName="t030",targetState="suspendedA4",cond=whenDispatch("stop"))
+					transition(edgeName="t031",targetState="clearingA4",cond=whenDispatch("reactivate"))
 				}	 
-				state("prepTakingFoodA4") { //this:State
+				state("clearingA5") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in prepTakingFoodA4")
-					}
-					 transition( edgeName="goto",targetState="calcPathToFridgeA4", cond=doswitch() )
-				}	 
-				state("calcPathToFridgeA4") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToFridgeA4")
-					}
-					 transition( edgeName="goto",targetState="execPathToFridgeA4", cond=doswitch() )
-				}	 
-				state("execPathToFridgeA4") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToFridgeA4")
+						println("[BUTLER]: Sono in clearingA5")
 						delay(1000) 
-						forward("completedExecToFridgeA4", "completedExecToFridgeA4" ,"butler" ) 
+						forward("clearingCompletedA5", "clearingCompletedA5" ,"butler" ) 
 					}
-					 transition(edgeName="t033",targetState="suspendedExecToFridgeA4",cond=whenDispatch("stop"))
-					transition(edgeName="t034",targetState="prepPuttingFoodA4",cond=whenDispatch("completedExecToFridgeA4"))
+					 transition(edgeName="t032",targetState="suspendedA5",cond=whenDispatch("stop"))
+					transition(edgeName="t033",targetState="clearingReturnRH",cond=whenDispatch("clearingCompletedA5"))
 				}	 
-				state("suspendedExecToFridgeA4") { //this:State
+				state("suspendedA5") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToFridgeA4")
+						println("[BUTLER]: Sono in suspendedA5")
 					}
-					 transition(edgeName="t035",targetState="suspendedExecToFridgeA4",cond=whenDispatch("stop"))
+					 transition(edgeName="t034",targetState="suspendedA5",cond=whenDispatch("stop"))
+					transition(edgeName="t035",targetState="clearingA5",cond=whenDispatch("reactivate"))
 				}	 
-				state("prepPuttingFoodA4") { //this:State
+				state("clearingReturnRH") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in prepPuttingFoodA4")
-					}
-					 transition( edgeName="goto",targetState="calcPathToTableA5", cond=doswitch() )
-				}	 
-				state("calcPathToTableA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToTableA5")
-					}
-					 transition( edgeName="goto",targetState="execPathToTableA5", cond=doswitch() )
-				}	 
-				state("execPathToTableA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToTableA5")
+						println("[BUTLER]: Sono in clearingReturnRH")
 						delay(1000) 
-						forward("completedExecToTableA5", "completedExecToTableA5" ,"butler" ) 
-					}
-					 transition(edgeName="t036",targetState="suspendedExecToTableA5",cond=whenDispatch("stop"))
-					transition(edgeName="t037",targetState="prepTakingDishA5",cond=whenDispatch("completedExecToTableA5"))
-				}	 
-				state("suspendedExecToTableA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToTableA4")
-					}
-					 transition(edgeName="t038",targetState="suspendedExecToTableA5",cond=whenDispatch("stop"))
-				}	 
-				state("prepTakingDishA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in prepTakingDishA5")
-					}
-					 transition( edgeName="goto",targetState="calcPathToDishawasherA5", cond=doswitch() )
-				}	 
-				state("calcPathToDishawasherA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToDishawasherA5")
-					}
-					 transition( edgeName="goto",targetState="execPathToDishawasherA5", cond=doswitch() )
-				}	 
-				state("execPathToDishawasherA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToDishawasherA5")
-						delay(1000) 
-						forward("completedExecToDishwasherA5", "completedExecToDishwasherA5" ,"butler" ) 
-					}
-					 transition(edgeName="t039",targetState="suspendedExecToDishwasherA5",cond=whenDispatch("stop"))
-					transition(edgeName="t040",targetState="prepPuttingDishA5",cond=whenDispatch("completedExecToDishwasherA5"))
-				}	 
-				state("suspendedExecToDishwasherA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToDishwasherA5")
-					}
-					 transition(edgeName="t041",targetState="suspendedExecToDishwasherA5",cond=whenDispatch("stop"))
-				}	 
-				state("prepPuttingDishA5") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in prepPuttingDishA5")
-					}
-					 transition( edgeName="goto",targetState="calcPathToRHClear", cond=doswitch() )
-				}	 
-				state("calcPathToRHClear") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in calcPathToRHClear")
-					}
-					 transition( edgeName="goto",targetState="execPathToRHClear", cond=doswitch() )
-				}	 
-				state("execPathToRHClear") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in execPathToRHClear")
-						delay(1000) 
-						forward("completedExecToRHClear", "completedExecToRHClear" ,"butler" ) 
+						forward("clearingCompletedReturnRH", "clearingCompletedReturnRH" ,"butler" ) 
 						forward("clearCompleted", "clearCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t042",targetState="suspendedExecToRHClar",cond=whenDispatch("stop"))
-					transition(edgeName="t043",targetState="waitPrepare",cond=whenDispatch("completedExecToRHClear"))
+					 transition(edgeName="t036",targetState="suspendedClearingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t037",targetState="waitPrepare",cond=whenDispatch("clearingCompletedReturnRH"))
 				}	 
-				state("suspendedExecToRHClar") { //this:State
+				state("suspendedClearingReturnRH") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in suspendedExecToRHPrep")
+						println("[BUTLER]: Sono in suspendedClearingReturnRH")
 					}
-					 transition(edgeName="t044",targetState="suspendedExecToRHClar",cond=whenDispatch("stop"))
+					 transition(edgeName="t038",targetState="suspendedClearingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t039",targetState="clearingReturnRH",cond=whenDispatch("reactivate"))
 				}	 
 			}
 		}

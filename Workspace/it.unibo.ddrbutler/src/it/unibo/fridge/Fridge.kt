@@ -31,9 +31,9 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[FRIDGE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t022",targetState="answering",cond=whenDispatch("query"))
-					transition(edgeName="t023",targetState="puttingFood",cond=whenDispatch("putFood"))
-					transition(edgeName="t024",targetState="takingFood",cond=whenDispatch("takeFood"))
+					 transition(edgeName="t026",targetState="answering",cond=whenDispatch("query"))
+					transition(edgeName="t027",targetState="puttingFood",cond=whenDispatch("putFood"))
+					transition(edgeName="t028",targetState="takingFood",cond=whenDispatch("takeFood"))
 				}	 
 				state("answering") { //this:State
 					action { //it:State
@@ -42,7 +42,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition(edgeName="t025",targetState="waitCmd",cond=whenDispatch("fridgeAnswerCompleted"))
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
@@ -51,7 +51,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition(edgeName="t026",targetState="waitCmd",cond=whenDispatch("fridgePutCompleted"))
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -60,7 +60,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition(edgeName="t027",targetState="waitCmd",cond=whenDispatch("fridgeTakeCompleted"))
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 			}
 		}

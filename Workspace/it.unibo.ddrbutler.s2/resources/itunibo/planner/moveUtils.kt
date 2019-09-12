@@ -6,6 +6,8 @@ import kotlinx.coroutines.delay
 import itunibo.planner.model.RobotState.Direction
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import itunibo.planner.model.RoomMap
+import itunibo.planner.model.Box
 
 object moveUtils{
     private val actions : List<Action>? = null
@@ -138,7 +140,7 @@ object moveUtils{
  		//actor.forward("mindCmd", "mindCmd(d)", "robotmind")
 		println("TUNING TO RIGHT.... ")
  		//readLine()
- 		doPlannedMove(actor, "r" )	    //update map
+ 		doPlannedMove(actor, "d" )	    //update map
  	}
 	suspend fun rotateLeft(actor : ActorBasic){
 		actor.forward("mindCmd", "mindCmd(a)", "robotmind")
@@ -180,5 +182,19 @@ object moveUtils{
 		//delay( pauseTime.toLong() )
 		//doPlannedMove(actor, "s" )
    	}
+	
+	//CUSTOM
+	fun setTable(startX : Int,startY : Int,endX : Int,endY : Int,lengthX : Int,lengthY : Int){
+		var startMaxX = Math.min(startX,endX)
+		var startMaxY = Math.min(startY,endY)
+		var endMaxX =	Math.max(startX,endX)
+		var endMaxY =	Math.max(startY,endY)
+		
+		for(i in startMaxX..endMaxX){
+			for(j in startMaxY..endMaxY){
+				RoomMap.getRoomMap().put(i,j,Box(true,false,false))
+			}
+		}
+	}
 	
 }

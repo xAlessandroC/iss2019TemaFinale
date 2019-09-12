@@ -275,8 +275,17 @@ QActor butlermind context ctxButler{
 
 QActor calibration context ctxButler{
 	["
-		var terminato=false
-		var nextDir=\"\"
+		var terminato = false
+		var nextDir = \"\"
+		var findTableInitDir = \"\"
+		var startX = -1
+		var startY = -1
+		var endX = -1
+		var endY = -1
+		var lengthX = 0
+		var lengthY = 0
+		var angle = false
+		var finito = false;
 	"]
 		
 	State s0 initial{
@@ -453,10 +462,133 @@ QActor calibration context ctxButler{
 				  whenMsg moveCompleted and "nextDir.equals(\"left\")" -> snakeTurnLeft
 				  whenMsg moveCompleted and "nextDir.equals(\"right\")" -> snakeTurnRight
 				  whenMsg moveCompleted and "nextDir.equals(\"straight\")" -> snakeGoAhead
+				  whenMsg moveFailed -> findTable
 				  
-	State endExploration{
-		println("END EXPLORATION")
+	State findTable{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.backToCompensate(myself)
 		
+		["startX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["startY="]run itunibo.planner.moveUtils.getPosY(myself)
+		["findTableInitDir="]run itunibo.planner.moveUtils.getDirection(myself)
+		
+		["if(findTableInitDir.equals(\"leftDir\")){
+			startX--
+		}"]
+		["if(findTableInitDir.equals(\"rightDir\")){
+			startX++
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> goSouthFT
+	
+	State goSouthFT{
+		printCurrentMessage
+		["var temp="]run itunibo.planner.moveUtils.getDirection(myself)
+		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+		
+		//run itunibo.planner.plannerUtil.setObstacleWall(direction,positionX,positionY)
+		run itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)
+		
+		["if(angle){
+			lengthX++;
+		}else{
+			lengthY++
+		}
+		
+		if(findTableInitDir.equals(\"leftDir\")){"]
+				run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+				forward calibration -m moveCompleted:moveCompleted
+			["}
+			if(findTableInitDir.equals(\"rightDir\")){"]
+				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
+				forward calibration -m moveCompleted:moveCompleted
+			["}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> forwardStepFT
+	
+	State forwardStepFT{
+		printCurrentMessage
+		//assumo che non ci siano ostacoli in questa fase
+		run itunibo.planner.moveUtils.moveAhead(myself)
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> goIntern
+	
+	State goIntern{
+		printCurrentMessage
+		["if(findTableInitDir.equals(\"leftDir\")){"]
+				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
+				forward calibration -m moveCompleted:moveCompleted
+			["}
+			if(findTableInitDir.equals(\"rightDir\")){"]
+				run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+				forward calibration -m moveCompleted:moveCompleted
+			["}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> checkTable
+	
+	State checkTable{
+		printCurrentMessage
+		//COME TROVO TAVOLO??????
+		forward robotmind -m mindCmd : mindCmd(w)
+		println("ORA!!!")
+		//delay 400
+	}
+	Transition t0 whenMsg moveCompleted -> confirmForwardStepFT
+				  whenMsg moveFailed -> backtrackingFT	  
+	
+	State backtrackingFT{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.backToCompensate(myself)
+	}
+	Transition t0 whenMsg moveCompleted -> goSouthFT
+	
+	State confirmForwardStepFT{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
+	}
+	Goto angle
+	
+	State angle{
+		printCurrentMessage
+		["if(angle){
+			finito=true
+		"]
+			["endX="]run itunibo.planner.moveUtils.getPosX(myself)
+			["endY="]run itunibo.planner.moveUtils.getPosY(myself)
+			
+			["if(findTableInitDir.equals(\"leftDir\")){
+				endX++
+			}"]
+			["if(findTableInitDir.equals(\"rightDir\")){
+				endX--
+			}"]
+		["
+		}else{
+			angle=true
+		}"]
+	}
+	Goto endExploration if "finito" else goIntern
+	
+	State endExploration{
+		printCurrentMessage
+		println("END EXPLORATION")
+		println("START_X=$startX")
+		println("START_Y=$startY")
+		println("END_X=$endX")
+		println("END_Y=$endY")
+		println("LENGTH_X=$lengthX")
+		println("LENGTH_Y=$lengthY")
+	
+		run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
 	}

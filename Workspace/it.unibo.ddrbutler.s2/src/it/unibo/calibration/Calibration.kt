@@ -16,8 +16,17 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var terminato=false
-				var nextDir=""
+				var terminato = false
+				var nextDir = ""
+				var findTableInitDir = ""
+				var startX = -1
+				var startY = -1
+				var endX = -1
+				var endY = -1
+				var lengthX = 0
+				var lengthY = 0
+				var angle = false
+				var finito = false;
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -176,10 +185,136 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					transition(edgeName="t029",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
 					transition(edgeName="t030",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
 					transition(edgeName="t031",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("straight")}))
+					transition(edgeName="t032",targetState="findTable",cond=whenDispatch("moveFailed"))
+				}	 
+				state("findTable") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.planner.moveUtils.backToCompensate(myself)
+						startX=
+						itunibo.planner.moveUtils.getPosX(myself)
+						startY=
+						itunibo.planner.moveUtils.getPosY(myself)
+						findTableInitDir=
+						itunibo.planner.moveUtils.getDirection(myself)
+						if(findTableInitDir.equals("leftDir")){
+									startX--
+								}
+						if(findTableInitDir.equals("rightDir")){
+									startX++
+								}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+					}
+					 transition(edgeName="t033",targetState="goSouthFT",cond=whenDispatch("moveCompleted"))
+				}	 
+				state("goSouthFT") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						var temp=
+						itunibo.planner.moveUtils.getDirection(myself)
+						var positionX=
+						itunibo.planner.moveUtils.getPosX(myself)
+						var positionY=
+						itunibo.planner.moveUtils.getPosY(myself)
+						itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)
+						if(angle){
+									lengthX++;
+								}else{
+									lengthY++
+								}
+								
+								if(findTableInitDir.equals("leftDir")){
+						itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						}
+									if(findTableInitDir.equals("rightDir")){
+						itunibo.planner.moveUtils.rotateRight90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+					}
+					 transition(edgeName="t034",targetState="forwardStepFT",cond=whenDispatch("moveCompleted"))
+				}	 
+				state("forwardStepFT") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.planner.moveUtils.moveAhead(myself)
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+					}
+					 transition(edgeName="t035",targetState="goIntern",cond=whenDispatch("moveCompleted"))
+				}	 
+				state("goIntern") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if(findTableInitDir.equals("leftDir")){
+						itunibo.planner.moveUtils.rotateRight90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						}
+									if(findTableInitDir.equals("rightDir")){
+						itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						}
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+					}
+					 transition(edgeName="t036",targetState="checkTable",cond=whenDispatch("moveCompleted"))
+				}	 
+				state("checkTable") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("mindCmd", "mindCmd(w)" ,"robotmind" ) 
+						println("ORA!!!")
+					}
+					 transition(edgeName="t037",targetState="confirmForwardStepFT",cond=whenDispatch("moveCompleted"))
+					transition(edgeName="t038",targetState="backtrackingFT",cond=whenDispatch("moveFailed"))
+				}	 
+				state("backtrackingFT") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.planner.moveUtils.backToCompensate(myself)
+					}
+					 transition(edgeName="t039",targetState="goSouthFT",cond=whenDispatch("moveCompleted"))
+				}	 
+				state("confirmForwardStepFT") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.planner.moveUtils.doPlannedMove(myself ,"w" )
+					}
+					 transition( edgeName="goto",targetState="angle", cond=doswitch() )
+				}	 
+				state("angle") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if(angle){
+									finito=true
+						endX=
+						itunibo.planner.moveUtils.getPosX(myself)
+						endY=
+						itunibo.planner.moveUtils.getPosY(myself)
+						if(findTableInitDir.equals("leftDir")){
+										endX++
+									}
+						if(findTableInitDir.equals("rightDir")){
+										endX--
+									}
+						
+								}else{
+									angle=true
+								}
+					}
+					 transition( edgeName="goto",targetState="endExploration", cond=doswitchGuarded({finito}) )
+					transition( edgeName="goto",targetState="goIntern", cond=doswitchGuarded({! finito}) )
 				}	 
 				state("endExploration") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						println("END EXPLORATION")
+						println("START_X=$startX")
+						println("START_Y=$startY")
+						println("END_X=$endX")
+						println("END_Y=$endY")
+						println("LENGTH_X=$lengthX")
+						println("LENGTH_Y=$lengthY")
+						itunibo.planner.moveUtils.setTable( startX, startY, endX, endY, lengthX, lengthY  )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						itunibo.planner.moveUtils.saveMap(myself ,"mapRoom" )
 					}
