@@ -28,7 +28,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("startCalibration", "startCalibration" ,"calibration" ) 
 					}
-					 transition(edgeName="t015",targetState="endCalibration",cond=whenDispatch("calibrationCompleted"))
+					 transition(edgeName="t014",targetState="endCalibration",cond=whenDispatch("calibrationCompleted"))
 				}	 
 				state("endCalibration") { //this:State
 					action { //it:State

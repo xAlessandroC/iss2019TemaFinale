@@ -26,7 +26,7 @@ QActor basicrobot context ctxButler{
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
   		 else println("no robot")
-   		//ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
 	}
 	Goto waitCmd
 	
@@ -38,7 +38,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -113,7 +113,11 @@ QActor obstacledetector context ctxButler{
 }*/
 
 QActor robotmind context ctxButler{
-	["var input=\"\""]
+	["
+		var input=\"\"
+		var startF = 0L
+		var endF = 0L
+	"]
 	
 	State s0 initial{
 		println("[ROBOT MIND]: Started...")
@@ -122,9 +126,9 @@ QActor robotmind context ctxButler{
 	Goto waitCmd
 	
 	State waitCmd{
-		
 		onMsg(obstacle : obstacle){
 			//forward basicrobot -m robotCmd : robotCmd(h)
+			["endF = System.currentTimeMillis()"]
 			forward calibration -m moveFailed : moveFailed
 		}
 	}
@@ -148,8 +152,9 @@ QActor robotmind context ctxButler{
 	State startForward{
 		printCurrentMessage
 		
-		forward resourcemodel -m robotChange : robotChange(robot, w)
 		forward basicrobot -m robotCmd : robotCmd(w)
+		forward resourcemodel -m robotChange : robotChange(robot, w)
+		["startF = System.currentTimeMillis()"]
 	}
 	Transition t0 whenTime 1000 -> stopForward
 				  whenEvent obstacle -> waitCmd
@@ -157,8 +162,8 @@ QActor robotmind context ctxButler{
 	State stopForward{
 		printCurrentMessage
 		
-		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
+		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
 		forward calibration -m moveCompleted : moveCompleted
 	}
@@ -170,16 +175,18 @@ QActor robotmind context ctxButler{
 		forward resourcemodel -m robotChange : robotChange(robot, a)
 		forward basicrobot -m robotCmd : robotCmd(a)
 	}
-	Transition t0 whenTime 1750 -> stopTurnLeft
+	Transition t0 whenTime 1850 -> stopTurnLeft
 				 // whenEvent obstacle -> waitCmd
 				  
 	State stopTurnLeft{
 		printCurrentMessage
 		
-		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
+		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
 		forward calibration -m moveCompleted : moveCompleted
+		
+		delay 1000
 	}
 	Goto waitCmd
 	
@@ -189,33 +196,42 @@ QActor robotmind context ctxButler{
 		forward resourcemodel -m robotChange : robotChange(robot, d)
 		forward basicrobot -m robotCmd : robotCmd(d)
 	}
-	Transition t0 whenTime 1750 -> stopTurnRight
+	Transition t0 whenTime 1850 -> stopTurnRight
 				  //whenEvent obstacle -> waitCmd
 				  
 	State stopTurnRight{
 		printCurrentMessage
 		
-		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
+		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
 		forward calibration -m moveCompleted : moveCompleted
+		delay 1000
 	}
 	Goto waitCmd
 	
 	State startBacktracking{
 		printCurrentMessage
 		
-		forward resourcemodel -m robotChange : robotChange(robot, s)
 		forward basicrobot -m robotCmd : robotCmd(s)
+		forward resourcemodel -m robotChange : robotChange(robot, s)
 	}
-	Transition t0 whenTime 500 -> stopBacktracking
+	//Transition t0 whenTime 500 -> stopBacktracking
 				  //whenEvent obstacle -> waitCmd
-				  
+	Goto waitCustomTime
+	
+	State waitCustomTime{
+		["var timeToWait=(endF-startF)+70"]
+		println("###BACK PER $timeToWait millis")
+		run itunibo.planner.moveUtils.wait(timeToWait)
+	} 
+	Goto stopBacktracking
+		
 	State stopBacktracking{
 		printCurrentMessage
 		
-		forward resourcemodel -m robotChange : robotChange(robot, h)
 		forward basicrobot -m robotCmd : robotCmd(h)
+		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
 		forward calibration -m moveCompleted : moveCompleted
 	}
@@ -348,9 +364,7 @@ QActor calibration context ctxButler{
 				  
     State turnLeft{
     	
-		//run itunibo.planner.moveUtils.rotateLeft(myself)
 		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
-		forward calibration -m moveCompleted:moveCompleted
 	}
 	Transition t0 whenMsg moveCompleted -> forwardStep
 	
@@ -395,7 +409,6 @@ QActor calibration context ctxButler{
 	
 	State snakeTurnLeft{
 		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
-		forward calibration -m moveCompleted:moveCompleted
 		
 		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
 		
@@ -414,7 +427,6 @@ QActor calibration context ctxButler{
 	
 	State snakeTurnRight{
 		run itunibo.planner.moveUtils.rotateRight90tuning(myself)
-		forward calibration -m moveCompleted:moveCompleted
 		
 		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
 		
@@ -466,6 +478,7 @@ QActor calibration context ctxButler{
 				  
 	State findTable{
 		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself,"s")
 		run itunibo.planner.moveUtils.backToCompensate(myself)
 		
 		["startX="]run itunibo.planner.moveUtils.getPosX(myself)
@@ -500,11 +513,9 @@ QActor calibration context ctxButler{
 		
 		if(findTableInitDir.equals(\"leftDir\")){"]
 				run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
-				forward calibration -m moveCompleted:moveCompleted
 			["}
 			if(findTableInitDir.equals(\"rightDir\")){"]
 				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
-				forward calibration -m moveCompleted:moveCompleted
 			["}"]
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
@@ -524,11 +535,9 @@ QActor calibration context ctxButler{
 		printCurrentMessage
 		["if(findTableInitDir.equals(\"leftDir\")){"]
 				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
-				forward calibration -m moveCompleted:moveCompleted
 			["}
 			if(findTableInitDir.equals(\"rightDir\")){"]
 				run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
-				forward calibration -m moveCompleted:moveCompleted
 			["}"]
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
@@ -588,17 +597,17 @@ QActor calibration context ctxButler{
 		println("LENGTH_X=$lengthX")
 		println("LENGTH_Y=$lengthY")
 	
-		run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
+		//run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
 	}
 }
 
-QActor console context ctxButler{
+/*QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/

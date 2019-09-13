@@ -27,8 +27,8 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t013",targetState="handleChange",cond=whenDispatch("robotChange"))
-					transition(edgeName="t014",targetState="handleChange",cond=whenDispatch("sonarChange"))
+					 transition(edgeName="t012",targetState="handleChange",cond=whenDispatch("robotChange"))
+					transition(edgeName="t013",targetState="handleChange",cond=whenDispatch("sonarChange"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State

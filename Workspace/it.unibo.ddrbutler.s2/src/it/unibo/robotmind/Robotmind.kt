@@ -15,7 +15,10 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var input=""
+		
+				var input=""
+				var startF = 0L
+				var endF = 0L
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -27,6 +30,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("obstacle"), Term.createTerm("obstacle"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								endF = System.currentTimeMillis()
 								forward("moveFailed", "moveFailed" ,"calibration" ) 
 						}
 					}
@@ -49,8 +53,9 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("startForward") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,w)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(w)" ,"basicrobot" ) 
+						forward("robotChange", "robotChange(robot,w)" ,"resourcemodel" ) 
+						startF = System.currentTimeMillis()
 						stateTimer = TimerActor("timer_startForward", 
 							scope, context!!, "local_tout_robotmind_startForward", 1000.toLong() )
 					}
@@ -60,8 +65,8 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("stopForward") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -72,16 +77,17 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						forward("robotChange", "robotChange(robot,a)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(a)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_startTurnLeft", 
-							scope, context!!, "local_tout_robotmind_startTurnLeft", 1750.toLong() )
+							scope, context!!, "local_tout_robotmind_startTurnLeft", 1850.toLong() )
 					}
 					 transition(edgeName="t010",targetState="stopTurnLeft",cond=whenTimeout("local_tout_robotmind_startTurnLeft"))   
 				}	 
 				state("stopTurnLeft") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -91,34 +97,41 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						forward("robotChange", "robotChange(robot,d)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(d)" ,"basicrobot" ) 
 						stateTimer = TimerActor("timer_startTurnRight", 
-							scope, context!!, "local_tout_robotmind_startTurnRight", 1750.toLong() )
+							scope, context!!, "local_tout_robotmind_startTurnRight", 1850.toLong() )
 					}
 					 transition(edgeName="t011",targetState="stopTurnRight",cond=whenTimeout("local_tout_robotmind_startTurnRight"))   
 				}	 
 				state("stopTurnRight") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("startBacktracking") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,s)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(s)" ,"basicrobot" ) 
-						stateTimer = TimerActor("timer_startBacktracking", 
-							scope, context!!, "local_tout_robotmind_startBacktracking", 500.toLong() )
+						forward("robotChange", "robotChange(robot,s)" ,"resourcemodel" ) 
 					}
-					 transition(edgeName="t012",targetState="stopBacktracking",cond=whenTimeout("local_tout_robotmind_startBacktracking"))   
+					 transition( edgeName="goto",targetState="waitCustomTime", cond=doswitch() )
+				}	 
+				state("waitCustomTime") { //this:State
+					action { //it:State
+						var timeToWait=(endF-startF)+70
+						println("###BACK PER $timeToWait millis")
+						itunibo.planner.moveUtils.wait( timeToWait  )
+					}
+					 transition( edgeName="goto",targetState="stopBacktracking", cond=doswitch() )
 				}	 
 				state("stopBacktracking") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
