@@ -1,1 +1,0 @@
-location(RH,3,3).

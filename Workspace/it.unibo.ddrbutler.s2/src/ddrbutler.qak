@@ -12,13 +12,14 @@ Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
 
 Dispatch startCalibration : startCalibration
 Dispatch calibrationCompleted : calibrationCompleted
-Event moveCompleted : moveCompleted
+Dispatch moveCompleted : moveCompleted
 Dispatch moveFailed : moveFailed
 Dispatch endBoundary : endBoundary
 
 Dispatch goto : goto(X)
 Dispatch schedulingCompleted : schedulingCompleted
 Dispatch planningCompleted : planningCompleted
+Dispatch setLocation : setLocation(NAME,X,Y)
 
 Context ctxButler ip [host="localhost" port=3030]
 
@@ -30,7 +31,7 @@ QActor basicrobot context ctxButler{
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
   		 else println("no robot")
-   		//ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
 	}
 	Goto waitCmd
 	
@@ -42,7 +43,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -133,13 +134,14 @@ QActor robotmind context ctxButler{
 		onMsg(obstacle : obstacle){
 			//forward basicrobot -m robotCmd : robotCmd(h)
 			["endF = System.currentTimeMillis()"]
-			forward calibration -m moveFailed : moveFailed
+			["replyToCaller(\"moveFailed\",\"moveFailed\")"]
 		}
 	}
 	Transition t0 whenMsg mindCmd -> handleCmd
 				  
 	State handleCmd {
 		
+		["storeCurrentMessageForReply()"]
 		onMsg(mindCmd : mindCmd(X)){
 			printCurrentMessage
 			
@@ -169,8 +171,7 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		//forward calibration -m moveCompleted : moveCompleted
-		emit moveCompleted : moveCompleted
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 	}
 	Goto waitCmd
 	
@@ -189,8 +190,7 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		//forward calibration -m moveCompleted : moveCompleted
-		emit moveCompleted : moveCompleted
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 		
 		delay 1000
 	}
@@ -211,8 +211,7 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		//forward calibration -m moveCompleted : moveCompleted
-		emit moveCompleted : moveCompleted
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 		delay 1000
 	}
 	Goto waitCmd
@@ -228,7 +227,7 @@ QActor robotmind context ctxButler{
 	Goto waitCustomTime
 	
 	State waitCustomTime{
-		["var timeToWait=(endF-startF)+70"]
+		["var timeToWait=(endF-startF)"]
 		println("###BACK PER $timeToWait millis")
 		run itunibo.planner.moveUtils.wait(timeToWait)
 	} 
@@ -240,8 +239,7 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		//forward calibration -m moveCompleted : moveCompleted
-		emit moveCompleted : moveCompleted
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 	}
 	Goto waitCmd
 }
@@ -280,6 +278,15 @@ QActor resourcemodel context ctxButler{
 QActor butlermind context ctxButler{
 	State s0 initial{
 		println("[BUTLERMIND]: Started...")
+		
+		solve(consult("RHLocation.pl"))
+		solve(location(RH,X,Y))
+		["
+				var CX=getCurSol(\"X\").toString()
+				var CY=getCurSol(\"Y\").toString()
+		"]
+		ifSolved forward planner -m setLocation : setLocation(rh,$CX,$CY)
+		else println("Errore nel setting di RH")
 		
 		delay 3000
 	}
@@ -320,6 +327,9 @@ QActor calibration context ctxButler{
 	
 	State waitCmd{
 		
+		onMsg(planningCompleted : planningCompleted){
+			forward butlermind -m calibrationCompleted : calibrationCompleted
+		}
 	}
 	Transition t0 whenMsg startCalibration -> initAi
 	
@@ -615,9 +625,17 @@ QActor calibration context ctxButler{
 	
 		run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
 		
-		solve(assert(TABLE,startX,startY))
-		ifSolved println("Posizione table salvata")
-		else println("Errore salvataggio posizione table")
+		["var PosX=startX
+		  var PosY=startY
+		  if(findTableInitDir.equals(\"leftDir\")){
+			PosX++
+		  }
+		  if(findTableInitDir.equals(\"rightDir\")){
+			PosX--
+		  }
+		"]
+		
+		forward planner -m setLocation : setLocation(table,$PosX,$PosY)
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
@@ -626,7 +644,7 @@ QActor calibration context ctxButler{
 	Goto goHome
 	
 	State goHome{
-		forward planner -m goto : goto(RH)
+		forward planner -m goto : goto(rh)
 	}
 	Transition t0 whenMsg planningCompleted -> waitCmd
 }
@@ -640,7 +658,6 @@ QActor planner context ctxButler{
 	State s0 initial{
 		println("[PLANNER]: Started...")
 		
-		solve(consult("roomDescription.pl"))
 	}
 	Goto waitCmd
 	
@@ -648,20 +665,35 @@ QActor planner context ctxButler{
 		printCurrentMessage
 		
 		onMsg(schedulingCompleted : schedulingCompleted){
-				//INVIARE RISPOSTA AL MITTENTE
+			["replyToCaller(\"planningCompleted\",\"planningCompleted\")"]
 		}
 	}
 	Transition t0 whenMsg goto -> calculatePath
+				  whenMsg setLocation -> updateRoomDescription
+				  
+	State updateRoomDescription{
+		
+		onMsg(setLocation : setLocation(NAME,X,Y)){
+			solve(assert(location($payloadArg(0),$payloadArg(1),$payloadArg(2))))
+			
+			ifSolved println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
+			else println("Errore salvataggio posizione table")
+		}
+		
+	}
+	Goto waitCmd
 	
 	State calculatePath{
 		printCurrentMessage
 		
+		["storeCurrentMessageForReply()"]
 		onMsg( goto : goto(X)){
 			solve(location($payloadArg(0),X,Y))
 			["
 				var cX=getCurSol(\"X\").toString()
 				var cY=getCurSol(\"Y\").toString()
 			"]
+			println("Voglio andare in ${payloadArg(0)} ${getCurSol(\"X\")} ${getCurSol(\"Y\")}")
 			run itunibo.planner.moveUtils.setGoal(myself,cX,cY)
 			run itunibo.planner.moveUtils.doPlan(myself)
 			println("STORED!!")
@@ -700,11 +732,11 @@ QActor planner context ctxButler{
 	Transition t0 whenMsg moveCompleted -> schedulingNextMove
 }
 
-QActor console context ctxButler{
+/*QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/

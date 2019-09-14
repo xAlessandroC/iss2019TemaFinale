@@ -22,7 +22,6 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				state("s0") { //this:State
 					action { //it:State
 						println("[PLANNER]: Started...")
-						solve("consult('roomDescription.pl')","") //set resVar	
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -31,19 +30,36 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("schedulingCompleted"), Term.createTerm("schedulingCompleted"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								replyToCaller("planningCompleted","planningCompleted")
 						}
 					}
 					 transition(edgeName="t040",targetState="calculatePath",cond=whenDispatch("goto"))
+					transition(edgeName="t041",targetState="updateRoomDescription",cond=whenDispatch("setLocation"))
+				}	 
+				state("updateRoomDescription") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("setLocation(NAME,X,Y)"), Term.createTerm("setLocation(NAME,X,Y)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								solve("assert(location(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
+								if(currentSolution.isSuccess()) println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
+								 		else{
+								 			 println("Errore salvataggio posizione table")
+								 		}
+						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("calculatePath") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("goto(X)"), Term.createTerm("goto(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								solve("location(${payloadArg(0)},X,Y)","") //set resVar	
 								
 												var cX=getCurSol("X").toString()
 												var cY=getCurSol("Y").toString()
+								println("Voglio andare in ${payloadArg(0)} ${getCurSol("X")} ${getCurSol("Y")}")
 								itunibo.planner.moveUtils.setGoal(myself ,cX, cY )
 								itunibo.planner.moveUtils.doPlan(myself)
 								println("STORED!!")
@@ -70,8 +86,8 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						}
 						forward("schedulingCompleted", "schedulingCompleted" ,"planner" ) 
 					}
-					 transition(edgeName="t041",targetState="waitCmd",cond=whenDispatchGuarded("schedulingCompleted",{finito}))
-					transition(edgeName="t042",targetState="execMove",cond=whenDispatchGuarded("schedulingCompleted",{!finito}))
+					 transition(edgeName="t042",targetState="waitCmd",cond=whenDispatchGuarded("schedulingCompleted",{finito}))
+					transition(edgeName="t043",targetState="execMove",cond=whenDispatchGuarded("schedulingCompleted",{!finito}))
 				}	 
 				state("execMove") { //this:State
 					action { //it:State
@@ -80,7 +96,7 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						itunibo.planner.moveUtils.doPlannedMove(myself ,NextMove )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t043",targetState="schedulingNextMove",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t044",targetState="schedulingNextMove",cond=whenDispatch("moveCompleted"))
 				}	 
 			}
 		}

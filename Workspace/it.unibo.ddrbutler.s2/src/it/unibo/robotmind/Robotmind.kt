@@ -31,13 +31,14 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						if( checkMsgContent( Term.createTerm("obstacle"), Term.createTerm("obstacle"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								endF = System.currentTimeMillis()
-								forward("moveFailed", "moveFailed" ,"calibration" ) 
+								replyToCaller("moveFailed","moveFailed")
 						}
 					}
 					 transition(edgeName="t03",targetState="handleCmd",cond=whenDispatch("mindCmd"))
 				}	 
 				state("handleCmd") { //this:State
 					action { //it:State
+						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("mindCmd(CMD)"), Term.createTerm("mindCmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
@@ -67,7 +68,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						emit("moveCompleted", "moveCompleted" ) 
+						replyToCaller("moveCompleted","moveCompleted")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -86,7 +87,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						emit("moveCompleted", "moveCompleted" ) 
+						replyToCaller("moveCompleted","moveCompleted")
 						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -106,7 +107,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						emit("moveCompleted", "moveCompleted" ) 
+						replyToCaller("moveCompleted","moveCompleted")
 						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -121,7 +122,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("waitCustomTime") { //this:State
 					action { //it:State
-						var timeToWait=(endF-startF)+70
+						var timeToWait=(endF-startF)
 						println("###BACK PER $timeToWait millis")
 						itunibo.planner.moveUtils.wait( timeToWait  )
 					}
@@ -132,7 +133,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						emit("moveCompleted", "moveCompleted" ) 
+						replyToCaller("moveCompleted","moveCompleted")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

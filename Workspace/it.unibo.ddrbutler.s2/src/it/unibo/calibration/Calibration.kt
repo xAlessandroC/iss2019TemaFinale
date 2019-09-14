@@ -36,6 +36,10 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
+						if( checkMsgContent( Term.createTerm("planningCompleted"), Term.createTerm("planningCompleted"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("calibrationCompleted", "calibrationCompleted" ,"butlermind" ) 
+						}
 					}
 					 transition(edgeName="t015",targetState="initAi",cond=whenDispatch("startCalibration"))
 				}	 
@@ -318,11 +322,15 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						println("LENGTH_X=$lengthX")
 						println("LENGTH_Y=$lengthY")
 						itunibo.planner.moveUtils.setTable( startX, startY, endX, endY, lengthX, lengthY  )
-						solve("assert(TABLE,startX,startY)","") //set resVar	
-						if(currentSolution.isSuccess()) println("Posizione table salvata")
-						 		else{
-						 			 println("Errore salvataggio posizione table")
-						 		}
+						var PosX=startX
+								  var PosY=startY
+								  if(findTableInitDir.equals("leftDir")){
+									PosX++
+								  }
+								  if(findTableInitDir.equals("rightDir")){
+									PosX--
+								  }
+						forward("setLocation", "setLocation(table,$PosX,$PosY)" ,"planner" ) 
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						itunibo.planner.moveUtils.saveMap(myself ,"mapRoom" )
 					}
@@ -330,7 +338,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				}	 
 				state("goHome") { //this:State
 					action { //it:State
-						forward("goto", "goto(RH)" ,"planner" ) 
+						forward("goto", "goto(rh)" ,"planner" ) 
 					}
 					 transition(edgeName="t039",targetState="waitCmd",cond=whenDispatch("planningCompleted"))
 				}	 

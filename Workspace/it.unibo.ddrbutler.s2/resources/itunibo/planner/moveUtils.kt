@@ -137,11 +137,11 @@ object moveUtils{
  		doPlannedMove(actor, "r" )	    //update map
  	}
  	suspend fun rotateRight90tuning(actor : ActorBasic ){
- 		//actor.forward("mindCmd", "mindCmd(d)", "robotmind")
+ 		actor.forward("mindCmd", "mindCmd(d)", "robotmind")
 		println("TUNING TO RIGHT.... ")
  		//readLine()
  		doPlannedMove(actor, "d" )	    //update map
-		actor.forward("moveCompleted", "moveCompleted", "calibration")
+		//actor.forward("moveCompleted", "moveCompleted", "calibration")
  	}
 	suspend fun rotateLeft(actor : ActorBasic){
 		actor.forward("mindCmd", "mindCmd(a)", "robotmind")
@@ -154,12 +154,12 @@ object moveUtils{
  		doPlannedMove(actor, "l" )	    //update map	
  	}
 	suspend fun rotateLeft90tuning( actor : ActorBasic ){
-		//actor.forward("mindCmd", "mindCmd(a)", "robotmind")
+		actor.forward("mindCmd", "mindCmd(a)", "robotmind")
 		println("TUNING TO LEFT.... ")
 		//readLine()
 		//delay( 1000 )
  		doPlannedMove(actor, "a" )	    //update map
-		actor.forward("moveCompleted", "moveCompleted", "calibration")
+		//actor.forward("moveCompleted", "moveCompleted", "calibration")
 	}
  	suspend fun moveAhead(actor:ActorBasic, dest:String ="robotmind"){
 		//println("moveUtils moveAhead stepTime=$stepTime")

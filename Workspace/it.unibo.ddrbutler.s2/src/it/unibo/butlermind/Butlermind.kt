@@ -19,6 +19,15 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						println("[BUTLERMIND]: Started...")
+						solve("consult('RHLocation.pl')","") //set resVar	
+						solve("location(RH,X,Y)","") //set resVar	
+						
+										var CX=getCurSol("X").toString()
+										var CY=getCurSol("Y").toString()
+						if(currentSolution.isSuccess()) forward("setLocation", "setLocation(rh,$CX,$CY)" ,"planner" ) 
+						 		else{
+						 			 println("Errore nel setting di RH")
+						 		}
 						delay(3000) 
 					}
 					 transition( edgeName="goto",targetState="calibration", cond=doswitch() )
