@@ -25,7 +25,6 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						 		else{
 						 			 println("no robot")
 						 		}
-						if(currentSolution.isSuccess()) itunibo.robot.robotSupport.create(myself ,getCurSol("R").toString(), getCurSol("PORT").toString(), null )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -38,7 +37,6 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("robotCmd(CMD)"), Term.createTerm("robotCmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})"  )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

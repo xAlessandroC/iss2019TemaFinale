@@ -27,21 +27,50 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t012",targetState="handleChange",cond=whenDispatch("robotChange"))
-					transition(edgeName="t013",targetState="handleChange",cond=whenDispatch("sonarChange"))
+					 transition(edgeName="t03",targetState="handleChange",cond=whenDispatch("robotChange"))
+					transition(edgeName="t04",targetState="handleChange",cond=whenDispatch("sonarChange"))
+					transition(edgeName="t05",targetState="handleChange",cond=whenDispatch("taskChange"))
+					transition(edgeName="t06",targetState="handleUpdate",cond=whenDispatch("robotUpdate"))
+					transition(edgeName="t07",targetState="handleUpdate",cond=whenDispatch("sonarUpdate"))
+					transition(edgeName="t08",targetState="handleUpdate",cond=whenDispatch("taskUpdate"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("robotChange(TARGET,VALUE)"), Term.createTerm("robotChange(robot,X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("robotChanged", "robotChanged(robot,${payloadArg(1)})" ,"robotmind" ) 
 								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
 						}
 						if( checkMsgContent( Term.createTerm("sonarChange(TARGET,VALUE,OBSTACLE)"), Term.createTerm("sonarChange(sonar,VALUE,OBSTACLE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
+						}
+						if( checkMsgContent( Term.createTerm("taskChange(TARGET,TASK)"), Term.createTerm("taskChange(butler,TASK)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("taskChanged", "taskChanged(butler,${payloadArg(1)})" ,"butlermind" ) 
+								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
+						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("handleUpdate") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("robotUpdate(TARGET,VALUE)"), Term.createTerm("robotUpdate(robot,X)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+						}
+						if( checkMsgContent( Term.createTerm("sonarUpdate(TARGET,VALUE,OBSTACLE)"), Term.createTerm("sonarUpdate(sonar,VALUE,OBSTACLE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
 								var obstacle=payloadArg(2).equals("obstacle")
 								itunibo.robot.resourceModelSupport.updateSonarRobotModel(myself ,payloadArg(1), obstacle )
+						}
+						if( checkMsgContent( Term.createTerm("taskUpdate(TARGET,TASK)"), Term.createTerm("taskUpdate(butler,TASK)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

@@ -137,11 +137,11 @@ object moveUtils{
  		doPlannedMove(actor, "r" )	    //update map
  	}
  	suspend fun rotateRight90tuning(actor : ActorBasic ){
- 		actor.forward("mindCmd", "mindCmd(d)", "robotmind")
+ 		//actor.forward("movementCmd", "movementCmd(d)", "movementhandler")
 		println("TUNING TO RIGHT.... ")
  		//readLine()
  		doPlannedMove(actor, "d" )	    //update map
-		//actor.forward("moveCompleted", "moveCompleted", "calibration")
+		actor.forward("moveCompleted", "moveCompleted", "calibration")
  	}
 	suspend fun rotateLeft(actor : ActorBasic){
 		actor.forward("mindCmd", "mindCmd(a)", "robotmind")
@@ -154,16 +154,16 @@ object moveUtils{
  		doPlannedMove(actor, "l" )	    //update map	
  	}
 	suspend fun rotateLeft90tuning( actor : ActorBasic ){
-		actor.forward("mindCmd", "mindCmd(a)", "robotmind")
+		//actor.forward("movementCmd", "movementCmd(a)", "movementhandler")
 		println("TUNING TO LEFT.... ")
 		//readLine()
 		//delay( 1000 )
  		doPlannedMove(actor, "a" )	    //update map
-		//actor.forward("moveCompleted", "moveCompleted", "calibration")
+		actor.forward("moveCompleted", "moveCompleted", "calibration")
 	}
- 	suspend fun moveAhead(actor:ActorBasic, dest:String ="robotmind"){
+ 	suspend fun moveAhead(actor:ActorBasic, dest:String ="movementhandler"){
 		//println("moveUtils moveAhead stepTime=$stepTime")
-		actor.forward("mindCmd", "mindCmd(w)", dest)
+		actor.forward("movementCmd", "movementCmd(w)", dest)
 		//delay( stepTime.toLong() )
 		//actor.forward("modelChange", "modelChange(robot,h)", dest)
 		doPlannedMove(actor, "w" )	//update map	
@@ -178,7 +178,7 @@ object moveUtils{
 	}
 	suspend fun backToCompensate(actor : ActorBasic){
 		//println("moveUtils backToCompensate stepTime=$stepTime")
-		actor.forward("mindCmd", "mindCmd(s)", "robotmind")
+		actor.forward("movementCmd", "movementCmd(s)", "movementhandler")
 		//delay( stepTime.toLong() )
 		//actor.forward("modelChange", "modelChange(robot,h)", "resourcemodel")
 		//delay( pauseTime.toLong() )

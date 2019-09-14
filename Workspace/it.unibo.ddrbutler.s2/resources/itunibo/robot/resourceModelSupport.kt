@@ -21,6 +21,8 @@ object resourceModelSupport{
 			val SonarState = actor.getCurSol("STATE")
 			//println("			resourceModelSupport updateSonarRobotModel SonarState=$SonarState")	
 	}	
- 	
+	fun updateButlerModel( actor: ActorBasic, content: String){	
+		actor.solve(  "action(butler, $content )" )
+	}
 }
 

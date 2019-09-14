@@ -15,10 +15,6 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		
-				var input=""
-				var startF = 0L
-				var endF = 0L
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -28,112 +24,16 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("obstacle"), Term.createTerm("obstacle"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								endF = System.currentTimeMillis()
-								replyToCaller("moveFailed","moveFailed")
-						}
 					}
-					 transition(edgeName="t03",targetState="handleCmd",cond=whenDispatch("mindCmd"))
+					 transition(edgeName="t018",targetState="handleChange",cond=whenDispatch("robotChanged"))
 				}	 
-				state("handleCmd") { //this:State
+				state("handleChange") { //this:State
 					action { //it:State
-						storeCurrentMessageForReply()
-						if( checkMsgContent( Term.createTerm("mindCmd(CMD)"), Term.createTerm("mindCmd(X)"), 
+						if( checkMsgContent( Term.createTerm("robotChanged(TARGET,VALUE)"), Term.createTerm("robotChanged(robot,X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								input=payloadArg(0)
-								forward("moveReceived", "moveReceived" ,"robotmind" ) 
+								forward("robotCmd", "robotCmd(${payloadArg(0)})" ,"basicrobot" ) 
 						}
-					}
-					 transition(edgeName="to4",targetState="startForward",cond=whenDispatchGuarded("moveReceived",{input.equals("w")}))
-					transition(edgeName="to5",targetState="startBacktracking",cond=whenDispatchGuarded("moveReceived",{input.equals("s")}))
-					transition(edgeName="to6",targetState="startTurnLeft",cond=whenDispatchGuarded("moveReceived",{input.equals("a")}))
-					transition(edgeName="to7",targetState="startTurnRight",cond=whenDispatchGuarded("moveReceived",{input.equals("d")}))
-				}	 
-				state("startForward") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotCmd", "robotCmd(w)" ,"basicrobot" ) 
-						forward("robotChange", "robotChange(robot,w)" ,"resourcemodel" ) 
-						startF = System.currentTimeMillis()
-						stateTimer = TimerActor("timer_startForward", 
-							scope, context!!, "local_tout_robotmind_startForward", 1000.toLong() )
-					}
-					 transition(edgeName="t08",targetState="stopForward",cond=whenTimeout("local_tout_robotmind_startForward"))   
-					transition(edgeName="t09",targetState="waitCmd",cond=whenEvent("obstacle"))
-				}	 
-				state("stopForward") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						replyToCaller("moveCompleted","moveCompleted")
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
-				}	 
-				state("startTurnLeft") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,a)" ,"resourcemodel" ) 
-						forward("robotCmd", "robotCmd(a)" ,"basicrobot" ) 
-						stateTimer = TimerActor("timer_startTurnLeft", 
-							scope, context!!, "local_tout_robotmind_startTurnLeft", 1850.toLong() )
-					}
-					 transition(edgeName="t010",targetState="stopTurnLeft",cond=whenTimeout("local_tout_robotmind_startTurnLeft"))   
-				}	 
-				state("stopTurnLeft") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						replyToCaller("moveCompleted","moveCompleted")
-						delay(1000) 
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
-				}	 
-				state("startTurnRight") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,d)" ,"resourcemodel" ) 
-						forward("robotCmd", "robotCmd(d)" ,"basicrobot" ) 
-						stateTimer = TimerActor("timer_startTurnRight", 
-							scope, context!!, "local_tout_robotmind_startTurnRight", 1850.toLong() )
-					}
-					 transition(edgeName="t011",targetState="stopTurnRight",cond=whenTimeout("local_tout_robotmind_startTurnRight"))   
-				}	 
-				state("stopTurnRight") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						replyToCaller("moveCompleted","moveCompleted")
-						delay(1000) 
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
-				}	 
-				state("startBacktracking") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotCmd", "robotCmd(s)" ,"basicrobot" ) 
-						forward("robotChange", "robotChange(robot,s)" ,"resourcemodel" ) 
-					}
-					 transition( edgeName="goto",targetState="waitCustomTime", cond=doswitch() )
-				}	 
-				state("waitCustomTime") { //this:State
-					action { //it:State
-						var timeToWait=(endF-startF)
-						println("###BACK PER $timeToWait millis")
-						itunibo.planner.moveUtils.wait( timeToWait  )
-					}
-					 transition( edgeName="goto",targetState="stopBacktracking", cond=doswitch() )
-				}	 
-				state("stopBacktracking") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						replyToCaller("moveCompleted","moveCompleted")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
