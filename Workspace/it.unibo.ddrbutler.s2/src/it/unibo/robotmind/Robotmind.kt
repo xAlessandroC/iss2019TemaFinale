@@ -67,7 +67,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						emit("moveCompleted", "moveCompleted" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -86,7 +86,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						emit("moveCompleted", "moveCompleted" ) 
 						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -106,7 +106,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						emit("moveCompleted", "moveCompleted" ) 
 						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -132,7 +132,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
-						forward("moveCompleted", "moveCompleted" ,"calibration" ) 
+						emit("moveCompleted", "moveCompleted" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

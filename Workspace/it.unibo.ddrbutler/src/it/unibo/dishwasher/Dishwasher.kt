@@ -26,8 +26,8 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[DISHWASHER]: Sono in waitCmd")
 					}
-					 transition(edgeName="t031",targetState="puttingDish",cond=whenDispatch("dishwasherPutDish"))
-					transition(edgeName="t032",targetState="takingDish",cond=whenDispatch("dishwasherTakeDish"))
+					 transition(edgeName="t032",targetState="puttingDish",cond=whenDispatch("dishwasherPutDish"))
+					transition(edgeName="t033",targetState="takingDish",cond=whenDispatch("dishwasherTakeDish"))
 				}	 
 				state("puttingDish") { //this:State
 					action { //it:State
@@ -36,7 +36,7 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t034",targetState="waitCmd",cond=whenDispatch("dishwasherPutCompleted"))
 				}	 
 				state("takingDish") { //this:State
 					action { //it:State
@@ -45,7 +45,7 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t035",targetState="waitCmd",cond=whenDispatch("dishwasherTakeCompleted"))
 				}	 
 			}
 		}

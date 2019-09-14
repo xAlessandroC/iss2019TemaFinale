@@ -12,9 +12,13 @@ Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
 
 Dispatch startCalibration : startCalibration
 Dispatch calibrationCompleted : calibrationCompleted
-Dispatch moveCompleted : moveCompleted
+Event moveCompleted : moveCompleted
 Dispatch moveFailed : moveFailed
 Dispatch endBoundary : endBoundary
+
+Dispatch goto : goto(X)
+Dispatch schedulingCompleted : schedulingCompleted
+Dispatch planningCompleted : planningCompleted
 
 Context ctxButler ip [host="localhost" port=3030]
 
@@ -26,7 +30,7 @@ QActor basicrobot context ctxButler{
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
   		 else println("no robot")
-   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+   		//ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
 	}
 	Goto waitCmd
 	
@@ -38,7 +42,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -165,7 +169,8 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		forward calibration -m moveCompleted : moveCompleted
+		//forward calibration -m moveCompleted : moveCompleted
+		emit moveCompleted : moveCompleted
 	}
 	Goto waitCmd
 	
@@ -184,7 +189,8 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		forward calibration -m moveCompleted : moveCompleted
+		//forward calibration -m moveCompleted : moveCompleted
+		emit moveCompleted : moveCompleted
 		
 		delay 1000
 	}
@@ -205,7 +211,8 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		forward calibration -m moveCompleted : moveCompleted
+		//forward calibration -m moveCompleted : moveCompleted
+		emit moveCompleted : moveCompleted
 		delay 1000
 	}
 	Goto waitCmd
@@ -233,7 +240,8 @@ QActor robotmind context ctxButler{
 		forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodel -m robotChange : robotChange(robot, h)
 		
-		forward calibration -m moveCompleted : moveCompleted
+		//forward calibration -m moveCompleted : moveCompleted
+		emit moveCompleted : moveCompleted
 	}
 	Goto waitCmd
 }
@@ -307,10 +315,19 @@ QActor calibration context ctxButler{
 	State s0 initial{
 		println("[CALIBRATION]: Started...")
 		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg startCalibration -> initAi
+	
+	State initAi{
 		run itunibo.planner.plannerUtil.initAI()
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
-	Transition t0 whenMsg startCalibration -> forwardStep
+	Goto forwardStep
 	
 	State forwardStep{
 		
@@ -373,6 +390,7 @@ QActor calibration context ctxButler{
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
+		
 	}
 	Goto startExploration
 	
@@ -546,10 +564,8 @@ QActor calibration context ctxButler{
 	
 	State checkTable{
 		printCurrentMessage
-		//COME TROVO TAVOLO??????
+		
 		forward robotmind -m mindCmd : mindCmd(w)
-		println("ORA!!!")
-		//delay 400
 	}
 	Transition t0 whenMsg moveCompleted -> confirmForwardStepFT
 				  whenMsg moveFailed -> backtrackingFT	  
@@ -597,17 +613,98 @@ QActor calibration context ctxButler{
 		println("LENGTH_X=$lengthX")
 		println("LENGTH_Y=$lengthY")
 	
-		//run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
+		run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
+		
+		solve(assert(TABLE,startX,startY))
+		ifSolved println("Posizione table salvata")
+		else println("Errore salvataggio posizione table")
+		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
+		
 	}
+	Goto goHome
+	
+	State goHome{
+		forward planner -m goto : goto(RH)
+	}
+	Transition t0 whenMsg planningCompleted -> waitCmd
 }
 
-/*QActor console context ctxButler{
+QActor planner context ctxButler{
+	["
+		var NextMove = \"\"
+		var finito = false
+	"]
+	
+	State s0 initial{
+		println("[PLANNER]: Started...")
+		
+		solve(consult("roomDescription.pl"))
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		printCurrentMessage
+		
+		onMsg(schedulingCompleted : schedulingCompleted){
+				//INVIARE RISPOSTA AL MITTENTE
+		}
+	}
+	Transition t0 whenMsg goto -> calculatePath
+	
+	State calculatePath{
+		printCurrentMessage
+		
+		onMsg( goto : goto(X)){
+			solve(location($payloadArg(0),X,Y))
+			["
+				var cX=getCurSol(\"X\").toString()
+				var cY=getCurSol(\"Y\").toString()
+			"]
+			run itunibo.planner.moveUtils.setGoal(myself,cX,cY)
+			run itunibo.planner.moveUtils.doPlan(myself)
+			println("STORED!!")
+		}
+	}
+	Goto schedulingNextMove
+	
+	State schedulingNextMove{
+		["
+			finito=false
+			NextMove=\"\"
+		"]
+		
+		solve(move(X))
+		ifSolved ["NextMove = getCurSol(\"X\").toString()"]
+		else ["finito=true"]
+		
+		["if(!finito){"]
+			solve(retract(move(_)))
+			ifSolved println("move cancelled")
+			else println("move not cancelled")
+		["}"]
+		
+		forward planner -m schedulingCompleted : schedulingCompleted
+	}
+	Transition t0 whenMsg schedulingCompleted and "finito" -> waitCmd
+				  whenMsg schedulingCompleted and "!finito" -> execMove		  
+	
+	State execMove{
+		delay 1000
+		
+		forward robotmind -m mindCmd : mindCmd($NextMove)
+		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> schedulingNextMove
+}
+
+QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}*/
+}

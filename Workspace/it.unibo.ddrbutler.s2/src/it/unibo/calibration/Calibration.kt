@@ -31,10 +31,20 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("s0") { //this:State
 					action { //it:State
 						println("[CALIBRATION]: Started...")
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("waitCmd") { //this:State
+					action { //it:State
+					}
+					 transition(edgeName="t015",targetState="initAi",cond=whenDispatch("startCalibration"))
+				}	 
+				state("initAi") { //this:State
+					action { //it:State
 						itunibo.planner.plannerUtil.initAI(  )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t015",targetState="forwardStep",cond=whenDispatch("startCalibration"))
+					 transition( edgeName="goto",targetState="forwardStep", cond=doswitch() )
 				}	 
 				state("forwardStep") { //this:State
 					action { //it:State
@@ -256,7 +266,6 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("mindCmd", "mindCmd(w)" ,"robotmind" ) 
-						println("ORA!!!")
 					}
 					 transition(edgeName="t036",targetState="confirmForwardStepFT",cond=whenDispatch("moveCompleted"))
 					transition(edgeName="t037",targetState="backtrackingFT",cond=whenDispatch("moveFailed"))
@@ -308,9 +317,22 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						println("END_Y=$endY")
 						println("LENGTH_X=$lengthX")
 						println("LENGTH_Y=$lengthY")
+						itunibo.planner.moveUtils.setTable( startX, startY, endX, endY, lengthX, lengthY  )
+						solve("assert(TABLE,startX,startY)","") //set resVar	
+						if(currentSolution.isSuccess()) println("Posizione table salvata")
+						 		else{
+						 			 println("Errore salvataggio posizione table")
+						 		}
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						itunibo.planner.moveUtils.saveMap(myself ,"mapRoom" )
 					}
+					 transition( edgeName="goto",targetState="goHome", cond=doswitch() )
+				}	 
+				state("goHome") { //this:State
+					action { //it:State
+						forward("goto", "goto(RH)" ,"planner" ) 
+					}
+					 transition(edgeName="t039",targetState="waitCmd",cond=whenDispatch("planningCompleted"))
 				}	 
 			}
 		}
