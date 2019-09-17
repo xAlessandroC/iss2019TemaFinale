@@ -27,9 +27,9 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: waiting for a command...")
 					}
-					 transition(edgeName="t029",targetState="modelChanging",cond=whenDispatch("modelChange"))
-					transition(edgeName="t030",targetState="modelUpdating",cond=whenDispatch("modelUpdate"))
-					transition(edgeName="t031",targetState="updatingRoom",cond=whenEvent("updateContent"))
+					 transition(edgeName="t030",targetState="modelChanging",cond=whenDispatch("modelChange"))
+					transition(edgeName="t031",targetState="modelUpdating",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t032",targetState="updatingRoom",cond=whenEvent("updateContent"))
 				}	 
 				state("modelUpdating") { //this:State
 					action { //it:State

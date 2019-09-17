@@ -25,7 +25,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("sendingPrepare") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in sendingPrepare")
+						println("[MAITRE]: I'm in sendingPrepare")
 						itunibo.maitre.maitreGUI.enableOnlyPrepare(  )
 					}
 					 transition(edgeName="t018",targetState="waitingPrepCompleted",cond=whenDispatch("prepareSended"))
@@ -43,7 +43,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("sendingAC") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in sendingAC")
+						println("[MAITRE]: I'm in sendingAC")
 						itunibo.maitre.maitreGUI.enableOnlyAC(  )
 					}
 					 transition(edgeName="t022",targetState="waitingAddFoodCompleted",cond=whenDispatch("addFoodSended"))
@@ -59,6 +59,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					}
 					 transition(edgeName="t025",targetState="sendingAC",cond=whenDispatch("modelChanged"))
 					transition(edgeName="t026",targetState="updateAC",cond=whenDispatch("updateMaitre"))
+					transition(edgeName="t027",targetState="handleWarning",cond=whenEvent("alert"))
 				}	 
 				state("waitingClearCompleted") { //this:State
 					action { //it:State
@@ -67,41 +68,47 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("clear", "clear" ,"mindbutler" ) 
 						println("[MAITRE]: waiting for a clearCompleted...")
 					}
-					 transition(edgeName="t027",targetState="sendingPrepare",cond=whenDispatch("modelChanged"))
-					transition(edgeName="t028",targetState="updateC",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t028",targetState="sendingPrepare",cond=whenDispatch("modelChanged"))
+					transition(edgeName="t029",targetState="updateC",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("updateSP") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in updateSP")
+						println("[MAITRE]: I'm in updateSP")
 						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="sendingPrepare", cond=doswitch() )
 				}	 
 				state("updateAC") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in updateAC")
+						println("[MAITRE]: I'm in updateAC")
 						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="sendingAC", cond=doswitch() )
 				}	 
 				state("updateP") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in updateP")
+						println("[MAITRE]: I'm in updateP")
 						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="waitingPrepCompleted", cond=doswitch() )
 				}	 
 				state("updateA") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in updateA")
+						println("[MAITRE]: I'm in updateA")
 					}
 					 transition( edgeName="goto",targetState="waitingAddFoodCompleted", cond=doswitch() )
 				}	 
 				state("updateC") { //this:State
 					action { //it:State
-						println("[MAITRE]: i'm in updateC")
+						println("[MAITRE]: I'm in updateC")
 					}
 					 transition( edgeName="goto",targetState="waitingClearCompleted", cond=doswitch() )
+				}	 
+				state("handleWarning") { //this:State
+					action { //it:State
+						println("[MAITRE]: received an alert")
+					}
+					 transition( edgeName="goto",targetState="sendingAC", cond=doswitch() )
 				}	 
 			}
 		}
