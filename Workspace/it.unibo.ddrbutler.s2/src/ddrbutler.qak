@@ -1,0 +1,263 @@
+System ddrbutler
+
+/* BUTLER MESSAGES */
+Dispatch prepare : prepare
+Dispatch addFood : addFood(FOODCODE, QNT)
+Dispatch clear : clear
+
+Dispatch prepareCompleted : prepareCompleted
+Dispatch addFoodCompleted : addFoodCompleted
+Dispatch clearCompleted : clearCompleted
+
+/* MAITRE MESSAGES */
+Dispatch prepareSended : prepareSended
+Dispatch addFoodSended : addFoodSended
+Dispatch clearSended : clearSended
+
+Dispatch stop : stop
+Dispatch reactivate : reactivate
+
+Dispatch updateMaitre : updateMaitre
+
+/* MODEL MAITRE CHANGES */
+Dispatch modelChange : modelChange(NAME, STATE)
+Dispatch modelChanged : modelChanged(NAME, TASK)
+Dispatch modelUpdate : modelUpdate(NAME, STATE)
+
+/* UPDATING STATE ROOM */
+Event updateContent : updateContent(DEVICE, CODE, QNT)
+
+
+Context ctxButler ip [host="localhost" port=3030]
+
+/* MINDBUTLER */
+QActor mindbutler context ctxButler {
+	State s0 initial {
+		println("[MIND_BUTLER]: starts...")
+	}
+	Goto waitPrepare
+	
+	/* */
+	State waitPrepare {
+		println("[MIND_BUTLER]: waiting for a prepare command...")
+		
+		onMsg(reactivate : reactivate) {
+			println("[MIND_BUTLER]: i'm reactivated")
+		}
+	}
+	Transition t0 whenMsg prepare -> startPrepare
+	
+	State startPrepare {
+		onMsg(prepare : prepare) {
+			println("[MIND_BUTLER]: received prepare command")		
+		}
+		
+		onMsg(reactivate : reactivate) {
+			println("[MIND_BUTLER]: received reactivate command")
+		}
+	}
+	Transition t0 whenTime 5000 -> endPrepare
+				  whenMsg stop -> prepareSuspend
+				  
+	State endPrepare {
+		println("[MIND_BUTLER]: i'm finishing to prepare the room")
+		
+		forward maitremodel -m modelChange : modelChange(maitre, prepare)		
+		forward mindbutler -m prepareCompleted : prepareCompleted
+	}	
+	Transition t0 whenMsg prepareCompleted -> waitAC
+				 		  
+	State prepareSuspend {
+		println("[MIND_BUTLER]: i'm in prepareSuspend")
+	}
+	Transition t0 whenMsg reactivate -> startPrepare
+				  whenMsg stop -> prepareSuspend
+	
+	/* */  
+	State waitAC {
+		println("[MIND_BUTLER]: waiting for an another command...")
+	}
+	Transition t0 whenMsg addFood -> startAddFood
+				  whenMsg clear -> startClear
+				  
+	State startAddFood {
+		onMsg(addFood : addFood(FOODCODE, QNT)) {
+			println("[MIND_BUTLER]: received addFood command")
+			println("FOOD_CODE: ${payloadArg(0)}, QNT: ${payloadArg(1)}")	
+		}
+		
+		onMsg(reactivate : reactivate) {
+			println("[MIND_BUTLER]: received reactivate command")
+		}	
+	}
+	Transition t0 whenTime 5000 -> endAddFood
+				  whenMsg stop -> addFoodSuspend
+				  
+	State endAddFood {
+		println("[MIND_BUTLER]: i'm finishing to add food")
+		
+		forward maitremodel -m modelChange : modelChange(maitre, addFood)		
+		forward mindbutler -m addFoodCompleted : addFoodCompleted
+	}	
+	Transition t0 whenMsg addFoodCompleted -> waitAC	
+				  
+	State addFoodSuspend {
+		println("[MIND_BUTLER]: i'm in addFoodSuspend")
+	}
+	Transition t0 whenMsg reactivate -> startAddFood
+				  whenMsg stop -> addFoodSuspend
+	
+				  
+	State startClear {
+		onMsg(clear : clear) {
+			println("[MIND_BUTLER]: received clear command")	
+		}
+		
+		onMsg(reactivate : reactivate) {
+			println("[MIND_BUTLER]: received reactivate command")
+		}	
+	}
+	Transition t0 whenTime 5000 -> endClear
+				  whenMsg stop -> clearSuspend
+
+	State endClear {
+		println("[]MIND_BUTLER]: i'm finishing to clear the room")
+		
+		forward maitremodel -m modelChange : modelChange(maitre, clear)		
+		forward mindbutler -m clearCompleted : clearCompleted		
+	}
+	Transition t0 whenMsg clearCompleted -> waitPrepare
+	
+	State clearSuspend {
+		println("[MIND_BUTLER]: i'm in clearSuspend")
+	}
+	Transition t0 whenMsg reactivate -> startClear
+				  whenMsg stop -> clearSuspend					  		  
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+
+/* MAITRE */
+QActor maitre context ctxButler {
+	State s0 initial {
+		println("[MAITRE]: starts...")
+		run itunibo.maitre.maitreGUI.init(myself)
+	}
+	Goto sendingPrepare
+	
+	/* PREPARE */
+	State sendingPrepare {
+		println("[MAITRE]: i'm in sendingPrepare")
+		run itunibo.maitre.maitreGUI.enableOnlyPrepare()
+	}
+	Transition t0 whenMsg prepareSended -> waitingPrepCompleted
+				  
+	State waitingPrepCompleted {
+		run itunibo.maitre.maitreGUI.enableOnlySR()
+		
+		forward maitremodel -m modelUpdate : modelUpdate(maitre, prepare)
+		forward mindbutler -m prepare : prepare
+		println("[MAITRE]: waiting for a prepareCompleted...")
+	}
+	Transition t0 whenMsg modelChanged -> sendingAC
+				  whenEvent updateMaitre -> updateP 
+	
+	/* ADD FOOD / CLEAR */
+	State sendingAC {
+		println("[MAITRE]: i'm in sendingAC")
+		run itunibo.maitre.maitreGUI.enableOnlyAC()
+	}
+	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompleted
+				  whenMsg clearSended -> waitingClearCompleted
+				  
+	State waitingAddFoodCompleted {
+		run itunibo.maitre.maitreGUI.enableOnlySR()
+		
+		forward maitremodel -m modelUpdate : modelUpdate(maitre, addFood)
+		forward mindbutler -m addFood : addFood(taralli, 5)
+		println("[MAITRE]: waiting for an addFoodCompleted...")
+
+	}
+	Transition t0 whenMsg modelChanged -> sendingAC
+				  whenEvent updateMaitre -> updateA
+
+	State waitingClearCompleted {
+		run itunibo.maitre.maitreGUI.enableOnlySR()
+
+		forward maitremodel -m modelUpdate : modelUpdate(maitre, clear)
+		forward mindbutler -m clear : clear
+		println("[MAITRE]: waiting for a clearCompleted...")
+
+	}
+	Transition t0 whenMsg modelChanged -> sendingPrepare
+				  whenEvent updateMaitre -> updateC
+	
+	/* UPDATE */
+	State updateP {
+		println("[MAITRE]: i'm in updateP")
+		
+	}
+	Goto waitingPrepCompleted
+	
+	State updateA {
+		println("[MAITRE]: i'm in updateA")
+	}
+	Goto waitingAddFoodCompleted
+	
+	State updateC {
+		println("[MAITRE]: i'm in updateC")
+	}
+	Goto waitingClearCompleted
+	
+//	State handleWarning{
+//		println("[MAITRE]: Sono in handleWarning")
+//		
+//	}
+//	Goto waitingAddFoodCompleted
+	
+}
+
+/* MAITRE MODEL */
+QActor maitremodel context ctxButler {
+	State s0 initial {
+		println("[MAITRE_MODEL]: starts...")
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		println("[MAITRE_MODEL]: waiting for a command...")
+	}
+	Transition t0 whenMsg modelChange -> modelChanging
+				  whenMsg modelUpdate -> modelUpdating
+				  whenMsg updateContent -> updatingRoom
+						
+	State modelUpdating {
+		println("[MAITRE_MODEL]: updating model...")
+		
+		onMsg(modelUpdate : modelUpdate(maitre, STATE)) {
+			run itunibo.maitre.resourceModelSupport.updateMaitreModel(myself, payloadArg(1))
+		}
+	}
+	Goto waitingCmd					
+						
+	State modelChanging {
+		println("[MAITRE_MODEL]: received a modelChange command")
+		
+		onMsg(modelChange : modelChange(maitre, STATE)) {
+				forward maitre -m modelChanged : modelChanged
+		}
+	}
+	Goto waitingCmd
+	
+	
+	State updatingRoom {
+		println("[MAITRE_MODEL]: received an updatingRoom command")
+		
+		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			
+		}
+	}
+	Goto waitingCmd
+	
+	
+}
