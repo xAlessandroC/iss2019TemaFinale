@@ -21,11 +21,12 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						println("[BASICROBOT]: Started...")
 						solve("consult('basicRobotConfig.pl')","") //set resVar	
 						solve("robot(R,PORT)","") //set resVar	
-						if(currentSolution.isSuccess()) println("USING ROBOT : ${getCurSol("R")},  port= ${getCurSol("PORT")} ")
-						 		else{
-						 			 println("no robot")
-						 		}
-						if(currentSolution.isSuccess()) itunibo.robot.robotSupport.create(myself ,getCurSol("R").toString(), getCurSol("PORT").toString(), null )
+						if(currentSolution.isSuccess()) { println("USING ROBOT : ${getCurSol("R")},  port= ${getCurSol("PORT")} ")
+						itunibo.robot.robotSupport.create(myself ,getCurSol("R").toString(), getCurSol("PORT").toString(), null )
+						 }
+						else
+						{ println("no robot")
+						 }
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

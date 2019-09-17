@@ -41,10 +41,11 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						if( checkMsgContent( Term.createTerm("setLocation(NAME,X,Y)"), Term.createTerm("setLocation(NAME,X,Y)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								solve("assert(location(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-								if(currentSolution.isSuccess()) println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
-								 		else{
-								 			 println("Errore salvataggio posizione table")
-								 		}
+								if(currentSolution.isSuccess()) { println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
+								 }
+								else
+								{ println("Errore salvataggio posizione table")
+								 }
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -73,16 +74,18 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 									finito=false
 									NextMove=""
 						solve("move(X)","") //set resVar	
-						if(currentSolution.isSuccess()) NextMove = getCurSol("X").toString()
-						 		else{
-						 			 finito=true
-						 		}
+						if(currentSolution.isSuccess()) { NextMove = getCurSol("X").toString()
+						 }
+						else
+						{ finito=true
+						 }
 						if(!finito){
 						solve("retract(move(_))","") //set resVar	
-						if(currentSolution.isSuccess()) println("move cancelled")
-						 		else{
-						 			 println("move not cancelled")
-						 		}
+						if(currentSolution.isSuccess()) { println("move cancelled")
+						 }
+						else
+						{ println("move not cancelled")
+						 }
 						}
 						forward("schedulingCompleted", "schedulingCompleted" ,"planner" ) 
 					}

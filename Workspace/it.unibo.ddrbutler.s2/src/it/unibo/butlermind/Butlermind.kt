@@ -24,10 +24,11 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						
 										var CX=getCurSol("X").toString()
 										var CY=getCurSol("Y").toString()
-						if(currentSolution.isSuccess()) forward("setLocation", "setLocation(rh,$CX,$CY)" ,"planner" ) 
-						 		else{
-						 			 println("Errore nel setting di RH")
-						 		}
+						if(currentSolution.isSuccess()) { forward("setLocation", "setLocation(rh,$CX,$CY)" ,"planner" ) 
+						 }
+						else
+						{ println("Errore nel setting di RH")
+						 }
 						delay(3000) 
 					}
 					 transition( edgeName="goto",targetState="calibration", cond=doswitch() )

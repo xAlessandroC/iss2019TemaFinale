@@ -22,10 +22,11 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						println("[OBSTACLE-DETECTOR]: Started...")
 						solve("consult('sonarConfig.pl')","") //set resVar	
 						solve("detection(X)","") //set resVar	
-						if(currentSolution.isSuccess()) println("USING DETECTION DISTANCE : ${getCurSol("X")}")
-						 		else{
-						 			 println("no distance")
-						 		}
+						if(currentSolution.isSuccess()) { println("USING DETECTION DISTANCE : ${getCurSol("X")}")
+						 }
+						else
+						{ println("no distance")
+						 }
 						distance=Integer.parseInt(getCurSol("X").toString())
 					}
 					 transition(edgeName="t01",targetState="handleSonarData",cond=whenDispatch("sonarRobot"))

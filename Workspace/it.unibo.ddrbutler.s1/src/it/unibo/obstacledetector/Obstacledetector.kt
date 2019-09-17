@@ -22,10 +22,11 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						println("[OBSTACLE-DETECTOR]: Started...")
 						solve("consult('sonarConfig.pl')","") //set resVar	
 						solve("detection(X)","") //set resVar	
-						if(currentSolution.isSuccess()) println("USING DETECTION DISTANCE : ${getCurSol("X")}")
-						 		else{
-						 			 println("no distance")
-						 		}
+						if(currentSolution.isSuccess()) { println("USING DETECTION DISTANCE : ${getCurSol("X")}")
+						 }
+						else
+						{ println("no distance")
+						 }
 						distance=Integer.parseInt(getCurSol("X").toString())
 					}
 					 transition(edgeName="t01",targetState="handleSonarData",cond=whenDispatch("sonarRobot"))
@@ -34,9 +35,14 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
 								 val D = Integer.parseInt( payloadArg(0) )
-								if(D<distance)
+								if(D<=distance){
+								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},obstacle)" ,"resourcemodel" ) 
 								emit("obstacle", "obstacle" ) 
+								}else{
+								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},clear)" ,"resourcemodel" ) 
+								}
 						}
 					}
 					 transition(edgeName="t02",targetState="handleSonarData",cond=whenDispatch("sonarRobot"))

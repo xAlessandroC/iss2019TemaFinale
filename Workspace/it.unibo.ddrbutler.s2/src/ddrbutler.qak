@@ -39,9 +39,13 @@ QActor basicrobot context ctxButler{
 		
 		solve( consult("basicRobotConfig.pl") )   
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
-  		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  		 else println("no robot")
-   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  		ifSolved{
+  			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  			//run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  		} 
+  		else{
+  		 	println("no robot")
+  		 } 
 	}
 	Goto waitCmd
 	
@@ -53,7 +57,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -68,9 +72,13 @@ QActor obstacledetector context ctxButler{
 		
 		solve(consult("sonarConfig.pl"))
 		solve( detection(X) )
-		ifSolved println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
-  		 else println("no distance")
-   	
+		ifSolved{
+			println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
+		} 	
+  		else{
+  			 println("no distance")
+   		}
+   		
    		["distance=Integer.parseInt(getCurSol(\"X\").toString())"]	
 	}
 	Transition t0 whenMsg sonarRobot -> handleSonarData
@@ -308,8 +316,12 @@ QActor butlermind context ctxButler{
 				var CX=getCurSol(\"X\").toString()
 				var CY=getCurSol(\"Y\").toString()
 		"]
-		ifSolved forward planner -m setLocation : setLocation(rh,$CX,$CY)
-		else println("Errore nel setting di RH")
+		ifSolved{
+			forward planner -m setLocation : setLocation(rh,$CX,$CY)
+		}
+		else{
+			println("Errore nel setting di RH")
+		} 
 		
 		delay 3000
 	}
@@ -700,8 +712,12 @@ QActor planner context ctxButler{
 		onMsg(setLocation : setLocation(NAME,X,Y)){
 			solve(assert(location($payloadArg(0),$payloadArg(1),$payloadArg(2))))
 			
-			ifSolved println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
-			else println("Errore salvataggio posizione table")
+			ifSolved{
+				println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
+			} 
+			else{
+				println("Errore salvataggio posizione table")
+			} 
 		}
 		
 	}
@@ -732,13 +748,21 @@ QActor planner context ctxButler{
 		"]
 		
 		solve(move(X))
-		ifSolved ["NextMove = getCurSol(\"X\").toString()"]
-		else ["finito=true"]
+		ifSolved {
+			["NextMove = getCurSol(\"X\").toString()"]
+		} 
+		else {
+			["finito=true"]
+		} 
 		
 		["if(!finito){"]
 			solve(retract(move(_)))
-			ifSolved println("move cancelled")
-			else println("move not cancelled")
+			ifSolved {
+				println("move cancelled")
+			}
+			else {
+				println("move not cancelled")
+			}
 		["}"]
 		
 		forward planner -m schedulingCompleted : schedulingCompleted
@@ -756,11 +780,11 @@ QActor planner context ctxButler{
 	Transition t0 whenMsg moveCompleted -> schedulingNextMove
 }
 
-/*QActor console context ctxButler{
+QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}*/
+}

@@ -18,9 +18,13 @@ QActor basicrobot context ctxButler{
 		
 		solve( consult("basicRobotConfig.pl") )   
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
-  		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  		 else println("no robot")
-   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  		ifSolved{
+  			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  		} 
+  		else {
+  			println("no robot")
+   		} 
 	}
 	Goto waitCmd
 	
@@ -47,9 +51,12 @@ QActor obstacledetector context ctxButler{
 		
 		solve(consult("sonarConfig.pl"))
 		solve( detection(X) )
-		ifSolved println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
-  		 else println("no distance")
-   	
+		ifSolved {
+			println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
+  		}
+  		else {
+  		 	println("no distance")
+   		}
    		["distance=Integer.parseInt(getCurSol(\"X\").toString())"]	
 	}
 	Transition t0 whenMsg sonarRobot -> handleSonarData
