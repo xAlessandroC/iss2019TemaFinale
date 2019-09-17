@@ -137,11 +137,11 @@ object moveUtils{
  		doPlannedMove(actor, "r" )	    //update map
  	}
  	suspend fun rotateRight90tuning(actor : ActorBasic ){
- 		//actor.forward("movementCmd", "movementCmd(d)", "movementhandler")
+ 		actor.forward("movementCmd", "movementCmd(d)", "movementhandler")
 		println("TUNING TO RIGHT.... ")
  		//readLine()
  		doPlannedMove(actor, "d" )	    //update map
-		actor.forward("moveCompleted", "moveCompleted", "calibration")
+		//actor.forward("moveCompleted", "moveCompleted", "calibration")
  	}
 	suspend fun rotateLeft(actor : ActorBasic){
 		actor.forward("mindCmd", "mindCmd(a)", "robotmind")
@@ -154,12 +154,12 @@ object moveUtils{
  		doPlannedMove(actor, "l" )	    //update map	
  	}
 	suspend fun rotateLeft90tuning( actor : ActorBasic ){
-		//actor.forward("movementCmd", "movementCmd(a)", "movementhandler")
+		actor.forward("movementCmd", "movementCmd(a)", "movementhandler")
 		println("TUNING TO LEFT.... ")
 		//readLine()
 		//delay( 1000 )
  		doPlannedMove(actor, "a" )	    //update map
-		actor.forward("moveCompleted", "moveCompleted", "calibration")
+		//actor.forward("moveCompleted", "moveCompleted", "calibration")
 	}
  	suspend fun moveAhead(actor:ActorBasic, dest:String ="movementhandler"){
 		//println("moveUtils moveAhead stepTime=$stepTime")
@@ -187,15 +187,17 @@ object moveUtils{
 	
 	//CUSTOM
 	fun setTable(startX : Int,startY : Int,endX : Int,endY : Int,lengthX : Int,lengthY : Int){
-		var startMaxX = Math.min(startX,endX)
-		var startMaxY = Math.min(startY,endY)
-		var endMaxX =	Math.max(startX,endX)
-		var endMaxY =	Math.max(startY,endY)
-		
-		for(i in startMaxX..endMaxX){
-			for(j in startMaxY..endMaxY){
-				RoomMap.getRoomMap().put(i,j,Box(true,false,false))
-			}
+		if(startX>=0 && startY>=0 && endX>=0 && endY>=0){
+			var startMaxX = Math.min(startX,endX)
+			var startMaxY = Math.min(startY,endY)
+			var endMaxX =	Math.max(startX,endX)
+			var endMaxY =	Math.max(startY,endY)
+			
+			for(i in startMaxX..endMaxX){
+				for(j in startMaxY..endMaxY){
+					RoomMap.getRoomMap().put(i,j,Box(true,false,false))
+				}
+		}
 		}
 	}
 	

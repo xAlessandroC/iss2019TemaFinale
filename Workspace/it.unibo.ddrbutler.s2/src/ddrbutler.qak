@@ -41,7 +41,7 @@ QActor basicrobot context ctxButler{
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
   		 else println("no robot")
-   		//ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
 	}
 	Goto waitCmd
 	
@@ -53,7 +53,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -292,7 +292,7 @@ QActor robotmind context ctxButler{
 		
 		onMsg(robotChanged : robotChanged(robot, X)){
 			printCurrentMessage
-			forward basicrobot -m robotCmd : robotCmd($payloadArg(0))
+			forward basicrobot -m robotCmd : robotCmd($payloadArg(1))
 		}
 	}
 	Goto waitCmd
@@ -756,11 +756,11 @@ QActor planner context ctxButler{
 	Transition t0 whenMsg moveCompleted -> schedulingNextMove
 }
 
-QActor console context ctxButler{
+/*QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/
