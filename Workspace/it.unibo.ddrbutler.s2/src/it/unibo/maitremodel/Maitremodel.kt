@@ -19,6 +19,7 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("s0") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: starts...")
+						solve("consult('sysRules.pl')","") //set resVar	
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
 				}	 
@@ -53,11 +54,27 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("updatingRoom") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: received an updatingRoom command")
-						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,CODE,QNT)"), Term.createTerm("updateContent(DEVICE,CODE,QNT)"), 
+						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT)"), Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, foodCode ${payloadArg(1)}, qnt ${payloadArg(2)}")
-								itunibo.maitre.resourceModelSupport.writeUpdateFile( payloadArg(0), payloadArg(1), payloadArg(2)  )
+								println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
+								solve("content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_)","") //set resVar	
+								if(currentSolution.isSuccess()) { solve("replaceRule(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_),content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								if(currentSolution.isSuccess()) { println("[MAITRE_MODEL]: I've replaced a line")
 								forward("updateMaitre", "updateMaitre" ,"maitre" ) 
+								 }
+								else
+								{ println("[MAITRE_MODEL]: error in replacing the new line")
+								 }
+								 }
+								else
+								{ solve("assert(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								if(currentSolution.isSuccess()) { println("[MAITRE_MODEL]: I've added a new line")
+								forward("updateMaitre", "updateMaitre" ,"maitre" ) 
+								 }
+								else
+								{ println("[MAITRE_MODEL]: error in adding a new line")
+								 }
+								 }
 						}
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )

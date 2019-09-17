@@ -25,7 +25,7 @@ Dispatch modelChanged : modelChanged(NAME, TASK)
 Dispatch modelUpdate : modelUpdate(NAME, STATE)
 
 /* UPDATING STATE ROOM */
-Event updateContent : updateContent(DEVICE, CODE, QNT)
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
 
 
 Context ctxButler ip [host="localhost" port=3030]
@@ -238,6 +238,7 @@ QActor maitre context ctxButler {
 QActor maitremodel context ctxButler {
 	State s0 initial {
 		println("[MAITRE_MODEL]: starts...")
+		solve(consult("sysRules.pl"))
 	}
 	Goto waitingCmd
 	
@@ -269,11 +270,30 @@ QActor maitremodel context ctxButler {
 	State updatingRoom {
 		println("[MAITRE_MODEL]: received an updatingRoom command")
 		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, foodCode ${payloadArg(1)}, qnt ${payloadArg(2)}")
-			run itunibo.maitre.resourceModelSupport.writeUpdateFile(payloadArg(0), payloadArg(1), payloadArg(2))
+		onMsg(updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)){
+			println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
 			
-			forward maitre -m updateMaitre : updateMaitre
+			solve(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _))
+			ifSolved {
+				solve(replaceRule(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _), content($payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3))))		
+				ifSolved {
+					println("[MAITRE_MODEL]: I've replaced a line")	
+					forward maitre -m updateMaitre : updateMaitre
+				}
+				else {
+					println("[MAITRE_MODEL]: error in replacing the new line")
+				}			
+			}
+			else {
+				solve(assert(content($payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3))))
+				ifSolved {
+					println("[MAITRE_MODEL]: I've added a new line")
+					forward maitre -m updateMaitre : updateMaitre
+				}
+				else {
+					println("[MAITRE_MODEL]: error in adding a new line")
+				}	
+			}			
 		}
 	}
 	Goto waitingCmd

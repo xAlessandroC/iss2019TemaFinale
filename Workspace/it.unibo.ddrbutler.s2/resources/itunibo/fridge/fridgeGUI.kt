@@ -11,6 +11,12 @@ import it.unibo.kactor.ActorBasic
 
 object fridgeGUI {
 	private lateinit var frame : JFrame
+	
+	private lateinit var buttonPanel : JPanel
+	private lateinit var textFieldPanel : JPanel
+			
+	private lateinit var foodCodeField : JTextField
+	private lateinit var qntField : JTextField
 	private lateinit var updateButton : JButton
 	
 	private lateinit var actor : ActorBasic
@@ -19,15 +25,27 @@ object fridgeGUI {
 		actor = a
 		
 		frame = JFrame("Fridge GUI")
-		frame.setSize(100, 150)
+		frame.setSize(300, 150)
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
 		frame.getContentPane().setBackground(Color.WHITE)
+		frame.setLayout(BorderLayout())
+		
+		buttonPanel = JPanel()
+		textFieldPanel = JPanel()
 		
 		updateButton = JButton("Update").apply {
 			addActionListener(ButtonClickListener())
 		}
 		
-		frame.add(updateButton)
+		foodCodeField = JTextField(15)
+		qntField = JTextField(4)
+		
+		buttonPanel.add(updateButton)
+		textFieldPanel.add(foodCodeField)
+		textFieldPanel.add(qntField)
+		
+		frame.add(buttonPanel, BorderLayout.NORTH)
+		frame.add(textFieldPanel, BorderLayout.CENTER)
 		frame.setVisible(true)
 	}
 	
@@ -35,7 +53,7 @@ object fridgeGUI {
 		override fun actionPerformed(e : ActionEvent) {
 			when(e.actionCommand) {
 				"Update" -> GlobalScope.launch {
-					actor.emit("updateContent", "updateContent(fridge, brasciole, 10)")
+					actor.emit("updateContent", "updateContent(fridge, cibo, ${foodCodeField.getText()}, ${qntField.getText()})")
 				}
 			else -> GlobalScope.launch {
 					println("[MAITRE]: unexpected command received")

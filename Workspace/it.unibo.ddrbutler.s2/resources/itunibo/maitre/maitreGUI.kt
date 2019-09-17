@@ -9,11 +9,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import it.unibo.kactor.ActorBasicFsm
 import it.unibo.kactor.ActorBasic
+import it.unibo.kactor.sysUtil
 
 object maitreGUI {
-	val fileName : String = "E:/Didattica/temaFinale/iss2019TemaFinale/Workspace/it.unibo.ddrbutler.s2/fridgeContent.txt"
-	val file = File(fileName)
-			
+	
 	private lateinit var frame : JFrame
 	private lateinit var panelButton : JPanel
 	private lateinit var panelTextArea : JPanel
@@ -103,12 +102,15 @@ object maitreGUI {
 	}
 	
 	public fun readFromFile(){
-		val lines : List<String> = file.readLines()
+		var actor = sysUtil.getActor("maitremodel")
+		actor!!.solve("findall(content(X, Y, Z, W), content(X, Y, Z, W), L)")
+		var lineRead : String = actor.getCurSol("L").toString()
+		var lines : List<String> = lineRead.replace("[", "").replace("]", "").split("),")
+				
 		val stringBuilder = StringBuilder()
-		lines.forEach { line -> stringBuilder.append(line) }
-		
-		var old = textArea.getText()
-		var new = old + "\n" + stringBuilder.toString()
+		lines.forEach { line -> stringBuilder.append(line + ')' + '\n') }
+
+		var new = stringBuilder.toString()
 		textArea.setText(new)
 	}
 	
