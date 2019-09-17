@@ -4,12 +4,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
+import java.io.File
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import it.unibo.kactor.ActorBasicFsm
 import it.unibo.kactor.ActorBasic
 
 object maitreGUI {
+	val fileName : String = "E:/Didattica/temaFinale/iss2019TemaFinale/Workspace/it.unibo.ddrbutler.s2/fridgeContent.txt"
+	val file = File(fileName)
+			
 	private lateinit var frame : JFrame
 	private lateinit var panelButton : JPanel
 	private lateinit var panelTextArea : JPanel
@@ -24,7 +28,7 @@ object maitreGUI {
 	private lateinit var textArea : JTextArea
 	
 	private lateinit var maitreActor : ActorBasic
-	 
+	
 	public fun init(a : ActorBasic) {
 		maitreActor = a
 		
@@ -99,12 +103,12 @@ object maitreGUI {
 	}
 	
 	public fun readFromFile(){
-		//lettura file
-		
-		var daInserire=""
+		val lines : List<String> = file.readLines()
+		val stringBuilder = StringBuilder()
+		lines.forEach { line -> stringBuilder.append(line) }
 		
 		var old = textArea.getText()
-		var new = old +"\n"+daInserire
+		var new = old + "\n" + stringBuilder.toString()
 		textArea.setText(new)
 	}
 	

@@ -121,7 +121,7 @@ QActor mindbutler context ctxButler {
 				  whenMsg stop -> clearSuspend
 
 	State endClear {
-		println("[]MIND_BUTLER]: i'm finishing to clear the room")
+		println("[MIND_BUTLER]: i'm finishing to clear the room")
 		
 		forward maitremodel -m modelChange : modelChange(maitre, clear)		
 		forward mindbutler -m clearCompleted : clearCompleted		
@@ -151,7 +151,8 @@ QActor maitre context ctxButler {
 		run itunibo.maitre.maitreGUI.enableOnlyPrepare()
 	}
 	Transition t0 whenMsg prepareSended -> waitingPrepCompleted
-				  
+				  whenMsg updateMaitre -> updateSP // ?
+				  				  
 	State waitingPrepCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 		
@@ -160,7 +161,7 @@ QActor maitre context ctxButler {
 		println("[MAITRE]: waiting for a prepareCompleted...")
 	}
 	Transition t0 whenMsg modelChanged -> sendingAC
-				  whenEvent updateMaitre -> updateP 
+				  whenMsg updateMaitre -> updateP 
 	
 	/* ADD FOOD / CLEAR */
 	State sendingAC {
@@ -169,6 +170,7 @@ QActor maitre context ctxButler {
 	}
 	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompleted
 				  whenMsg clearSended -> waitingClearCompleted
+				  whenMsg updateMaitre -> updateP 
 				  
 	State waitingAddFoodCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
@@ -179,7 +181,7 @@ QActor maitre context ctxButler {
 
 	}
 	Transition t0 whenMsg modelChanged -> sendingAC
-				  whenEvent updateMaitre -> updateA
+				  whenMsg updateMaitre -> updateAC
 
 	State waitingClearCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
@@ -190,11 +192,26 @@ QActor maitre context ctxButler {
 
 	}
 	Transition t0 whenMsg modelChanged -> sendingPrepare
-				  whenEvent updateMaitre -> updateC
+				  whenMsg updateMaitre -> updateC
 	
 	/* UPDATE */
+	State updateSP {
+		println("[MAITRE]: i'm in updateSP")
+		run itunibo.maitre.maitreGUI.readFromFile()
+		
+	}
+	Goto sendingPrepare
+	
+	State updateAC {
+		println("[MAITRE]: i'm in updateAC")
+		run itunibo.maitre.maitreGUI.readFromFile()
+		
+	}
+	Goto sendingAC
+	
 	State updateP {
 		println("[MAITRE]: i'm in updateP")
+		run itunibo.maitre.maitreGUI.readFromFile()
 		
 	}
 	Goto waitingPrepCompleted
@@ -229,7 +246,7 @@ QActor maitremodel context ctxButler {
 	}
 	Transition t0 whenMsg modelChange -> modelChanging
 				  whenMsg modelUpdate -> modelUpdating
-				  whenMsg updateContent -> updatingRoom
+				  whenEvent updateContent -> updatingRoom
 						
 	State modelUpdating {
 		println("[MAITRE_MODEL]: updating model...")
@@ -249,15 +266,23 @@ QActor maitremodel context ctxButler {
 	}
 	Goto waitingCmd
 	
-	
 	State updatingRoom {
 		println("[MAITRE_MODEL]: received an updatingRoom command")
 		
 		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
+			println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, foodCode ${payloadArg(1)}, qnt ${payloadArg(2)}")
+			run itunibo.maitre.resourceModelSupport.writeUpdateFile(payloadArg(0), payloadArg(1), payloadArg(2))
 			
+			forward maitre -m updateMaitre : updateMaitre
 		}
 	}
 	Goto waitingCmd
-	
-	
 }
+
+/* FRIDGE */
+QActor fridge context ctxButler {
+	State s0 initial {
+		run itunibo.fridge.fridgeGUI.init(myself)
+	}
+}
+	

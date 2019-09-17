@@ -26,9 +26,9 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: waiting for a command...")
 					}
-					 transition(edgeName="t027",targetState="modelChanging",cond=whenDispatch("modelChange"))
-					transition(edgeName="t028",targetState="modelUpdating",cond=whenDispatch("modelUpdate"))
-					transition(edgeName="t029",targetState="updatingRoom",cond=whenDispatch("updateContent"))
+					 transition(edgeName="t029",targetState="modelChanging",cond=whenDispatch("modelChange"))
+					transition(edgeName="t030",targetState="modelUpdating",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t031",targetState="updatingRoom",cond=whenEvent("updateContent"))
 				}	 
 				state("modelUpdating") { //this:State
 					action { //it:State
@@ -55,6 +55,9 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						println("[MAITRE_MODEL]: received an updatingRoom command")
 						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,CODE,QNT)"), Term.createTerm("updateContent(DEVICE,CODE,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, foodCode ${payloadArg(1)}, qnt ${payloadArg(2)}")
+								itunibo.maitre.resourceModelSupport.writeUpdateFile( payloadArg(0), payloadArg(1), payloadArg(2)  )
+								forward("updateMaitre", "updateMaitre" ,"maitre" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )

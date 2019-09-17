@@ -120,7 +120,7 @@ class Mindbutler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("endClear") { //this:State
 					action { //it:State
-						println("[]MIND_BUTLER]: i'm finishing to clear the room")
+						println("[MIND_BUTLER]: i'm finishing to clear the room")
 						forward("modelChange", "modelChange(maitre,clear)" ,"maitremodel" ) 
 						forward("clearCompleted", "clearCompleted" ,"mindbutler" ) 
 					}
