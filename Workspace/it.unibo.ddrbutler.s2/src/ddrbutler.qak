@@ -8,15 +8,15 @@ Dispatch moveReceived : moveReceived
 
 Dispatch robotChange : robotChange(TARGET, VALUE)
 Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
-Dispatch taskChange : taskChange(TARGET, TASK)
+Dispatch taskChange : taskChange(TARGET, TASK, FC, QNT)
 
 Dispatch robotUpdate : robotUpdate(TARGET, VALUE)
 Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
-Dispatch taskUpdate : taskUpdate(TARGET, TASK)
+Dispatch taskUpdate : taskUpdate(TARGET, TASK, FC, QNT)
 
 Dispatch robotChanged : robotChanged(TARGET, VALUE)
 Dispatch sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
-Dispatch taskChanged : taskChanged(TARGET, TASK)
+Dispatch taskChanged : taskChanged(TARGET, TASK, FC, QNT)
 
 Dispatch movementCmd : movementCmd(CMD)
 
@@ -89,17 +89,17 @@ QActor obstacledetector context ctxButler{
 			printCurrentMessage
 			[" val D = Integer.parseInt( payloadArg(0) )"]
 			["if(D<=distance){"]
-				forward resourcemodel -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
+				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
 				emit obstacle : obstacle
 			["}else{"]
-				forward resourcemodel -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
+				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
 			["}"]
 		}
 	}
 	Transition t0 whenMsg sonarRobot -> handleSonarData
 }
 
-QActor resourcemodel context ctxButler{
+QActor resourcemodelbutler context ctxButler{
 	State s0 initial{
 		println("[RESOURCE MODEL]: Started...")
 		
@@ -130,9 +130,9 @@ QActor resourcemodel context ctxButler{
 			printCurrentMessage
 		}
 		
-		onMsg(taskChange : taskChange(butler, TASK)){
+		onMsg(taskChange : taskChange(butler, TASK, FC, QNT)){
 			printCurrentMessage
-			forward butlermind -m taskChanged : taskChanged(butler, $payloadArg(1))
+			forward butlermind -m taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
 			run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
 		}
 	}
@@ -149,7 +149,7 @@ QActor resourcemodel context ctxButler{
 			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1), obstacle )
 		}
 		
-		onMsg(taskUpdate : taskUpdate(butler, TASK)){
+		onMsg(taskUpdate : taskUpdate(butler, TASK, FC, QNT)){
 			printCurrentMessage
 			run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
 		}
@@ -198,7 +198,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(w)
-		forward resourcemodel -m robotChange : robotChange(robot, w)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, w)
 		["startF = System.currentTimeMillis()"]
 	}
 	Transition t0 whenTime 1000 -> stopForward
@@ -208,7 +208,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(h)
-		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 	}
@@ -218,7 +218,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(a)
-		forward resourcemodel -m robotChange : robotChange(robot, a)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, a)
 		
 	}
 	Transition t0 whenTime 1850 -> stopTurnLeft
@@ -228,7 +228,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(h)
-		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 		
@@ -240,7 +240,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(d)
-		forward resourcemodel -m robotChange : robotChange(robot, d)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, d)
 	}
 	Transition t0 whenTime 1850 -> stopTurnRight
 				  //whenEvent obstacle -> waitCmd
@@ -249,7 +249,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(h)
-		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 		delay 1000
@@ -260,7 +260,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(s)
-		forward resourcemodel -m robotChange : robotChange(robot, s)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, s)
 	}
 	//Transition t0 whenTime 500 -> stopBacktracking
 				  //whenEvent obstacle -> waitCmd
@@ -277,7 +277,7 @@ QActor movementhandler context ctxButler{
 		printCurrentMessage
 		
 		//forward basicrobot -m robotCmd : robotCmd(h)
-		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 	}
@@ -330,7 +330,7 @@ QActor butlermind context ctxButler{
 	State calibration{
 		printCurrentMessage
 		
-		forward resourcemodel -m taskUpdate : taskUpdate(butler, calibration)
+		forward resourcemodelbutler -m taskUpdate : taskUpdate(butler, calibration, null, null)
 		forward calibration -m startCalibration : startCalibration
 	}
 	Transition t0 whenMsg calibrationCompleted -> endCalibration

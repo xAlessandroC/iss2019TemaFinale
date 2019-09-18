@@ -27,14 +27,14 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: waiting for a command...")
 					}
-					 transition(edgeName="t012",targetState="modelChanging",cond=whenDispatch("modelChange"))
-					transition(edgeName="t013",targetState="modelUpdating",cond=whenDispatch("modelUpdate"))
+					 transition(edgeName="t012",targetState="modelChanging",cond=whenDispatch("modelChangeMaitre"))
+					transition(edgeName="t013",targetState="modelUpdating",cond=whenDispatch("modelUpdateMaitre"))
 					transition(edgeName="t014",targetState="updatingRoom",cond=whenEvent("updateContent"))
 				}	 
 				state("modelUpdating") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: updating model...")
-						if( checkMsgContent( Term.createTerm("modelUpdate(NAME,STATE)"), Term.createTerm("modelUpdate(maitre,STATE)"), 
+						if( checkMsgContent( Term.createTerm("modelUpdateMaitre(NAME,STATE)"), Term.createTerm("modelUpdateMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								itunibo.maitre.resourceModelSupport.updateMaitreModel(myself ,payloadArg(1) )
 						}
@@ -44,9 +44,9 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("modelChanging") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: received a modelChange command")
-						if( checkMsgContent( Term.createTerm("modelChange(NAME,STATE)"), Term.createTerm("modelChange(maitre,STATE)"), 
+						if( checkMsgContent( Term.createTerm("modelChangeMaitre(NAME,STATE)"), Term.createTerm("modelChangeMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChanged", "modelChanged" ,"maitre" ) 
+								forward("modelChangedMaitre", "modelChanged" ,"maitre" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
