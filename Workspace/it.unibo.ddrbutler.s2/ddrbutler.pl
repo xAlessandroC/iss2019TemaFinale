@@ -10,4 +10,3 @@ context(ctxbutler, "localhost",  "TCP", "3030" ).
   qactor( butlermind, ctxbutler, "it.unibo.butlermind.Butlermind").
   qactor( calibration, ctxbutler, "it.unibo.calibration.Calibration").
   qactor( planner, ctxbutler, "it.unibo.planner.Planner").
-  qactor( console, ctxbutler, "it.unibo.console.Console").

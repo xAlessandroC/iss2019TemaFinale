@@ -9,7 +9,7 @@ Dispatch moveReceived : moveReceived
 Dispatch robotChange : robotChange(TARGET, VALUE)
 Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
 Dispatch taskChange : taskChange(TARGET, TASK)
-
+ 
 Dispatch robotUpdate : robotUpdate(TARGET, VALUE)
 Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
 Dispatch taskUpdate : taskUpdate(TARGET, TASK)
