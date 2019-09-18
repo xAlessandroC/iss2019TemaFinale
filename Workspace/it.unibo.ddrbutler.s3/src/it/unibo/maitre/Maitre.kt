@@ -34,11 +34,11 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("waitingPrepCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
-						forward("modelUpdate", "modelUpdate(maitre,prepare)" ,"maitremodel" ) 
-						forward("taskChange", "taskChange(butler,prepare)" ,"resourcemodel" ) 
+						forward("modelUpdateMaitre", "modelUpdate(maitre,prepare)" ,"maitremodel" ) 
+						forward("taskChange", "taskChange(butler,prepare,null,null)" ,"resourcemodelbutler" ) 
 						println("[MAITRE]: waiting for a prepareCompleted...")
 					}
-					 transition(edgeName="t02",targetState="sendingAC",cond=whenDispatch("modelChanged"))
+					 transition(edgeName="t02",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
 					transition(edgeName="t03",targetState="updateP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("sendingAC") { //this:State
@@ -53,22 +53,22 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("waitingAddFoodCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
-						forward("modelUpdate", "modelUpdate(maitre,addFood)" ,"maitremodel" ) 
-						forward("taskChange", "taskChange(butler,add)" ,"resourcemodel" ) 
+						forward("modelUpdateMaitre", "modelUpdate(maitre,addFood)" ,"maitremodel" ) 
+						forward("taskChange", "taskChange(butler,add,taralli,5)" ,"resourcemodelbutler" ) 
 						println("[MAITRE]: waiting for an addFoodCompleted...")
 					}
-					 transition(edgeName="t07",targetState="sendingAC",cond=whenDispatch("modelChanged"))
+					 transition(edgeName="t07",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
 					transition(edgeName="t08",targetState="updateAC",cond=whenDispatch("updateMaitre"))
 					transition(edgeName="t09",targetState="handleWarning",cond=whenEvent("alert"))
 				}	 
 				state("waitingClearCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
-						forward("modelUpdate", "modelUpdate(maitre,clear)" ,"maitremodel" ) 
-						forward("taskChange", "taskChange(butler,clear)" ,"resourcemodel" ) 
+						forward("modelUpdateMaitre", "modelUpdate(maitre,clear)" ,"maitremodel" ) 
+						forward("taskChange", "taskChange(butler,clear,null,null)" ,"resourcemodelbutler" ) 
 						println("[MAITRE]: waiting for a clearCompleted...")
 					}
-					 transition(edgeName="t010",targetState="sendingPrepare",cond=whenDispatch("modelChanged"))
+					 transition(edgeName="t010",targetState="sendingPrepare",cond=whenDispatch("modelChangedMaitre"))
 					transition(edgeName="t011",targetState="updateC",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("updateSP") { //this:State

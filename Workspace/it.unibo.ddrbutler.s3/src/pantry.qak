@@ -1,0 +1,99 @@
+System pantry
+
+//external
+Dispatch setLocation : setLocation(NAME,X,Y)
+
+//pantry
+Dispatch modelChangedPantry : modelChangedPantry(OP,QNT)
+Dispatch modelChangePantry : modelChangePantry(OP,QNT)
+Dispatch modelUpdatePantry : modelUpdatePantru(OP)
+
+Context ctxButler ip [host="localhost" port=3030]
+
+//ExternalQActor planner context ctxButler
+
+QActor pantry context ctxButler{
+	["
+		var goToPut = false
+		var qnt = -1
+	"]
+	State s0 initial{
+		println("[PANTRY]: Started...")
+		
+		run itunibo.pantry.pantrySupport.create(20)
+		//forward planner -m setLocation : setLocation(pantry,3,1)
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelChangedPantry -> analyzeMessage
+	
+	State analyzeMessage{
+		printCurrentMessage
+		onMsg(modelChangedPantry : modelChangedPantry(OP, QNT)){
+			["if(payloadArg(0).equals(\"put\")){
+				goToPut=true
+			}"]
+			["if(payloadArg(0).equals(\"take\")){
+				goToPut=false
+			}"]
+			["qnt = Integer.parseInt(payloadArg(1))"]
+		}
+	}
+	Goto putDish if "goToPut" else takeDish
+	
+	State putDish{
+		printCurrentMessage
+		run itunibo.pantry.pantrySupport.putDishes(myself,qnt)
+	}
+	Goto waitCmd
+	
+	State takeDish{
+		printCurrentMessage
+		run itunibo.pantry.pantrySupport.takeDishes(myself,qnt)
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodelpantry context ctxButler{
+	State s0 initial{
+		println("[RESOURCEMODEL PANTRY]: Started...")
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelChangePantry -> handleChange
+				  whenMsg modelUpdatePantry -> handleUpdate
+	
+	State handleChange{
+		printCurrentMessage
+		
+		onMsg(modelChangePantry : modelChangePantry(OP, QNT) ){
+			forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1))
+			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(0))
+		}
+	}
+	Goto waitCmd
+	
+	State handleUpdate{
+		printCurrentMessage
+		
+		onMsg(modelUpdatePantry : modelUpdatePantry(OP) ){
+			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(0))
+		}
+	}
+	Goto waitCmd
+}
+
+QActor console context ctxButler{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}

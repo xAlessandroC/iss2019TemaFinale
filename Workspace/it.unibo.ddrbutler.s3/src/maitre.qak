@@ -1,7 +1,7 @@
 System maitre
 
 /* BUTLER MESSAGES */
-Dispatch taskChange : taskChange(NAME, TASK)
+Dispatch taskChange : taskChange(NAME, TASK, FC, QNT)
 
 Dispatch prepareCompleted : prepareCompleted
 Dispatch addFoodCompleted : addFoodCompleted
@@ -20,9 +20,9 @@ Dispatch reactivate : reactivate
 Dispatch updateMaitre : updateMaitre
 
 /* MODEL MAITRE CHANGES */
-Dispatch modelChange : modelChange(NAME, STATE)
-Dispatch modelChanged : modelChanged(NAME, TASK)
-Dispatch modelUpdate : modelUpdate(NAME, STATE)
+Dispatch modelChangeMaitre : modelChangeMaitre(NAME, STATE)
+Dispatch modelChangedMaitre : modelChangedMaitre(NAME, TASK)
+Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
 
 /* UPDATING STATE ROOM */
 Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
@@ -31,7 +31,7 @@ Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
 Context ctxMaitre ip [host="localhost" port=3031]
 Context ctxButler ip [host="localhost" port=3030]
 
-ExternalQActor resourcemodel context ctxButler
+ExternalQActor resourcemodelbutler context ctxButler
 
 QActor maitre context ctxMaitre {
 	State s0 initial {
@@ -51,11 +51,11 @@ QActor maitre context ctxMaitre {
 	State waitingPrepCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 		
-		forward maitremodel -m modelUpdate : modelUpdate(maitre, prepare)
-		forward resourcemodel -m taskChange : taskChange(butler,prepare)
+		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, prepare)
+		forward resourcemodelbutler -m taskChange : taskChange(butler, prepare, null, null)
 		println("[MAITRE]: waiting for a prepareCompleted...")
 	}
-	Transition t0 whenMsg modelChanged -> sendingAC
+	Transition t0 whenMsg modelChangedMaitre -> sendingAC
 				  whenMsg updateMaitre -> updateP 
 	
 	/* ADD FOOD / CLEAR */
@@ -70,24 +70,24 @@ QActor maitre context ctxMaitre {
 	State waitingAddFoodCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 		
-		forward maitremodel -m modelUpdate : modelUpdate(maitre, addFood)
-		forward resourcemodel -m taskChange : taskChange(butler, add)
+		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, addFood)
+		forward resourcemodelbutler -m taskChange : taskChange(butler, add, taralli, 5)
 		println("[MAITRE]: waiting for an addFoodCompleted...")
 
 	}
-	Transition t0 whenMsg modelChanged -> sendingAC
+	Transition t0 whenMsg modelChangedMaitre -> sendingAC
 				  whenMsg updateMaitre -> updateAC
 				  whenEvent alert -> handleWarning
 
 	State waitingClearCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 
-		forward maitremodel -m modelUpdate : modelUpdate(maitre, clear)
-		forward resourcemodel -m taskChange : taskChange(butler,clear)
+		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, clear)
+		forward resourcemodelbutler -m taskChange : taskChange(butler, clear, null, null)
 		println("[MAITRE]: waiting for a clearCompleted...")
 
 	}
-	Transition t0 whenMsg modelChanged -> sendingPrepare
+	Transition t0 whenMsg modelChangedMaitre -> sendingPrepare
 				  whenMsg updateMaitre -> updateC
 	
 	/* UPDATE */
@@ -140,14 +140,14 @@ QActor maitremodel context ctxMaitre {
 	State waitingCmd {
 		println("[MAITRE_MODEL]: waiting for a command...")
 	}
-	Transition t0 whenMsg modelChange -> modelChanging
-				  whenMsg modelUpdate -> modelUpdating
+	Transition t0 whenMsg modelChangeMaitre -> modelChanging
+				  whenMsg modelUpdateMaitre -> modelUpdating
 				  whenEvent updateContent -> updatingRoom
 						
 	State modelUpdating {
 		println("[MAITRE_MODEL]: updating model...")
 		
-		onMsg(modelUpdate : modelUpdate(maitre, STATE)) {
+		onMsg(modelUpdateMaitre : modelUpdateMaitre(maitre, STATE)) {
 			run itunibo.maitre.resourceModelSupport.updateMaitreModel(myself, payloadArg(1))
 		}
 	}
@@ -156,8 +156,8 @@ QActor maitremodel context ctxMaitre {
 	State modelChanging {
 		println("[MAITRE_MODEL]: received a modelChange command")
 		
-		onMsg(modelChange : modelChange(maitre, STATE)) {
-				forward maitre -m modelChanged : modelChanged
+		onMsg(modelChangeMaitre : modelChangeMaitre(maitre, STATE)) {
+				forward maitre -m modelChangedMaitre : modelChanged
 		}
 	}
 	Goto waitingCmd

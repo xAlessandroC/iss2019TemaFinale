@@ -31,8 +31,8 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[PANTRY]: Sono in waitCmd")
 					}
-					 transition(edgeName="t029",targetState="puttingDish",cond=whenDispatch("pantryPutDish"))
-					transition(edgeName="t030",targetState="takingDish",cond=whenDispatch("pantryTakeDish"))
+					 transition(edgeName="t028",targetState="puttingDish",cond=whenDispatch("pantryPutDish"))
+					transition(edgeName="t029",targetState="takingDish",cond=whenDispatch("pantryTakeDish"))
 				}	 
 				state("puttingDish") { //this:State
 					action { //it:State
@@ -41,7 +41,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t030",targetState="waitCmd",cond=whenDispatch("pantryPutCompleted"))
 				}	 
 				state("takingDish") { //this:State
 					action { //it:State
@@ -50,7 +50,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t031",targetState="waitCmd",cond=whenDispatch("pantryTakeCompleted"))
 				}	 
 			}
 		}

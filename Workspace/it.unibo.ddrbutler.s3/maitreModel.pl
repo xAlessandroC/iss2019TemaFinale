@@ -1,8 +1,8 @@
 %%STATE OF THE MAITRE
 
-state(maitre, unknown). %%initial state
+state(pantry, idle). %%initial state
 
-action(maitre, X) :- changeModelMaitre(maitre, X).
+action(pantry, X) :- changeModelPantry(pantry, X).
 
-changeModelMaitre(NAME, VALUE) :- 
+changeModelPantry(NAME, VALUE) :- 
 	replaceRule(state(NAME, _), state(NAME, VALUE)).
