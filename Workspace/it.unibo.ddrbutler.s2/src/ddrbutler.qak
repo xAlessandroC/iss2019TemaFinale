@@ -32,7 +32,7 @@ Dispatch planningCompleted : planningCompleted
 Dispatch setLocation : setLocation(NAME,X,Y)
 
 Context ctxButler ip [host="localhost" port=3030]
-
+  
 QActor basicrobot context ctxButler{
 	State s0 initial{
 		println("[BASICROBOT]: Started...")
