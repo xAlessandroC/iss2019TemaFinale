@@ -6,8 +6,10 @@ import java.io.File
 
 object resourceModelSupport{
 	
-	fun updatePantryModel( actor: ActorBasic, content: String ){
-		actor.solve("action(pantry, $content)")
+	fun updatePantryModel( actor: ActorBasic, content: String, qnt: String ){
+		actor.solve("action(pantry, $content, $qnt)")
+		actor.solve("state(pantry , X, Y)")
+		println("NEW STATE PANTRY: "+actor.getCurSol("X")+" "+actor.getCurSol("Y"))
 	}
 	
 }

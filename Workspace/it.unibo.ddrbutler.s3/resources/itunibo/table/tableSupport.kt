@@ -10,12 +10,12 @@ object tableSupport{
 		table = Table()
 	}
 	
-	fun putDishes(actor : ActorBasic, quantity : Int){
+	fun putDish(actor : ActorBasic, quantity : Int){
 		table.putDishes(quantity)
 		println(table)
 	}
 	
-	fun takeDishes(actor : ActorBasic, quantity : Int){
+	fun takeDish(actor : ActorBasic, quantity : Int){
 		table.takeDishes(quantity)
 		println(table)
 	}

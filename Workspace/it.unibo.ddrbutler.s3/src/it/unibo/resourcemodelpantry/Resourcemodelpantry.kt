@@ -19,6 +19,8 @@ class Resourcemodelpantry ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("s0") { //this:State
 					action { //it:State
 						println("[RESOURCEMODEL PANTRY]: Started...")
+						solve("consult('sysRules.pl')","") //set resVar	
+						solve("consult('pantryModel.pl')","") //set resVar	
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -31,10 +33,15 @@ class Resourcemodelpantry ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("handleChange") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangePantry(OP,QNT)"), Term.createTerm("modelChangePantry(OP,QNT)"), 
+						if( checkMsgContent( Term.createTerm("modelChangePantry(NAME,OP,QNT)"), Term.createTerm("modelChangePantry(pantry,put,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedPantry", "modelChangedPantry(${payloadArg(0)},${payloadArg(1)})" ,"pantry" ) 
-								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(0) )
+								forward("modelChangedPantry", "modelChangedPantry(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"pantry" ) 
+								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(1), payloadArg(2) )
+						}
+						if( checkMsgContent( Term.createTerm("modelChangePantry(NAME,OP,QNT)"), Term.createTerm("modelChangePantry(pantry,take,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelChangedPantry", "modelChangedPantry(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"pantry" ) 
+								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(1), payloadArg(2) )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -42,9 +49,9 @@ class Resourcemodelpantry ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("handleUpdate") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelUpdatePantru(OP)"), Term.createTerm("modelUpdatePantry(OP)"), 
+						if( checkMsgContent( Term.createTerm("modelUpdatePantry(NAME,OP,QNT)"), Term.createTerm("modelUpdatePantry(NAME,OP,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(0) )
+								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(1), payloadArg(2) )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

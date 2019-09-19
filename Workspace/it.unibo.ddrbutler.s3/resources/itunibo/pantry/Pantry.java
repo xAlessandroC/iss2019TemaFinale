@@ -13,15 +13,17 @@ public class Pantry {
 	}
 
 	public void setDishes(int dishes) {
-		this.dishes = dishes;
+		if(dishes>=0)
+			this.dishes = dishes;
 	}
 
 	public void putDishes(int quantity) {
-		this.dishes = this.dishes + quantity;
+		if(dishes>=0)
+			this.dishes = this.dishes + quantity;
 	}
 
 	public void takeDishes(int quantity) {
-		if(quantity < this.dishes)
+		if(quantity <= this.dishes && quantity >=0)
 			this.dishes = this.dishes - quantity;
 	}
 	

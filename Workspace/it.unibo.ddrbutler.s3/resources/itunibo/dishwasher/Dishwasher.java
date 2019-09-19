@@ -17,7 +17,7 @@ public class Dishwasher {
 	}
 
 	public void takeDishes(int quantity) {
-		if(quantity < this.dishes)
+		if(quantity <= this.dishes)
 			this.dishes = this.dishes - quantity;
 	}
 	

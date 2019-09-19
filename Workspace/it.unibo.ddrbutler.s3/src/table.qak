@@ -1,0 +1,129 @@
+System table
+
+Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
+Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
+Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
+
+Context ctxButler ip [host="localhost" port=3030]
+
+QActor table context ctxButler{
+	["
+		var goToPut = false
+		var type = \"\"
+		var num = -1
+		var fc = \"\"
+	"]
+	State s0 initial{
+		println("[TABLE]: Started...")
+	
+		run itunibo.table.tableSupport.create()
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		["
+
+		"]
+		forward resourcemodeltable -m modelUpdateTable : modelUpdateTable(table,null,idle,null,null)
+	}
+	Transition t0 whenMsg modelChangedTable -> analyzeMsg
+	
+	State analyzeMsg{
+		printCurrentMessage
+		onMsg(modelChangedTable : modelChangedTable(table, TYPE , TASK, FC, QNT)){
+			["if(payloadArg(2).equals(\"put\"))
+				goToPut=true
+			"]
+			["if(payloadArg(2).equals(\"take\"))
+				goToPut=false
+			"]
+			["
+				num = Integer.parseInt(payloadArg(4))
+				type = payloadArg(1)
+				fc = payloadArg(3)
+			"]
+		}
+	}
+	Goto putElement if "goToPut " else takeElement
+	
+	State putElement{
+		printCurrentMessage
+		["if(type.equals(\"food\"))"]
+			run itunibo.table.tableSupport.putFood(myself,fc,num)
+		["if(type.equals(\"dish\"))"]
+			run itunibo.table.tableSupport.putDish(myself,num)	
+		
+	}
+	Goto waitCmd
+	
+	State takeElement{
+		printCurrentMessage
+		["if(type.equals(\"food\"))"]
+			run itunibo.table.tableSupport.takeFood(myself,fc,num)
+		["if(type.equals(\"dish\"))"]
+			run itunibo.table.tableSupport.takeDish(myself,num)	
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodeltable context ctxButler{
+	State s0 initial{
+		println("[RESOURCEMODEL TABLE]: Started...")
+		
+		solve(consult("tableModel.pl"))
+		solve(consult("sysRules.pl"))
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelChangeTable -> handleChange
+				  whenMsg modelUpdateTable -> handleUpdate
+				  
+	State handleChange{
+		printCurrentMessage
+		
+		//i vari onMsg sono per un minimo di controllo sui messaggi che arrivano
+		onMsg(modelChangeTable : modelChangeTable(table,food,TASK,FC,QNT)){
+			onMsg(modelChangeTable : modelChangeTable(table,food,put,FC,QNT)){
+				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))
+			
+			}
+			onMsg(modelChangeTable : modelChangeTable(table,food,take,FC,QNT)){
+				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))			
+			}
+		}
+		
+		onMsg(modelChangeTable : modelChangeTable(table,dish,TASK,FC,QNT)){
+			onMsg(modelChangeTable : modelChangeTable(table,dish,put,FC,QNT)){
+				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))
+			}
+			onMsg(modelChangeTable : modelChangeTable(table,dish,take,FC,QNT)){
+				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))
+			}
+		}
+	}
+	Goto waitCmd
+	
+	State handleUpdate{
+		
+		onMsg(modelUpdateTable : modelUpdateTable(table,TYPE,TASK,FC,QNT)){
+			run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+		}
+	}
+	Goto waitCmd
+}
+
+QActor console context ctxButler{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}
