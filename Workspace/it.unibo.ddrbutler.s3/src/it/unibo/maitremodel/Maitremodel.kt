@@ -34,9 +34,9 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: waiting for a command...")
 					}
-					 transition(edgeName="t013",targetState="modelChanging",cond=whenDispatch("modelChangeMaitre"))
-					transition(edgeName="t014",targetState="modelUpdating",cond=whenDispatch("modelUpdateMaitre"))
-					transition(edgeName="t015",targetState="updatingRoom",cond=whenEvent("updateContent"))
+					 transition(edgeName="t092",targetState="modelChanging",cond=whenDispatch("modelChangeMaitre"))
+					transition(edgeName="t093",targetState="modelUpdating",cond=whenDispatch("modelUpdateMaitre"))
+					transition(edgeName="t094",targetState="updatingRoom",cond=whenEvent("updateContent"))
 				}	 
 				state("modelUpdating") { //this:State
 					action { //it:State
@@ -51,7 +51,7 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("modelChanging") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: received a modelChange command")
-						if( checkMsgContent( Term.createTerm("modelChangeMaitre(NAME,STATE)"), Term.createTerm("modelChangeMaitre(maitre,STATE)"), 
+						if( checkMsgContent( Term.createTerm("modelChangeMaitre(DEVICE,TASK)"), Term.createTerm("modelChangeMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChangedMaitre", "modelChanged" ,"maitre" ) 
 						}

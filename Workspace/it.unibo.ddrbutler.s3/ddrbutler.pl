@@ -15,4 +15,5 @@ context(ctxmaitre, "localhost",  "TCP", "3031" ).
   qactor( preparehandler, ctxbutler, "it.unibo.preparehandler.Preparehandler").
   qactor( addfoodhandler, ctxbutler, "it.unibo.addfoodhandler.Addfoodhandler").
   qactor( clearhandler, ctxbutler, "it.unibo.clearhandler.Clearhandler").
+  qactor( stuffontable, ctxbutler, "it.unibo.stuffontable.Stuffontable").
   qactor( console, ctxbutler, "it.unibo.console.Console").

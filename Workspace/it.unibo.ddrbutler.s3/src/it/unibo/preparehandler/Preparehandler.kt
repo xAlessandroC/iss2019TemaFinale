@@ -28,22 +28,28 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("waitingCmd") { //this:State
 					action { //it:State
-						isFood = false
-						println("[PREPARE_HANDLER]: waiting for a command")
+						println("$name in ${currentState.stateName} | $currentMsg")
+						
+									isFood = false
+									DishesToPut = 0
+						     		foodToPut = HashMap<String, String>()
+						println("[PREPARE_HANDLER]: waiting for a command...")
 					}
 					 transition(edgeName="t059",targetState="planP",cond=whenDispatch("startPrepare"))
 				}	 
 				state("planP") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(pantry)" ,"planner" ) 
 					}
 					 transition(edgeName="t060",targetState="takingDishes",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingDishes") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						solve("dish(X)","") //set resVar	
 						if(currentSolution.isSuccess()) { DishesToPut = Integer.parseInt(getCurSol("X").toString())
-						println("[PREPARE_HANDLER]: i'm taking ${getCurSol("X")} dishes")
+						println("[PREPARE_HANDLER]: I'm taking ${getCurSol("X")} dishes")
 						emit("updateContent", "updateContent(pantry,dish,null,$DishesToPut,take)" ) 
 						 }
 						else
@@ -54,6 +60,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("planT") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
 					 transition(edgeName="t061",targetState="puttingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
@@ -61,26 +68,23 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("puttingDishes") { //this:State
 					action { //it:State
-						println("[PREPARE_HANDLER]: i'm putting the dishes")
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[PREPARE_HANDLER]: I'm putting the dishes")
 						if(!isFood) isFood = true
-						solve("assert(ontable(dish,null,$DishesToPut))","") //set resVar	
-						if(currentSolution.isSuccess()) { println("[PREPARE_HANDLER]: assert dish ok")
-						 }
-						else
-						{ println("[PREPARE_HANDLER]: error in assert dish")
-						 }
 						emit("updateContent", "updateContent(table,dish,null,$DishesToPut,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planF", cond=doswitch() )
 				}	 
 				state("planF") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
 					 transition(edgeName="t063",targetState="takingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[PREPARE_HANDLER]: i'm taking all the food")
 						solve("findall(food(X,Y),food(X,Y),L)","") //set resVar	
 						if(currentSolution.isSuccess()) { var foodList = getCurSol("L").toString().replace("]", "").replace("[", "").replace("food(","").replace("),",";").replace(")","").split(";")
@@ -102,27 +106,24 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
-						println("[PREPARE_HANDLER]: i'm putting all the food on the table")
-						foodToPut.forEach { (K, V) -> println("[PREPARE_HANDLER]: i'm putting on the table $K, $V")
-						solve("assert(ontable(food,$K,$V))","") //set resVar	
-						if(currentSolution.isSuccess()) { println("[PREPARE_HANDLER]: assert food ok")
-						 }
-						else
-						{ println("[PREPARE_HANDLER]: error in assert food")
-						 }
-						emit("updateContent", "updateContent(fridge,food,$K,$V,put)" ) 
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[PREPARE_HANDLER]: I'm putting all the food on the table")
+						foodToPut.forEach { (K, V) -> println("[PREPARE_HANDLER]: I'm putting on the table $K, $V")
+						emit("updateContent", "updateContent(table,food,$K,$V,put)" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="planRH", cond=doswitch() )
 				}	 
 				state("planRH") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
 					 transition(edgeName="t064",targetState="endPrepare",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endPrepare") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("prepareCompleted", "prepareCompleted" ,"butlermind" ) 
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )

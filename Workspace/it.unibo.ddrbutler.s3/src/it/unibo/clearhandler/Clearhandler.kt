@@ -15,11 +15,131 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		var isFood = false
+			var foodList = ""
+			var foodToPut = HashMap<String, String>()
+			var Qnt=""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[CLEAR_HANDLER]: starts...")
 					}
+					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
+				}	 
+				state("waitingCmd") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						
+									isFood = true
+									foodList = ""
+									foodToPut = HashMap<String, String>()
+									Qnt=""
+						println("[CLEAR_HANDLER]: waiting for a clear command...")
+					}
+					 transition(edgeName="t070",targetState="getAllContent",cond=whenDispatch("startClear"))
+				}	 
+				state("getAllContent") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("getContent", "getContent" ,"stuffontable" ) 
+					}
+					 transition(edgeName="t071",targetState="planT",cond=whenDispatch("responseContent"))
+				}	 
+				state("planT") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("responseContent(L)"), Term.createTerm("responseContent(L)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								foodList = getCurSol("L").toString()
+								println("FOODLIST: ${foodList}")
+						}
+						forward("goto", "goto(table)" ,"planner" ) 
+					}
+					 transition(edgeName="t072",targetState="takingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
+					transition(edgeName="t073",targetState="takingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
+				}	 
+				state("takingFood") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[CLEAR_HANDLER]: I'm taking food")
+						if(isFood) isFood = false
+						println("FOODLIST TAKING FOOD: ${foodList}")
+						var foodArray = foodList.replace("ontable(", "").replace("),", ";").split(";")
+								for(s : String in foodArray) {
+									var type = s.split(",")[0]
+									if(type == "food") {
+										var FoodCode = s.split(",")[1]	
+										var Qnt = s.split(",")[2]
+										foodToPut.put(FoodCode,Qnt)
+						emit("updateContent", "updateContent(table,food,$FoodCode,$Qnt,take)" ) 
+						
+									}
+								}			
+					}
+					 transition( edgeName="goto",targetState="planF", cond=doswitch() )
+				}	 
+				state("planF") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("goto", "goto(fridge)" ,"planner" ) 
+					}
+					 transition(edgeName="t074",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
+				}	 
+				state("puttingFood") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[CLEAR_HANDLER]: I'm putting food into the fridge")
+						foodToPut.forEach { (K, V) -> println("[CLEAR_HANDLER]: I'm putting into the fridge $K, $V")
+						emit("updateContent", "updateContent(fridge,food,$K,$V,put)" ) 
+						}
+					}
+					 transition( edgeName="goto",targetState="planT", cond=doswitch() )
+				}	 
+				state("takingDishes") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[CLEAR_HANDLER]: I'm taking dishes from the table")
+						var foodArray = foodList.replace("ontable(", "").replace("),", ";").split(";")
+								  for(s : String in foodArray) {
+								  	var type = s.split(",")[0]
+								  	if(type == "dish"){ 
+										Qnt = s.split(",")[2]
+										break
+									}
+								}
+						emit("updateContent", "updateContent(table,dish,null,$Qnt,take)" ) 
+					}
+					 transition( edgeName="goto",targetState="planD", cond=doswitch() )
+				}	 
+				state("planD") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("goto", "goto(dishwasher)" ,"planner" ) 
+					}
+					 transition(edgeName="t075",targetState="puttingDishes",cond=whenDispatch("planningCompleted"))
+				}	 
+				state("puttingDishes") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
+						emit("updateContent", "updateContent(dishwasher,dish,null,$Qnt,put)" ) 
+					}
+					 transition( edgeName="goto",targetState="planRH", cond=doswitch() )
+				}	 
+				state("planRH") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("goto", "goto(rh)" ,"planner" ) 
+					}
+					 transition(edgeName="t076",targetState="endClear",cond=whenDispatch("planningCompleted"))
+				}	 
+				state("endClear") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						println("[CLEAR_HANDLER]: I'm finishing to clear the room")
+						forward("clearCompleted", "clearCompleted" ,"butlermind" ) 
+					}
+					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
 				}	 
 			}
 		}
