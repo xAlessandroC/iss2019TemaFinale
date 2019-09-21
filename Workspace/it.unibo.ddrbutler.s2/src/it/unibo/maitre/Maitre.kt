@@ -20,6 +20,13 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[MAITRE]: starts...")
 						itunibo.maitre.maitreGUI.init(myself)
+						solve("assert(content(pantry,dish,null,20))","") //set resVar	
+						solve("assert(content(dishwasher,dish,null,0))","") //set resVar	
+						solve("assert(content(fridge,food,taralli,20))","") //set resVar	
+						solve("assert(content(fridge,food,brasciole,20))","") //set resVar	
+						solve("assert(content(fridge,food,polpette,20))","") //set resVar	
+						solve("assert(content(fridge,food,cicorie,20))","") //set resVar	
+						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="sendingPrepare", cond=doswitch() )
 				}	 

@@ -54,11 +54,22 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("updatingRoom") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: received an updatingRoom command")
-						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT)"), Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT)"), 
+						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT,OP_T)"), Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT,OP_T)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
-								solve("content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_)","") //set resVar	
-								if(currentSolution.isSuccess()) { solve("replaceRule(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_),content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								solve("content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},X)","") //set resVar	
+								if(currentSolution.isSuccess()) { 
+													var old = Integer.parseInt(getCurSol("X").toString())
+													var difference = Integer.parseInt(payloadArg(3))
+													var New = 0					
+								
+													if(payloadArg(4).equals("put")){
+														New = old + difference
+													}
+													if(payloadArg(4).equals("take")){
+														New = old - difference
+													}
+								solve("replaceRule(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_),content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},$New))","") //set resVar	
 								if(currentSolution.isSuccess()) { println("[MAITRE_MODEL]: I've replaced a line")
 								forward("updateMaitre", "updateMaitre" ,"maitre" ) 
 								 }
