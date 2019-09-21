@@ -132,11 +132,13 @@ QActor maitre context ctxMaitre {
 	
 	State updateA {
 		println("[MAITRE]: I'm in updateA")
+		run itunibo.maitre.maitreGUI.readFromFile()
 	}
 	Goto waitingAddFoodCompleted
 	
 	State updateC {
 		println("[MAITRE]: I'm in updateC")
+		run itunibo.maitre.maitreGUI.readFromFile()
 	}
 	Goto waitingClearCompleted
 	

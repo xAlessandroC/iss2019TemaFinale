@@ -1,5 +1,5 @@
 System dishwasher 
-
+ 
 //external
 Dispatch setLocation : setLocation(NAME,X,Y)
 

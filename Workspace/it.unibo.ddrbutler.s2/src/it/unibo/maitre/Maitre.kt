@@ -116,12 +116,14 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("updateA") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in updateA")
+						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="waitingAddFoodCompleted", cond=doswitch() )
 				}	 
 				state("updateC") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in updateC")
+						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="waitingClearCompleted", cond=doswitch() )
 				}	 

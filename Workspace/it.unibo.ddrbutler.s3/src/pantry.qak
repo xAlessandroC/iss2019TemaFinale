@@ -8,9 +8,13 @@ Dispatch modelChangedPantry : modelChangedPantry(NAME, OP, QNT)
 Dispatch modelChangePantry : modelChangePantry(NAME, OP, QNT)
 Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
 
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
+
 Context ctxButler ip [host="localhost" port=3030]
+Context ctxMaitre ip [host="localhost" port=3031]
 
 //ExternalQActor planner context ctxButler
+ExternalQActor maitremodel context ctxMaitre
 
 QActor pantry context ctxButler{
 	["

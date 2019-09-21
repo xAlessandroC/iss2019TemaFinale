@@ -25,7 +25,7 @@ Dispatch modelChangedMaitre : modelChangedMaitre(NAME, TASK)
 Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
 
 /* UPDATING STATE ROOM */
-Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)
 
 
 Context ctxMaitre ip [host="localhost" port=3031]
@@ -37,6 +37,12 @@ QActor maitre context ctxMaitre {
 	State s0 initial {
 		println("[MAITRE]: starts...")
 		run itunibo.maitre.maitreGUI.init(myself)
+		
+	}
+	Transition t0 whenMsg updateMaitre -> initStateRoom
+	
+	State initStateRoom{
+		run itunibo.maitre.maitreGUI.readFromFile()
 	}
 	Goto sendingPrepare
 	
@@ -114,11 +120,13 @@ QActor maitre context ctxMaitre {
 	
 	State updateA {
 		println("[MAITRE]: I'm in updateA")
+		run itunibo.maitre.maitreGUI.readFromFile()
 	}
 	Goto waitingAddFoodCompleted
 	
 	State updateC {
 		println("[MAITRE]: I'm in updateC")
+		run itunibo.maitre.maitreGUI.readFromFile()
 	}
 	Goto waitingClearCompleted
 	
@@ -134,6 +142,16 @@ QActor maitremodel context ctxMaitre {
 	State s0 initial {
 		println("[MAITRE_MODEL]: starts...")
 		solve(consult("sysRules.pl"))
+	
+		/*initial values */
+		solve(assert(content(pantry, dish, null, 20)))
+		solve(assert(content(dishwasher, dish, null, 0)))
+		solve(assert(content(fridge, food, taralli, 20)))
+		solve(assert(content(fridge, food, brasciole, 20)))
+		solve(assert(content(fridge, food, polpette, 20)))
+		solve(assert(content(fridge, food, cicorie, 20)))
+		
+		forward maitre -m updateMaitre : updateMaitre
 	}
 	Goto waitingCmd
 	
@@ -165,12 +183,24 @@ QActor maitremodel context ctxMaitre {
 	State updatingRoom {
 		println("[MAITRE_MODEL]: received an updatingRoom command")
 		
-		onMsg(updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)){
+		onMsg(updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)){
 			println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
 			
-			solve(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _))
+			solve(content($payloadArg(0), $payloadArg(1), $payloadArg(2), X))
 			ifSolved {
-				solve(replaceRule(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _), content($payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3))))		
+				["
+					var old = Integer.parseInt(getCurSol(\"X\").toString())
+					var difference = Integer.parseInt(payloadArg(3))
+					var New = 0					
+
+					if(payloadArg(4).equals(\"put\")){
+						New = old + difference
+					}
+					if(payloadArg(4).equals(\"take\")){
+						New = old - difference
+					}
+				"]
+				solve(replaceRule(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _), content($payloadArg(0), $payloadArg(1), $payloadArg(2), $New)))		
 				ifSolved {
 					println("[MAITRE_MODEL]: I've replaced a line")	
 					forward maitre -m updateMaitre : updateMaitre
