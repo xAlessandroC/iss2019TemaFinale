@@ -17,3 +17,9 @@ context(ctxtest, "localhost",  "TCP", "3031" ).
   qactor( console, ctxtest, "it.unibo.console.Console").
   qactor( maitre, ctxtest, "it.unibo.maitre.Maitre").
   qactor( maitremodel, ctxtest, "it.unibo.maitremodel.Maitremodel").
+  qactor( dishwasher, ctxtest, "it.unibo.dishwasher.Dishwasher").
+  qactor( resourcemodeldishwasher, ctxtest, "it.unibo.resourcemodeldishwasher.Resourcemodeldishwasher").
+  qactor( pantry, ctxtest, "it.unibo.pantry.Pantry").
+  qactor( resourcemodelpantry, ctxtest, "it.unibo.resourcemodelpantry.Resourcemodelpantry").
+  qactor( table, ctxtest, "it.unibo.table.Table").
+  qactor( resourcemodeltable, ctxtest, "it.unibo.resourcemodeltable.Resourcemodeltable").

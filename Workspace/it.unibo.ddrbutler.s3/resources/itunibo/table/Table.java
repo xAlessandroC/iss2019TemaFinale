@@ -71,7 +71,7 @@ public class Table {
 		message += "Dishes = " + this.dishes + "\n";
 		message += "Food\n";
 		for (String s : this.mapFood.keySet()) {
-			message += s + "\t" + this.mapFood.get(s) + "\n";
+			message += s + "\t\t" + this.mapFood.get(s) + "\n";
 		}
 		message += "=============================\n";
 

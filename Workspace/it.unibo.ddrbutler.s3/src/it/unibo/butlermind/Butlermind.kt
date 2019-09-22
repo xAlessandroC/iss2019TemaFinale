@@ -31,8 +31,6 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						else
 						{ println("Errore nel setting di RH")
 						 }
-						forward("setLocation", "setLocation(pantry,0,3)" ,"planner" ) 
-						forward("setLocation", "setLocation(dishwasher,3,3)" ,"planner" ) 
 						forward("setLocation", "setLocation(fridge,3,0)" ,"planner" ) 
 						delay(5000) 
 					}

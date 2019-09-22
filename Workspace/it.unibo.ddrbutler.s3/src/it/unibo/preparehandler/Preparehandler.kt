@@ -48,7 +48,9 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						solve("dish(X)","") //set resVar	
-						if(currentSolution.isSuccess()) { DishesToPut = Integer.parseInt(getCurSol("X").toString())
+						if(currentSolution.isSuccess()) { var Temp=getCurSol("X").toString()
+						forward("modelChangePantry", "modelChangePantry(pantry,take,$Temp)" ,"resourcemodelpantry" ) 
+						DishesToPut = Integer.parseInt(getCurSol("X").toString())
 						println("[PREPARE_HANDLER]: I'm taking ${getCurSol("X")} dishes")
 						emit("updateContent", "updateContent(pantry,dish,null,$DishesToPut,take)" ) 
 						 }
@@ -71,6 +73,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[PREPARE_HANDLER]: I'm putting the dishes")
 						if(!isFood) isFood = true
+						forward("modelChangeTable", "modelChangeTable(table,dish,put,null,$DishesToPut)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,dish,null,$DishesToPut,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planF", cond=doswitch() )
@@ -109,6 +112,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[PREPARE_HANDLER]: I'm putting all the food on the table")
 						foodToPut.forEach { (K, V) -> println("[PREPARE_HANDLER]: I'm putting on the table $K, $V")
+						forward("modelChangeTable", "modelChangeTable(table,food,put,$K,$V)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,food,$K,$V,put)" ) 
 						}
 					}

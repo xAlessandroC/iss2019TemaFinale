@@ -87,6 +87,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[ADD_FOOD_HANDLER]: I'm putting the new food to the table")
+						forward("modelChangeTable", "modelChangeTable(table,food,put,$FoodCode,$Qnt)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,food,$FoodCode,$Qnt,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planRH", cond=doswitch() )
