@@ -1,12 +1,15 @@
 System table
 
+mqttBroker "localhost" : 1883
+ 
 Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
 Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
 Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
 
-Context ctxButler ip [host="localhost" port=3030]
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+Context ctxTable ip [host="localhost" port=3034] -mqtt
 
-QActor table context ctxButler{
+QActor table context ctxTable{
 	["
 		var goToPut = false
 		var type = \"\"
@@ -66,7 +69,7 @@ QActor table context ctxButler{
 	Goto waitCmd
 }
 
-QActor resourcemodeltable context ctxButler{
+QActor resourcemodeltable context ctxTable{
 	State s0 initial{
 		println("[RESOURCEMODEL TABLE]: Started...")
 		
@@ -119,11 +122,11 @@ QActor resourcemodeltable context ctxButler{
 	Goto waitCmd
 }
 
-QActor console context ctxButler{
+/*QActor console context ctxTable{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/

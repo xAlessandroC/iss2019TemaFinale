@@ -1,5 +1,7 @@
 System pantry
 
+mqttBroker "localhost" : 1883
+ 
 //external
 Dispatch setLocation : setLocation(NAME,X,Y)
 
@@ -10,13 +12,12 @@ Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
 
 Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
 
-Context ctxButler ip [host="localhost" port=3030]
-Context ctxMaitre ip [host="localhost" port=3031]
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+Context ctxPantry ip [host="localhost" port=3033] -mqtt
 
 //ExternalQActor planner context ctxButler
-ExternalQActor maitremodel context ctxMaitre
 
-QActor pantry context ctxButler{
+QActor pantry context ctxPantry{
 	["
 		var goToPut = false
 		var qnt = -1
@@ -25,7 +26,8 @@ QActor pantry context ctxButler{
 		println("[PANTRY]: Started...")
 		
 		run itunibo.pantry.pantrySupport.create(20)
-		//forward planner -m setLocation : setLocation(pantry,3,1)
+		//forward planner -m setLocation : setLocation(pantry,0,3)
+		["forward(\"setLocation\",\"setLocation(pantry,0,3)\",\"planner\")"]
 	}
 	Goto waitCmd
 	
@@ -62,7 +64,7 @@ QActor pantry context ctxButler{
 	Goto waitCmd
 }
 
-QActor resourcemodelpantry context ctxButler{
+QActor resourcemodelpantry context ctxPantry{
 	State s0 initial{
 		println("[RESOURCEMODEL PANTRY]: Started...")
 		
@@ -102,11 +104,11 @@ QActor resourcemodelpantry context ctxButler{
 	Goto waitCmd
 } 
 
-QActor console context ctxButler{
+/*QActor console context ctxPantry{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/

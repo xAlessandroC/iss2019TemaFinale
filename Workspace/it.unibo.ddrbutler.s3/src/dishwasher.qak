@@ -1,5 +1,7 @@
 System dishwasher 
- 
+
+mqttBroker "localhost" : 1883
+  
 //external
 Dispatch setLocation : setLocation(NAME,X,Y)
 
@@ -8,11 +10,12 @@ Dispatch modelChangedDishwasher : modelChangedDishwasher(NAME, OP, QNT)
 Dispatch modelChangeDishwasher : modelChangeDishwasher(NAME, OP, QNT)
 Dispatch modelUpdateDishwasher : modelUpdateDishwasher(NAME, OP, QNT)
 
-Context ctxButler ip [host="localhost" port=3030]
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+Context ctxDishwasher ip [host="localhost" port=3032] -mqtt
 
 //ExternalQActor planner context ctxButler
 
-QActor dishwasher context ctxButler{
+QActor dishwasher context ctxDishwasher{
 	["
 		var goToPut = false
 		var qnt = -1
@@ -20,7 +23,8 @@ QActor dishwasher context ctxButler{
 	State s0 initial{
 		println("[DISHWASHER]: Started...")
 	
-		//forward planner -m setLocation : setLocation(dishwasher,3,2);
+		//forward planner -m setLocation : setLocation(dishwasher,3,3);
+		["forward(\"setLocation\",\"setLocation(dishwasher,3,3)\",\"planner\")"]
 		run itunibo.dishwasher.dishwasherSupport.create()
 	}
 	Goto waitCmd
@@ -62,7 +66,7 @@ QActor dishwasher context ctxButler{
 	
 }
 
-QActor resourcemodeldishwasher context ctxButler{
+QActor resourcemodeldishwasher context ctxDishwasher{
 	State s0 initial{
 		println("[RESOURCEMODEL DISHWASHER]: Started...")
 		
@@ -103,11 +107,11 @@ QActor resourcemodeldishwasher context ctxButler{
 	Goto waitCmd
 }
 
-QActor console context ctxButler{
+/*QActor console context ctxDishwasher{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/

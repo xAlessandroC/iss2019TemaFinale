@@ -13,7 +13,7 @@ context(ctxtest, "localhost",  "TCP", "3031" ).
   qactor( preparehandler, ctxtest, "it.unibo.preparehandler.Preparehandler").
   qactor( addfoodhandler, ctxtest, "it.unibo.addfoodhandler.Addfoodhandler").
   qactor( clearhandler, ctxtest, "it.unibo.clearhandler.Clearhandler").
-  qactor( stuffontable, ctxtest, "it.unibo.stuffontable.Stuffontable").
+  qactor( contentontable, ctxtest, "it.unibo.contentontable.Contentontable").
   qactor( console, ctxtest, "it.unibo.console.Console").
   qactor( maitre, ctxtest, "it.unibo.maitre.Maitre").
   qactor( maitremodel, ctxtest, "it.unibo.maitremodel.Maitremodel").

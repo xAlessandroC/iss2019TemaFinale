@@ -1,5 +1,7 @@
 System ddrbutler
 
+mqttBroker "localhost" : 1883 
+
 Event sonarRobot : sonar(DISTANCE)
 Event obstacle : obstacle
 
@@ -31,7 +33,57 @@ Dispatch schedulingCompleted : schedulingCompleted
 Dispatch planningCompleted : planningCompleted
 Dispatch setLocation : setLocation(NAME,X,Y)
 
-Context ctxButler ip [host="localhost" port=3030]
+Dispatch startPrepare : startPrepare
+Dispatch startAddFood : startAddFood(FC, QNT)
+Dispatch startClear : startClear
+
+Dispatch prepareCompleted : prepareCompleted
+Dispatch addFoodCompleted : addFoodCompleted
+Dispatch clearCompleted : clearCompleted
+
+Dispatch modelChangeMaitre : modelChangeMaitre(DEVICE, TASK)
+
+Dispatch taskAssigned : taskAssigned
+Dispatch backWait : backWait
+
+Dispatch modelChangeMaitre : modelChangeMaitre(NAME, STATE)
+Dispatch modelChangedMaitre : modelChangedMaitre(NAME, TASK)
+Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
+
+/* UPDATING STATE ROOM */
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)
+
+Event alert : alert
+
+Dispatch responseFood : responseFood(RESPONSE)
+
+Dispatch getContent : getContent
+Dispatch responseContent : responseContent(L)
+
+//dishwasher
+Dispatch modelChangedDishwasher : modelChangedDishwasher(NAME, OP, QNT)
+Dispatch modelChangeDishwasher : modelChangeDishwasher(NAME, OP, QNT)
+Dispatch modelUpdateDishwasher : modelUpdateDishwasher(NAME, OP, QNT)
+
+//pantry
+Dispatch modelChangedPantry : modelChangedPantry(NAME, OP, QNT)
+Dispatch modelChangePantry : modelChangePantry(NAME, OP, QNT)
+Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
+
+//table
+Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
+Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
+Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
+
+
+Context ctxButler ip [host="localhost" port=3030] -mqtt
+//Context ctxMaitre ip [host="localhost" port=3031] -mqtt
+
+//ExternalQActor resourcemodelpantry context ctxButler
+//ExternalQActor resourcemodeldishwasher context ctxButler
+//ExternalQActor resourcemodeltable context ctxButler
+
+//ExternalQActor maitremodel context ctxMaitre
   
 QActor basicrobot context ctxButler{
 	State s0 initial{
@@ -306,8 +358,12 @@ QActor robotmind context ctxButler{
 	Goto waitCmd
 }
 
-QActor butlermind context ctxButler{
-	State s0 initial{
+QActor butlermind context ctxButler {
+	["var task : String = \"\"
+	  var isCorrect = false
+	"]
+			
+	State s0 initial {
 		println("[BUTLERMIND]: Started...")
 		
 		solve(consult("RHLocation.pl"))
@@ -316,28 +372,109 @@ QActor butlermind context ctxButler{
 				var CX=getCurSol(\"X\").toString()
 				var CY=getCurSol(\"Y\").toString()
 		"]
-		ifSolved{
+		ifSolved {
 			forward planner -m setLocation : setLocation(rh,$CX,$CY)
 		}
-		else{
+		else {
 			println("Errore nel setting di RH")
-		} 
+		}
 		
-		delay 3000
+		/* */
+		//forward planner -m setLocation : setLocation(pantry,0,3)
+		//forward planner -m setLocation : setLocation(dishwasher,3,3)
+		forward planner -m setLocation : setLocation(fridge,3,0)
+		/* */
+		delay 5000
 	}
 	Goto calibration
 	
-	State calibration{
+	State calibration {
 		printCurrentMessage
 		
 		forward resourcemodelbutler -m taskUpdate : taskUpdate(butler, calibration, null, null)
 		forward calibration -m startCalibration : startCalibration
 	}
-	Transition t0 whenMsg calibrationCompleted -> endCalibration
+	Transition t0 whenMsg calibrationCompleted -> waitingPrepare
 	
-	State endCalibration{
-		printCurrentMessage
+	State waitingPrepare {
+		println("[BUTLER_MIND]: waiting for a prepare command...")
 	}
+	Transition t0 whenMsg taskChanged -> startPrepare
+	
+	State startPrepare {
+		printCurrentMessage
+		["isCorrect = false"]
+		
+		onMsg(taskChanged : taskChanged(butler, prepare, FC, QNT)) {
+			forward preparehandler -m startPrepare : startPrepare
+			["isCorrect = true"]
+		}
+		
+		["if(!isCorrect) { println(\"[BUTLER_MIND]: expected prepare command\")"]
+			forward butlermind -m backWait : backWait
+		["}"]
+	}
+	Transition t0 whenMsg prepareCompleted -> notifyPrepareMaitre
+				  whenMsg backWait -> waitingPrepare
+	
+	State notifyPrepareMaitre {
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
+		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
+	}
+	Goto waitingAC
+	
+	State waitingAC {
+		println("[BUTLER_MIND]: waiting for an AC command...")
+	}
+	Transition t0 whenMsg taskChanged -> startAC
+	
+	State startAC {
+		printCurrentMessage
+		["isCorrect = false"]
+		
+		onMsg(taskChanged : taskChanged(TARGET, add_food, FC, QNT)) {
+			forward addfoodhandler -m startAddFood : startAddFood($payloadArg(2), $payloadArg(3))
+			["task = \"add_food\""]
+			forward butlermind -m taskAssigned : taskAssigned
+			["isCorrect = true"]	
+		}
+		
+		onMsg(taskChanged : taskChanged(TARGET, clear, FC, QNT)) {
+			forward clearhandler -m startClear : startClear
+			["task = \"clear\""]
+			forward butlermind -m taskAssigned : taskAssigned			
+			["isCorrect = true"]
+		}
+		
+		["if(!isCorrect) { println(\"[BUTLER_MIND]: expected AC command\")"]
+			forward butlermind -m backWait : backWait
+		["}"]
+	}
+	Transition t0 whenMsg taskAssigned and "task == \"add_food\"" -> startAddFood
+				  whenMsg taskAssigned and "task == \"clear\"" -> startClear
+				  whenMsg backWait -> waitingAC
+	
+	State startAddFood {
+		printCurrentMessage	
+	}
+	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
+	
+	State notifyAddFoodMaitre {
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
+		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, add_food)\",\"maitremodel\")"] 
+	}
+	Goto waitingAC
+	
+	State startClear {
+		printCurrentMessage	
+	}
+	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
+	
+	State notifyClearMaitre {
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
+		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, clear)\",\"maitremodel\")"]
+	}
+	Goto waitingPrepare	
 }
 
 QActor calibration context ctxButler{
@@ -778,6 +915,432 @@ QActor planner context ctxButler{
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
 	Transition t0 whenMsg moveCompleted -> schedulingNextMove
+}
+
+QActor preparehandler context ctxButler {
+	["var isFood : Boolean = false
+	  var DishesToPut = 0
+      var foodToPut = HashMap<String, String>()"]
+	
+	State s0 initial {
+		println("[PREPARE_HANDLER]: starts...")
+		solve(consult("initialFood.pl"))
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		["
+			isFood = false
+			DishesToPut = 0
+     		foodToPut = HashMap<String, String>()
+		"]
+		println("[PREPARE_HANDLER]: waiting for a command...")	
+	}
+	Transition t0 whenMsg startPrepare -> planP
+	
+	State planP {
+		printCurrentMessage
+		forward planner -m goto : goto(pantry)
+	}
+	Transition t0 whenMsg planningCompleted -> takingDishes 
+
+	State takingDishes {
+		printCurrentMessage
+		solve(dish(X))
+		ifSolved {
+			["var Temp=getCurSol(\"X\").toString()"]
+			
+			//forward resourcemodelpantry -m modelChangePantry : modelChangePantry(pantry, take, $Temp)
+			["forward(\"modelChangePantry\",\"modelChangePantry(pantry, take, $Temp)\",\"resourcemodelpantry\")"]
+			
+			["DishesToPut = Integer.parseInt(getCurSol(\"X\").toString())"]
+			println("[PREPARE_HANDLER]: I'm taking ${getCurSol(\"X\")} dishes")
+			emit updateContent : updateContent(pantry, dish, null, $DishesToPut, take)
+		} 
+		else {
+			println("[PREPARE_HANDLER]: error in taking dishes")
+		}
+		
+	}
+	Goto planT
+	
+	State planT {
+		printCurrentMessage
+		forward planner -m goto : goto(table)
+	}
+	Transition t0 whenMsg planningCompleted and "!isFood" -> puttingDishes 
+				  whenMsg planningCompleted and "isFood" -> puttingFood
+	
+	State puttingDishes {
+		printCurrentMessage
+		println("[PREPARE_HANDLER]: I'm putting the dishes")
+		["if(!isFood) isFood = true"]
+		
+		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, put, null, $DishesToPut)
+		["forward(\"modelChangeTable\",\"modelChangeTable(table, dish, put, null, $DishesToPut)\",\"resourcemodeltable\")"]
+		
+		emit updateContent : updateContent(table, dish, null, $DishesToPut, put)
+	}
+	Goto planF
+	
+	State planF { 
+		printCurrentMessage
+		forward planner -m goto : goto(fridge)
+	}
+	Transition t0 whenMsg planningCompleted -> takingFood 
+	
+	State takingFood {
+		printCurrentMessage
+		println("[PREPARE_HANDLER]: i'm taking all the food")
+	
+		solve(findall(food(X, Y), food(X, Y), L))
+		ifSolved {
+			["var foodList = getCurSol(\"L\").toString().replace(\"]\", \"\").replace(\"[\", \"\").replace(\"food(\",\"\").replace(\"),\",\";\").replace(\")\",\"\").split(\";\")"]
+			["var FoodCode = \"\"; var Qnt =\"\" "]
+			["for(s : String in foodList) {
+				println(s)	
+				FoodCode = s.split(\",\")[0]
+				Qnt = s.split(\",\")[1]
+
+				foodToPut.put(FoodCode, Qnt)
+			"]							
+				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
+				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+			["}"]
+		}
+		else {
+			println("[PREPARE_HANDLER]: error in taking food")
+		}
+		
+	}
+	Goto planT
+	
+	State puttingFood {
+		printCurrentMessage
+		println("[PREPARE_HANDLER]: I'm putting all the food on the table")
+		["foodToPut.forEach { (K, V) -> println(\"[PREPARE_HANDLER]: I'm putting on the table $K, $V\")"] 	
+			
+			//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $K, $V)
+			["forward(\"modelChangeTable\",\"modelChangeTable(table, food, put, $K, $V)\",\"resourcemodeltable\")"]
+			
+			emit updateContent : updateContent(table, food, $K, $V, put)
+		["}"]
+
+	}
+	Goto planRH
+	
+	State planRH {
+		printCurrentMessage
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> endPrepare
+	
+	State endPrepare {
+		printCurrentMessage
+		forward butlermind -m prepareCompleted : prepareCompleted
+	}
+	Goto waitingCmd
+}
+
+
+QActor addfoodhandler context ctxButler {
+	["var isPresent = false
+	var FoodCode = \"\"
+	var Qnt = \"\"
+	"]
+	
+	State s0 initial {
+		println("[ADD_FOOD_HANDLER]: starts...")
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		["isPresent = false"]
+		println("[ADD_FOOD_HANDLER]: waiting for a command...")	
+	}
+	Transition t0 whenMsg startAddFood -> askingFood
+	
+	State askingFood {
+		printCurrentMessage
+		onMsg(startAddFood : startAddFood(FC, QNT)) {
+			["FoodCode = payloadArg(0)
+			Qnt = payloadArg(1)
+			"]
+		}
+		//forward resourcemodelfridge -m qualcosa : qualcosa(RISPOSTA)
+		forward addfoodhandler -m responseFood : responseFood(yes)
+	}
+	Transition t0 whenMsg responseFood -> analyzeResponse
+	
+	State analyzeResponse {
+		printCurrentMessage
+		onMsg(responseFood : responseFood(yes)) {
+			["isPresent = true"]
+		}
+		
+		onMsg(responseFood : responseFood(no)) {
+			emit alert : alert
+			["isPresent = false"]
+		}
+	}
+	Goto waitingCmd if "!isPresent" else planF
+	
+	State planF {
+		printCurrentMessage
+		forward planner -m goto : goto(fridge)
+	}
+	Transition t0 whenMsg planningCompleted -> takingFood
+	
+	State takingFood {
+		printCurrentMessage
+		println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
+		//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, food, take, $FoodCode, $Qnt)
+		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+	}
+	Goto planT
+	
+	State planT {
+		printCurrentMessage
+		forward planner -m goto : goto(table)
+	}
+	Transition t0 whenMsg planningCompleted -> puttingFood
+	
+	State puttingFood {
+		printCurrentMessage
+		println("[ADD_FOOD_HANDLER]: I'm putting the new food to the table")
+		
+		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $FoodCode, $Qnt)
+		["forward(\"modelChangeTable\",\"modelChangeTable(table, food, put, $FoodCode, $Qnt)\",\"resourcemodeltable\")"]
+		
+		emit updateContent : updateContent(table, food, $FoodCode, $Qnt, put)
+	}
+	Goto planRH
+	
+	State planRH {
+		printCurrentMessage
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> endAddFood
+	
+	State endAddFood {
+		printCurrentMessage
+		println("[ADD_FOOD_HANDLER]: I'm finishing to adding the new food")
+		forward butlermind -m addFoodCompleted : addFoodCompleted
+	}
+	Goto waitingCmd
+	
+}
+
+
+QActor clearhandler context ctxButler {
+	["var isFood = false
+	var foodList = \"\"
+	var foodToPut = HashMap<String, String>()
+	var Qnt=\"\"
+	"]
+	
+	State s0 initial {
+		println("[CLEAR_HANDLER]: starts...")
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		["
+			isFood = true
+			foodList = \"\"
+			foodToPut = HashMap<String, String>()
+			Qnt=\"\"
+		"]
+		println("[CLEAR_HANDLER]: waiting for a clear command...")
+	}
+	Transition t0 whenMsg startClear -> getAllContent
+	
+	State getAllContent {
+		printCurrentMessage
+		forward contentontable -m getContent : getContent
+	}
+	Transition t0 whenMsg responseContent -> planT
+	
+	State planT {
+		printCurrentMessage
+		onMsg(responseContent : responseContent(L)) {
+			["foodList = payloadArg(0)"]
+			println("FOODLIST: ${foodList}")						
+		}
+		
+		forward planner -m goto : goto(table)			
+	}
+	Transition t0 whenMsg planningCompleted and "isFood" -> takingFood
+				  whenMsg planningCompleted and "!isFood" -> takingDishes
+	
+	State takingFood {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm taking food")
+		["if(isFood) isFood = false"]
+
+		["var foodArray = foodList.replace(\"[\",\"\").replace(\"]\",\"\").replace(\"ontable(\", \"\").replace(\"),\", \";\").replace(\")\",\"\").split(\";\")
+		for(s : String in foodArray) {
+			var type = s.split(\",\")[0]
+			if(type == \"food\") {
+				var FoodCode = s.split(\",\")[1]	
+				var Qnt = s.split(\",\")[2]
+				foodToPut.put(FoodCode,Qnt)
+				println(\"prendo $FoodCode $Qnt\")
+		"]
+			
+			//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, take, $FoodCode, $Qnt)
+			["forward(\"modelChangeTable\",\"modelChangeTable(table, food, take, $FoodCode, $Qnt)\",\"resourcemodeltable\")"]
+			
+			emit updateContent : updateContent(table, food, $FoodCode, $Qnt, take)	
+		["
+			}
+		}			
+		"]
+
+	}
+	Goto planF
+
+	State planF {
+		printCurrentMessage
+		forward planner -m goto : goto(fridge)	
+	}
+	Transition t0 whenMsg planningCompleted -> puttingFood
+	
+	State puttingFood {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm putting food into the fridge")
+		["foodToPut.forEach { (K, V) -> println(\"[CLEAR_HANDLER]: I'm putting into the fridge $K, $V\")"] 	
+			//ragiono con il frigo
+			emit updateContent : updateContent(fridge, food, $K, $V, put)
+		["}"]
+	}
+	Goto planT
+	
+	State takingDishes {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm taking dishes from the table")
+		["var foodArray = foodList.replace(\"[\",\"\").replace(\"]\",\"\").replace(\"ontable(\", \"\").replace(\"),\", \";\").replace(\")\",\"\").split(\";\")
+		  for(s : String in foodArray) {
+		  	var type = s.split(\",\")[0]
+		  	if(type == \"dish\"){ 
+				Qnt = s.split(\",\")[2]
+				break
+			}
+		}"]
+		
+		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, take, null, $Qnt)
+		["forward(\"modelChangeTable\",\"modelChangeTable(table, dish, take, null, $Qnt)\",\"resourcemodeltable\")"]	
+		
+		emit updateContent : updateContent(table, dish, null, $Qnt, take)
+	}
+	Goto planD
+	
+	State planD {
+		printCurrentMessage
+		forward planner -m goto : goto(dishwasher)	
+	}
+	Transition t0 whenMsg planningCompleted -> puttingDishes 
+	
+	State puttingDishes {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
+		
+		//forward resourcemodeldishwasher -m modelChangeDishwasher : modelChangeDishwasher(dishwasher, put, $Qnt)	
+		["forward(\"modelChangeDishwasher\",\"modelChangeDishwasher(dishwasher, put, $Qnt)	\",\"resourcemodeldishwasher\")"]
+		
+		emit updateContent : updateContent(dishwasher, dish, null, $Qnt, put)
+	}
+	Goto planRH
+	
+	State planRH {
+		printCurrentMessage
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> endClear
+	
+	State endClear {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm finishing to clear the room")
+		forward butlermind -m clearCompleted : clearCompleted
+	}
+	Goto waitingCmd
+}
+
+QActor contentontable context ctxButler {
+	State s0 initial {
+		println("[contentontable]: starts...")
+		solve(consult("sysRules.pl"))
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		println("[contentontable]: I'm waiting for a command...")
+	}
+	Transition t0 whenMsg getContent -> gettingContent
+				  whenEvent updateContent -> settingContent
+	
+	State gettingContent {
+		printCurrentMessage
+		["storeCurrentMessageForReply()"]
+		solve(findall(ontable(X, Y, Z), ontable(X, Y, Z), L))
+		
+		ifSolved {
+			["var response = getCurSol(\"L\").toString()"]
+			["replyToCaller(\"responseContent\",\"responseContent(${response})\")"]
+		}
+		else {
+			println("[contentontable]: error in solving file")
+		}
+	}
+	Goto waitingCmd
+	
+	State settingContent {
+		printCurrentMessage
+		onMsg(updateContent : updateContent(table, TYPE, FC, QNT, OP_T)){
+			
+			solve(ontable($payloadArg(1), $payloadArg(2), X))
+			ifSolved {
+				["
+					var old = Integer.parseInt(getCurSol(\"X\").toString())
+					var difference = Integer.parseInt(payloadArg(3))
+					var New = 0					
+
+					if(payloadArg(4).equals(\"put\")){
+						New = old + difference
+					}
+					if(payloadArg(4).equals(\"take\")){
+						New = old - difference
+					}
+				"]
+				["if(New == 0 ){"]
+					solve(retract(ontable($payloadArg(1), $payloadArg(2), _)))
+				["}else{"]
+					solve(replaceRule(ontable($payloadArg(1), $payloadArg(2), _), ontable($payloadArg(1), $payloadArg(2), $New)))		
+				["}"]
+				ifSolved {
+					println("[stuffontable]: I've replaced a line")	
+				}
+				else {
+					println("[stuffontable]: error in replacing the new line")
+				}			
+			}
+			else {
+				solve(assert(ontable($payloadArg(1), $payloadArg(2), $payloadArg(3))))
+				ifSolved {
+					println("[stuffontable]: I've added a new line")
+				}
+				else {
+					println("[stuffontable]: error in adding a new line")
+				}	
+			}			
+		}
+	}
+	Goto waitingCmd
+	
 }
 
 QActor console context ctxButler{

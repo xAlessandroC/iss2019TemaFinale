@@ -1,5 +1,7 @@
 System maitre
 
+mqttBroker "localhost" : 1883 
+
 /* BUTLER MESSAGES */
 Dispatch taskChange : taskChange(NAME, TASK, FC, QNT)
 
@@ -28,20 +30,19 @@ Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
 Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)
 
 
-Context ctxMaitre ip [host="localhost" port=3031]
-Context ctxButler ip [host="localhost" port=3030]
+Context ctxMaitre ip [host="localhost" port=3031] -mqtt
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
 
-ExternalQActor resourcemodelbutler context ctxButler
+//ExternalQActor resourcemodelbutler context ctxButler
 
 QActor maitre context ctxMaitre {
 	State s0 initial {
 		println("[MAITRE]: starts...")
 		run itunibo.maitre.maitreGUI.init(myself)
-		
 	}
 	Transition t0 whenMsg updateMaitre -> initStateRoom
 	
-	State initStateRoom{
+	State initStateRoom {
 		run itunibo.maitre.maitreGUI.readFromFile()
 	}
 	Goto sendingPrepare
@@ -51,14 +52,19 @@ QActor maitre context ctxMaitre {
 		println("[MAITRE]: I'm in sendingPrepare")
 		run itunibo.maitre.maitreGUI.enableOnlyPrepare()
 	}
-	Transition t0 whenMsg prepareSended -> waitingPrepCompleted
+	Transition t0 whenMsg prepareSended -> notifyPrepare
 				  whenMsg updateMaitre -> updateSP // ?
-				  				  
+	
+	State notifyPrepare {
+		//forward resourcemodelbutler -m taskChange : taskChange(butler, prepare, null, null)
+		["forward(\"taskChange\",\"taskChange(butler, prepare, null, null)\",\"resourcemodelbutler\")"]
+	}	
+	Goto waitingPrepCompleted
+		  				  
 	State waitingPrepCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 		
 		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, prepare)
-		forward resourcemodelbutler -m taskChange : taskChange(butler, prepare, null, null)
 		println("[MAITRE]: waiting for a prepareCompleted...")
 	}
 	Transition t0 whenMsg modelChangedMaitre -> sendingAC
@@ -69,15 +75,20 @@ QActor maitre context ctxMaitre {
 		println("[MAITRE]: I'm in sendingAC")
 		run itunibo.maitre.maitreGUI.enableOnlyAC()
 	}
-	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompleted
-				  whenMsg clearSended -> waitingClearCompleted
+	Transition t0 whenMsg addFoodSended -> notifyAddFood
+				  whenMsg clearSended -> notifyClear
 				  whenMsg updateMaitre -> updateP 
-				  
+	
+	State notifyAddFood {
+		//forward resourcemodelbutler -m taskChange : taskChange(butler, add_food, taralli, 5)
+		["forward(\"taskChange\",\"taskChange(butler, add_food, taralli, 5)\",\"resourcemodelbutler\")"]
+	}	
+	Goto waitingAddFoodCompleted
+					  
 	State waitingAddFoodCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 		
 		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, addFood)
-		forward resourcemodelbutler -m taskChange : taskChange(butler, add, taralli, 5)
 		println("[MAITRE]: waiting for an addFoodCompleted...")
 
 	}
@@ -85,11 +96,16 @@ QActor maitre context ctxMaitre {
 				  whenMsg updateMaitre -> updateAC
 				  whenEvent alert -> handleWarning
 
+	State notifyClear {
+		//forward resourcemodelbutler -m taskChange : taskChange(butler, clear, null, null)
+		["forward(\"taskChange\",\"taskChange(butler, clear, null, null)\",\"resourcemodelbutler\")"]
+	}	
+	Goto waitingClearCompleted
+	
 	State waitingClearCompleted {
 		run itunibo.maitre.maitreGUI.enableOnlySR()
 
 		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, clear)
-		forward resourcemodelbutler -m taskChange : taskChange(butler, clear, null, null)
 		println("[MAITRE]: waiting for a clearCompleted...")
 
 	}
@@ -142,7 +158,7 @@ QActor maitremodel context ctxMaitre {
 	State s0 initial {
 		println("[MAITRE_MODEL]: starts...")
 		solve(consult("sysRules.pl"))
-	
+		
 		/*initial values */
 		solve(assert(content(pantry, dish, null, 20)))
 		solve(assert(content(dishwasher, dish, null, 0)))

@@ -31,7 +31,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						forward("modelUpdatePantry", "modelUpdatePantry(pantry,idle,null)" ,"resourcemodelpantry" ) 
 					}
-					 transition(edgeName="t098",targetState="analyzeMessage",cond=whenDispatch("modelChangedPantry"))
+					 transition(edgeName="t082",targetState="analyzeMessage",cond=whenDispatch("modelChangedPantry"))
 				}	 
 				state("analyzeMessage") { //this:State
 					action { //it:State

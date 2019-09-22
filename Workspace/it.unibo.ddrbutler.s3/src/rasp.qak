@@ -1,4 +1,6 @@
-System test
+System rasp
+
+mqttBroker "192.168.43.145" : 1883 
 
 /* MESSAGES */
 Event sonarRobot : sonar(DISTANCE)
@@ -86,11 +88,9 @@ Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
 Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
 
 /* CONTEXT */
-//Context ctxButler ip [host="localhost" port=3030]
-//Context ctxMaitre ip [host="localhost" port=3031]
-Context ctxTest ip [host="localhost" port=3031]
+Context ctxRasp ip [host="localhost" port=3031] -mqtt
 
-QActor basicrobot context ctxTest {
+QActor basicrobot context ctxRasp {
 	State s0 initial {
 		println("[BASICROBOT]: Started...")
 		
@@ -98,7 +98,7 @@ QActor basicrobot context ctxTest {
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved {
   			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  			//run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
   		} 
   		else {
   		 	println("no robot")
@@ -114,7 +114,7 @@ QActor basicrobot context ctxTest {
 	State handleCmd {
 		
 		onMsg (robotCmd : robotCmd(X)) {
-			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -123,7 +123,7 @@ QActor basicrobot context ctxTest {
 }
 
 
-QActor obstacledetector context ctxTest {
+QActor obstacledetector context ctxRasp {
 	["var distance=9999"]
 	State s0 initial {
 		println("[OBSTACLE-DETECTOR]: Started...")
@@ -159,7 +159,7 @@ QActor obstacledetector context ctxTest {
 }
 
 
-QActor resourcemodelbutler context ctxTest {
+QActor resourcemodelbutler context ctxRasp {
 	State s0 initial{
 		println("[RESOURCE MODEL]: Started...")
 		
@@ -218,7 +218,7 @@ QActor resourcemodelbutler context ctxTest {
 }
 
 
-QActor movementhandler context ctxTest {
+QActor movementhandler context ctxRasp {
 	["
 		var input=\"\"
 		var startF = 0L
@@ -344,7 +344,7 @@ QActor movementhandler context ctxTest {
 }
 
 
-QActor robotmind context ctxTest {
+QActor robotmind context ctxRasp {
 	State s0 initial{
 		println("[ROBOT MIND]: Started...")		
 	}
@@ -366,7 +366,7 @@ QActor robotmind context ctxTest {
 }
 
 
-QActor butlermind context ctxTest {
+QActor butlermind context ctxRasp {
 	["var task : String = \"\"
 	  var isCorrect = false
 	"]
@@ -426,7 +426,8 @@ QActor butlermind context ctxTest {
 				  whenMsg backWait -> waitingPrepare
 	
 	State notifyPrepareMaitre {
-		forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare) 
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
+		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
 	}
 	Goto waitingAC
 	
@@ -467,7 +468,8 @@ QActor butlermind context ctxTest {
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
 	
 	State notifyAddFoodMaitre {
-		forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food) 
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
+		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, add_food)\",\"maitremodel\")"] 
 	}
 	Goto waitingAC
 	
@@ -477,13 +479,14 @@ QActor butlermind context ctxTest {
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
 	
 	State notifyClearMaitre {
-		forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear) 
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
+		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, clear)\",\"maitremodel\")"]
 	}
 	Goto waitingPrepare	
 }
 
 
-QActor calibration context ctxTest {
+QActor calibration context ctxRasp {
 	["
 		var terminato = false
 		var nextDir = \"\"
@@ -824,7 +827,7 @@ QActor calibration context ctxTest {
 }
 
 
-QActor planner context ctxTest {
+QActor planner context ctxRasp {
 	["
 		var NextMove = \"\"
 		var finito = false
@@ -920,7 +923,7 @@ QActor planner context ctxTest {
 }
 
 
-QActor preparehandler context ctxTest {
+QActor preparehandler context ctxRasp {
 	["var isFood : Boolean = false
 	  var DishesToPut = 0
       var foodToPut = HashMap<String, String>()"]
@@ -1039,7 +1042,7 @@ QActor preparehandler context ctxTest {
 }
 
 
-QActor addfoodhandler context ctxTest {
+QActor addfoodhandler context ctxRasp {
 	["var isPresent = false
 	var FoodCode = \"\"
 	var Qnt = \"\"
@@ -1127,7 +1130,7 @@ QActor addfoodhandler context ctxTest {
 }
 
 
-QActor clearhandler context ctxTest {
+QActor clearhandler context ctxRasp {
 	["var isFood = false
 	var foodList = \"\"
 	var foodToPut = HashMap<String, String>()
@@ -1153,7 +1156,7 @@ QActor clearhandler context ctxTest {
 	
 	State getAllContent {
 		printCurrentMessage
-		forward stuffontable -m getContent : getContent
+		forward contentontable -m getContent : getContent
 	}
 	Transition t0 whenMsg responseContent -> planT
 	
@@ -1254,16 +1257,16 @@ QActor clearhandler context ctxTest {
 }
 
 
-QActor stuffontable context ctxTest {
+QActor contentontable context ctxRasp {
 	State s0 initial {
-		println("[stuffontable]: starts...")
+		println("[contentontable]: starts...")
 		solve(consult("sysRules.pl"))
 	}
 	Goto waitingCmd
 	
 	State waitingCmd {
 		printCurrentMessage
-		println("[stuffontable]: I'm waiting for a command...")
+		println("[contentontable]: I'm waiting for a command...")
 	}
 	Transition t0 whenMsg getContent -> gettingContent
 				  whenEvent updateContent -> settingContent
@@ -1278,7 +1281,7 @@ QActor stuffontable context ctxTest {
 			["replyToCaller(\"responseContent\",\"responseContent(${response})\")"]
 		}
 		else {
-			println("[stuffontable]: error in solving file")
+			println("[contentontable]: error in solving file")
 		}
 	}
 	Goto waitingCmd
@@ -1328,218 +1331,7 @@ QActor stuffontable context ctxTest {
 	
 }
 
-QActor console context ctxTest{
-	State s0 initial{
-		println("[CONSOLE]: Started...")
-		
-		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
-		
-	}
-}
-
-QActor maitre context ctxTest {
-	State s0 initial {
-		println("[MAITRE]: starts...")
-		run itunibo.maitre.maitreGUI.init(myself)
-	}
-	Transition t0 whenMsg updateMaitre -> initStateRoom
-	
-	State initStateRoom {
-		run itunibo.maitre.maitreGUI.readFromFile()
-	}
-	Goto sendingPrepare
-	
-	/* PREPARE */
-	State sendingPrepare {
-		println("[MAITRE]: I'm in sendingPrepare")
-		run itunibo.maitre.maitreGUI.enableOnlyPrepare()
-	}
-	Transition t0 whenMsg prepareSended -> notifyPrepare
-				  whenMsg updateMaitre -> updateSP // ?
-	
-	State notifyPrepare {
-		forward resourcemodelbutler -m taskChange : taskChange(butler, prepare, null, null)
-	}	
-	Goto waitingPrepCompleted
-		  				  
-	State waitingPrepCompleted {
-		run itunibo.maitre.maitreGUI.enableOnlySR()
-		
-		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, prepare)
-		println("[MAITRE]: waiting for a prepareCompleted...")
-	}
-	Transition t0 whenMsg modelChangedMaitre -> sendingAC
-				  whenMsg updateMaitre -> updateP 
-	
-	/* ADD FOOD / CLEAR */
-	State sendingAC {
-		println("[MAITRE]: I'm in sendingAC")
-		run itunibo.maitre.maitreGUI.enableOnlyAC()
-	}
-	Transition t0 whenMsg addFoodSended -> notifyAddFood
-				  whenMsg clearSended -> notifyClear
-				  whenMsg updateMaitre -> updateP 
-	
-	State notifyAddFood {
-		forward resourcemodelbutler -m taskChange : taskChange(butler, add_food, taralli, 5)
-	}	
-	Goto waitingAddFoodCompleted
-					  
-	State waitingAddFoodCompleted {
-		run itunibo.maitre.maitreGUI.enableOnlySR()
-		
-		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, addFood)
-		println("[MAITRE]: waiting for an addFoodCompleted...")
-
-	}
-	Transition t0 whenMsg modelChangedMaitre -> sendingAC
-				  whenMsg updateMaitre -> updateAC
-				  whenEvent alert -> handleWarning
-
-	State notifyClear {
-		forward resourcemodelbutler -m taskChange : taskChange(butler, clear, null, null)
-	}	
-	Goto waitingClearCompleted
-	
-	State waitingClearCompleted {
-		run itunibo.maitre.maitreGUI.enableOnlySR()
-
-		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, clear)
-		println("[MAITRE]: waiting for a clearCompleted...")
-
-	}
-	Transition t0 whenMsg modelChangedMaitre -> sendingPrepare
-				  whenMsg updateMaitre -> updateC
-	
-	/* UPDATE */
-	State updateSP {
-		println("[MAITRE]: I'm in updateSP")
-		run itunibo.maitre.maitreGUI.readFromFile()
-		
-	}
-	Goto sendingPrepare
-	
-	State updateAC {
-		println("[MAITRE]: I'm in updateAC")
-		run itunibo.maitre.maitreGUI.readFromFile()
-		
-	}
-	Goto sendingAC
-	
-	State updateP {
-		println("[MAITRE]: I'm in updateP")
-		run itunibo.maitre.maitreGUI.readFromFile()
-		
-	}
-	Goto waitingPrepCompleted
-	
-	State updateA {
-		println("[MAITRE]: I'm in updateA")
-		run itunibo.maitre.maitreGUI.readFromFile()
-	}
-	Goto waitingAddFoodCompleted
-	
-	State updateC {
-		println("[MAITRE]: I'm in updateC")
-		run itunibo.maitre.maitreGUI.readFromFile()
-	}
-	Goto waitingClearCompleted
-	
-	/* */
-	State handleWarning{
-		println("[MAITRE]: received an alert")
-	}
-	Goto sendingAC	
-}
-
-/* MAITRE MODEL */
-QActor maitremodel context ctxTest {
-	State s0 initial {
-		println("[MAITRE_MODEL]: starts...")
-		solve(consult("sysRules.pl"))
-		
-		/*initial values */
-		solve(assert(content(pantry, dish, null, 20)))
-		solve(assert(content(dishwasher, dish, null, 0)))
-		solve(assert(content(fridge, food, taralli, 20)))
-		solve(assert(content(fridge, food, brasciole, 20)))
-		solve(assert(content(fridge, food, polpette, 20)))
-		solve(assert(content(fridge, food, cicorie, 20)))
-		
-		forward maitre -m updateMaitre : updateMaitre
-	}
-	Goto waitingCmd
-	
-	State waitingCmd {
-		println("[MAITRE_MODEL]: waiting for a command...")
-	}
-	Transition t0 whenMsg modelChangeMaitre -> modelChanging
-				  whenMsg modelUpdateMaitre -> modelUpdating
-				  whenEvent updateContent -> updatingRoom
-						
-	State modelUpdating {
-		println("[MAITRE_MODEL]: updating model...")
-		
-		onMsg(modelUpdateMaitre : modelUpdateMaitre(maitre, STATE)) {
-			run itunibo.maitre.resourceModelSupport.updateMaitreModel(myself, payloadArg(1))
-		}
-	}
-	Goto waitingCmd					
-						
-	State modelChanging {
-		println("[MAITRE_MODEL]: received a modelChange command")
-		
-		onMsg(modelChangeMaitre : modelChangeMaitre(maitre, STATE)) {
-				forward maitre -m modelChangedMaitre : modelChanged
-		}
-	}
-	Goto waitingCmd
-	
-	State updatingRoom {
-		println("[MAITRE_MODEL]: received an updatingRoom command")
-		
-		onMsg(updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)){
-			println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
-			
-			solve(content($payloadArg(0), $payloadArg(1), $payloadArg(2), X))
-			ifSolved {
-				["
-					var old = Integer.parseInt(getCurSol(\"X\").toString())
-					var difference = Integer.parseInt(payloadArg(3))
-					var New = 0					
-
-					if(payloadArg(4).equals(\"put\")){
-						New = old + difference
-					}
-					if(payloadArg(4).equals(\"take\")){
-						New = old - difference
-					}
-				"]
-				solve(replaceRule(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _), content($payloadArg(0), $payloadArg(1), $payloadArg(2), $New)))		
-				ifSolved {
-					println("[MAITRE_MODEL]: I've replaced a line")	
-					forward maitre -m updateMaitre : updateMaitre
-				}
-				else {
-					println("[MAITRE_MODEL]: error in replacing the new line")
-				}			
-			}
-			else {
-				solve(assert(content($payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3))))
-				ifSolved {
-					println("[MAITRE_MODEL]: I've added a new line")
-					forward maitre -m updateMaitre : updateMaitre
-				}
-				else {
-					println("[MAITRE_MODEL]: error in adding a new line")
-				}	
-			}			
-		}
-	}
-	Goto waitingCmd
-}
-
-QActor dishwasher context ctxTest{
+QActor dishwasher context ctxRasp{
 	["
 		var goToPut = false
 		var qnt = -1
@@ -1589,7 +1381,7 @@ QActor dishwasher context ctxTest{
 	
 }
 
-QActor resourcemodeldishwasher context ctxTest{
+QActor resourcemodeldishwasher context ctxRasp{
 	State s0 initial{
 		println("[RESOURCEMODEL DISHWASHER]: Started...")
 		
@@ -1630,7 +1422,7 @@ QActor resourcemodeldishwasher context ctxTest{
 	Goto waitCmd
 }
 
-QActor pantry context ctxTest{
+QActor pantry context ctxRasp{
 	["
 		var goToPut = false
 		var qnt = -1
@@ -1676,7 +1468,7 @@ QActor pantry context ctxTest{
 	Goto waitCmd
 }
 
-QActor resourcemodelpantry context ctxTest{
+QActor resourcemodelpantry context ctxRasp{
 	State s0 initial{
 		println("[RESOURCEMODEL PANTRY]: Started...")
 		
@@ -1716,7 +1508,7 @@ QActor resourcemodelpantry context ctxTest{
 	Goto waitCmd
 }
 
-QActor table context ctxTest{
+QActor table context ctxRasp{
 	["
 		var goToPut = false
 		var type = \"\"
@@ -1776,7 +1568,7 @@ QActor table context ctxTest{
 	Goto waitCmd
 }
 
-QActor resourcemodeltable context ctxTest{
+QActor resourcemodeltable context ctxRasp{
 	State s0 initial{
 		println("[RESOURCEMODEL TABLE]: Started...")
 		
@@ -1828,3 +1620,12 @@ QActor resourcemodeltable context ctxTest{
 	}
 	Goto waitCmd
 }
+
+/*QActor console context ctxRasp{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/

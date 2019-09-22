@@ -1,9 +1,7 @@
 %====================================================================================
 % pantry description   
 %====================================================================================
-context(ctxbutler, "localhost",  "TCP", "3030" ).
-context(ctxmaitre, "localhost",  "TCP", "3031" ).
- qactor( maitremodel, ctxmaitre, "external").
-  qactor( pantry, ctxbutler, "it.unibo.pantry.Pantry").
-  qactor( resourcemodelpantry, ctxbutler, "it.unibo.resourcemodelpantry.Resourcemodelpantry").
-  qactor( console, ctxbutler, "it.unibo.console.Console").
+mqttBroker("localhost", "1883").
+context(ctxpantry, "localhost",  "MQTT", "0" ).
+ qactor( pantry, ctxpantry, "it.unibo.pantry.Pantry").
+  qactor( resourcemodelpantry, ctxpantry, "it.unibo.resourcemodelpantry.Resourcemodelpantry").

@@ -41,7 +41,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				state("getAllContent") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("getContent", "getContent" ,"stuffontable" ) 
+						forward("getContent", "getContent" ,"contentontable" ) 
 					}
 					 transition(edgeName="t071",targetState="planT",cond=whenDispatch("responseContent"))
 				}	 
