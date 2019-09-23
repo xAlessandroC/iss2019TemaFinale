@@ -38,10 +38,10 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 								println("$name in ${currentState.stateName} | $currentMsg")
 								 val D = Integer.parseInt( payloadArg(0) )
 								if(D<=distance){
-								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},obstacle)" ,"resourcemodelbutler" ) 
+								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},obstacle)" ,"resourcemodel" ) 
 								emit("obstacle", "obstacle" ) 
 								}else{
-								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},clear)" ,"resourcemodelbutler" ) 
+								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},clear)" ,"resourcemodel" ) 
 								}
 						}
 					}

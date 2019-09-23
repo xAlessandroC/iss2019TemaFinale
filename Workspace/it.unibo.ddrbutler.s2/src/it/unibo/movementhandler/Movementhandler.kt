@@ -54,7 +54,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("startForward") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,w)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,w)" ,"resourcemodel" ) 
 						startF = System.currentTimeMillis()
 						stateTimer = TimerActor("timer_startForward", 
 							scope, context!!, "local_tout_movementhandler_startForward", 1000.toLong() )
@@ -65,7 +65,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("stopForward") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("moveCompleted","moveCompleted")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -73,7 +73,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("startTurnLeft") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,a)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,a)" ,"resourcemodel" ) 
 						stateTimer = TimerActor("timer_startTurnLeft", 
 							scope, context!!, "local_tout_movementhandler_startTurnLeft", 1850.toLong() )
 					}
@@ -82,7 +82,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("stopTurnLeft") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("moveCompleted","moveCompleted")
 						delay(1000) 
 					}
@@ -91,7 +91,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("startTurnRight") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,d)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,d)" ,"resourcemodel" ) 
 						stateTimer = TimerActor("timer_startTurnRight", 
 							scope, context!!, "local_tout_movementhandler_startTurnRight", 1850.toLong() )
 					}
@@ -100,7 +100,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("stopTurnRight") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("moveCompleted","moveCompleted")
 						delay(1000) 
 					}
@@ -109,7 +109,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("startBacktracking") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,s)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,s)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCustomTime", cond=doswitch() )
 				}	 
@@ -124,7 +124,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("stopBacktracking") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
+						forward("robotChange", "robotChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("moveCompleted","moveCompleted")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

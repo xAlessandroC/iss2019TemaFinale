@@ -25,14 +25,6 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("waitSonarData") { //this:State
 					action { //it:State
 						println("[OBSTACLE DETECTOR]: Sono in waitSonarData")
-						delay(1000) 
-						emit("obstacle", "obstacle" ) 
-						delay(1000) 
-						emit("obstacle", "obstacle" ) 
-						delay(1000) 
-						emit("obstacle", "obstacle" ) 
-						delay(1000) 
-						emit("obstacle", "obstacle" ) 
 					}
 					 transition(edgeName="t01",targetState="handleSonarData",cond=whenEvent("sonarRobot"))
 				}	 

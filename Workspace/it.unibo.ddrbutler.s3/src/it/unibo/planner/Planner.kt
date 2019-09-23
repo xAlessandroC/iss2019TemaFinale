@@ -33,8 +33,8 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								replyToCaller("planningCompleted","planningCompleted")
 						}
 					}
-					 transition(edgeName="t054",targetState="calculatePath",cond=whenDispatch("goto"))
-					transition(edgeName="t055",targetState="updateRoomDescription",cond=whenDispatch("setLocation"))
+					 transition(edgeName="t045",targetState="calculatePath",cond=whenDispatch("goto"))
+					transition(edgeName="t046",targetState="updateRoomDescription",cond=whenDispatch("setLocation"))
 				}	 
 				state("updateRoomDescription") { //this:State
 					action { //it:State
@@ -89,8 +89,8 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						}
 						forward("schedulingCompleted", "schedulingCompleted" ,"planner" ) 
 					}
-					 transition(edgeName="t056",targetState="waitCmd",cond=whenDispatchGuarded("schedulingCompleted",{finito}))
-					transition(edgeName="t057",targetState="execMove",cond=whenDispatchGuarded("schedulingCompleted",{!finito}))
+					 transition(edgeName="t047",targetState="waitCmd",cond=whenDispatchGuarded("schedulingCompleted",{finito}))
+					transition(edgeName="t048",targetState="execMove",cond=whenDispatchGuarded("schedulingCompleted",{!finito}))
 				}	 
 				state("execMove") { //this:State
 					action { //it:State
@@ -99,7 +99,7 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						itunibo.planner.moveUtils.doPlannedMove(myself ,NextMove )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t058",targetState="schedulingNextMove",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t049",targetState="schedulingNextMove",cond=whenDispatch("moveCompleted"))
 				}	 
 			}
 		}

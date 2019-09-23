@@ -1,0 +1,242 @@
+System maitre
+
+mqttBroker "localhost" : 1883 
+
+/* BUTLER MESSAGES */
+Dispatch taskChange : taskChange(NAME, TASK, FC, QNT)
+
+Dispatch prepareCompleted : prepareCompleted
+Dispatch addFoodCompleted : addFoodCompleted
+Dispatch clearCompleted : clearCompleted
+
+Event alert : alert
+
+/* MAITRE MESSAGES */
+Dispatch prepareSended : prepareSended
+Dispatch addFoodSended : addFoodSended
+Dispatch clearSended : clearSended
+
+Dispatch stop : stop
+Dispatch reactivate : reactivate
+
+Dispatch updateMaitre : updateMaitre
+
+/* MODEL MAITRE CHANGES */
+Dispatch modelChangeMaitre : modelChangeMaitre(NAME, STATE)
+Dispatch modelChangedMaitre : modelChangedMaitre(NAME, TASK)
+Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
+
+/* UPDATING STATE ROOM */
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)
+
+
+Context ctxMaitre ip [host="localhost" port=3031] -mqtt
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+
+//ExternalQActor resourcemodelbutler context ctxButler
+
+QActor maitre context ctxMaitre {
+	State s0 initial {
+		println("[MAITRE]: starts...")
+		run itunibo.maitre.maitreGUI.init(myself)
+	}
+	Transition t0 whenMsg updateMaitre -> initStateRoom
+	
+	State initStateRoom {
+		run itunibo.maitre.maitreGUI.readFromFile()
+	}
+	Goto sendingPrepare
+	
+	/* PREPARE */
+	State sendingPrepare {
+		println("[MAITRE]: I'm in sendingPrepare")
+		run itunibo.maitre.maitreGUI.enableOnlyPrepare()
+	}
+	Transition t0 whenMsg prepareSended -> notifyPrepare
+				  whenMsg updateMaitre -> updateSP // ?
+	
+	State notifyPrepare {
+		//forward resourcemodelbutler -m taskChange : taskChange(butler, prepare, null, null)
+		["forward(\"taskChange\",\"taskChange(butler, prepare, null, null)\",\"resourcemodelbutler\")"]
+	}	
+	Goto waitingPrepCompleted
+		  				  
+	State waitingPrepCompleted {
+		run itunibo.maitre.maitreGUI.enableOnlySR()
+		
+		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, prepare)
+		println("[MAITRE]: waiting for a prepareCompleted...")
+	}
+	Transition t0 whenMsg modelChangedMaitre -> sendingAC
+				  whenMsg updateMaitre -> updateP 
+	
+	/* ADD FOOD / CLEAR */
+	State sendingAC {
+		println("[MAITRE]: I'm in sendingAC")
+		run itunibo.maitre.maitreGUI.enableOnlyAC()
+	}
+	Transition t0 whenMsg addFoodSended -> notifyAddFood
+				  whenMsg clearSended -> notifyClear
+				  whenMsg updateMaitre -> updateP 
+	
+	State notifyAddFood {
+		//forward resourcemodelbutler -m taskChange : taskChange(butler, add_food, taralli, 5)
+		["forward(\"taskChange\",\"taskChange(butler, add_food, taralli, 5)\",\"resourcemodelbutler\")"]
+	}	
+	Goto waitingAddFoodCompleted
+					  
+	State waitingAddFoodCompleted {
+		run itunibo.maitre.maitreGUI.enableOnlySR()
+		
+		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, addFood)
+		println("[MAITRE]: waiting for an addFoodCompleted...")
+
+	}
+	Transition t0 whenMsg modelChangedMaitre -> sendingAC
+				  whenMsg updateMaitre -> updateAC
+				  whenEvent alert -> handleWarning
+
+	State notifyClear {
+		//forward resourcemodelbutler -m taskChange : taskChange(butler, clear, null, null)
+		["forward(\"taskChange\",\"taskChange(butler, clear, null, null)\",\"resourcemodelbutler\")"]
+	}	
+	Goto waitingClearCompleted
+	
+	State waitingClearCompleted {
+		run itunibo.maitre.maitreGUI.enableOnlySR()
+
+		forward maitremodel -m modelUpdateMaitre : modelUpdate(maitre, clear)
+		println("[MAITRE]: waiting for a clearCompleted...")
+
+	}
+	Transition t0 whenMsg modelChangedMaitre -> sendingPrepare
+				  whenMsg updateMaitre -> updateC
+	
+	/* UPDATE */
+	State updateSP {
+		println("[MAITRE]: I'm in updateSP")
+		run itunibo.maitre.maitreGUI.readFromFile()
+		
+	}
+	Goto sendingPrepare
+	
+	State updateAC {
+		println("[MAITRE]: I'm in updateAC")
+		run itunibo.maitre.maitreGUI.readFromFile()
+		
+	}
+	Goto sendingAC
+	
+	State updateP {
+		println("[MAITRE]: I'm in updateP")
+		run itunibo.maitre.maitreGUI.readFromFile()
+		
+	}
+	Goto waitingPrepCompleted
+	
+	State updateA {
+		println("[MAITRE]: I'm in updateA")
+		run itunibo.maitre.maitreGUI.readFromFile()
+	}
+	Goto waitingAddFoodCompleted
+	
+	State updateC {
+		println("[MAITRE]: I'm in updateC")
+		run itunibo.maitre.maitreGUI.readFromFile()
+	}
+	Goto waitingClearCompleted
+	
+	/* */
+	State handleWarning{
+		println("[MAITRE]: received an alert")
+	}
+	Goto sendingAC	
+}
+
+/* MAITRE MODEL */
+QActor maitremodel context ctxMaitre {
+	State s0 initial {
+		println("[MAITRE_MODEL]: starts...")
+		solve(consult("sysRules.pl"))
+		
+		/*initial values */
+		solve(assert(content(pantry, dish, null, 20)))
+		solve(assert(content(dishwasher, dish, null, 0)))
+		solve(assert(content(fridge, food, taralli, 20)))
+		solve(assert(content(fridge, food, brasciole, 20)))
+		solve(assert(content(fridge, food, polpette, 20)))
+		solve(assert(content(fridge, food, cicorie, 20)))
+		
+		forward maitre -m updateMaitre : updateMaitre
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		println("[MAITRE_MODEL]: waiting for a command...")
+	}
+	Transition t0 whenMsg modelChangeMaitre -> modelChanging
+				  whenMsg modelUpdateMaitre -> modelUpdating
+				  whenEvent updateContent -> updatingRoom
+						
+	State modelUpdating {
+		println("[MAITRE_MODEL]: updating model...")
+		
+		onMsg(modelUpdateMaitre : modelUpdateMaitre(maitre, STATE)) {
+			run itunibo.maitre.resourceModelSupport.updateMaitreModel(myself, payloadArg(1))
+		}
+	}
+	Goto waitingCmd					
+						
+	State modelChanging {
+		println("[MAITRE_MODEL]: received a modelChange command")
+		
+		onMsg(modelChangeMaitre : modelChangeMaitre(maitre, STATE)) {
+				forward maitre -m modelChangedMaitre : modelChanged
+		}
+	}
+	Goto waitingCmd
+	
+	State updatingRoom {
+		println("[MAITRE_MODEL]: received an updatingRoom command")
+		
+		onMsg(updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)){
+			println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
+			
+			solve(content($payloadArg(0), $payloadArg(1), $payloadArg(2), X))
+			ifSolved {
+				["
+					var old = Integer.parseInt(getCurSol(\"X\").toString())
+					var difference = Integer.parseInt(payloadArg(3))
+					var New = 0					
+
+					if(payloadArg(4).equals(\"put\")){
+						New = old + difference
+					}
+					if(payloadArg(4).equals(\"take\")){
+						New = old - difference
+					}
+				"]
+				solve(replaceRule(content($payloadArg(0), $payloadArg(1), $payloadArg(2), _), content($payloadArg(0), $payloadArg(1), $payloadArg(2), $New)))		
+				ifSolved {
+					println("[MAITRE_MODEL]: I've replaced a line")	
+					forward maitre -m updateMaitre : updateMaitre
+				}
+				else {
+					println("[MAITRE_MODEL]: error in replacing the new line")
+				}			
+			}
+			else {
+				solve(assert(content($payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3))))
+				ifSolved {
+					println("[MAITRE_MODEL]: I've added a new line")
+					forward maitre -m updateMaitre : updateMaitre
+				}
+				else {
+					println("[MAITRE_MODEL]: error in adding a new line")
+				}	
+			}			
+		}
+	}
+	Goto waitingCmd
+}
+	

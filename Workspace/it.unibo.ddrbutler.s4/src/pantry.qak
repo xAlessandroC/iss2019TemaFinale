@@ -1,0 +1,114 @@
+System pantry
+
+mqttBroker "localhost" : 1883
+ 
+//external
+Dispatch setLocation : setLocation(NAME,X,Y)
+
+//pantry
+Dispatch modelChangedPantry : modelChangedPantry(NAME, OP, QNT)
+Dispatch modelChangePantry : modelChangePantry(NAME, OP, QNT)
+Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
+
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
+
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+Context ctxPantry ip [host="localhost" port=3033] -mqtt
+
+//ExternalQActor planner context ctxButler
+
+QActor pantry context ctxPantry{
+	["
+		var goToPut = false
+		var qnt = -1
+	"]
+	State s0 initial{
+		println("[PANTRY]: Started...")
+		
+		run itunibo.pantry.pantrySupport.create(20)
+		//forward planner -m setLocation : setLocation(pantry,0,3)
+		["forward(\"setLocation\",\"setLocation(pantry,0,3)\",\"planner\")"]
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+		forward resourcemodelpantry -m modelUpdatePantry : modelUpdatePantry(pantry, idle, null)
+	}
+	Transition t0 whenMsg modelChangedPantry -> analyzeMessage
+	
+	State analyzeMessage{
+		printCurrentMessage
+		onMsg(modelChangedPantry : modelChangedPantry(NAME, OP, QNT)){
+			["if(payloadArg(1).equals(\"put\")){
+				goToPut=true
+			}"]
+			["if(payloadArg(1).equals(\"take\")){
+				goToPut=false
+			}"]
+			["qnt = Integer.parseInt(payloadArg(2))"]
+		}
+	}
+	Goto putDish if "goToPut" else takeDish
+	
+	State putDish{
+		printCurrentMessage
+		run itunibo.pantry.pantrySupport.putDishes(myself,qnt)
+	}
+	Goto waitCmd
+	
+	State takeDish{
+		printCurrentMessage
+		run itunibo.pantry.pantrySupport.takeDishes(myself,qnt)
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodelpantry context ctxPantry{
+	State s0 initial{
+		println("[RESOURCEMODEL PANTRY]: Started...")
+		
+		solve( consult("sysRules.pl"))
+		solve(consult("pantryModel.pl"))
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelChangePantry -> handleChange
+				  whenMsg modelUpdatePantry -> handleUpdate
+	
+	State handleChange{
+		printCurrentMessage
+		
+		onMsg(modelChangePantry : modelChangePantry(pantry, put, QNT) ){
+			forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1), $payloadArg(2))
+			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(1),payloadArg(2))
+		}
+		
+		onMsg(modelChangePantry : modelChangePantry(pantry, take, QNT) ){
+			forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1), $payloadArg(2))
+			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(1),payloadArg(2))
+		}
+	}
+	Goto waitCmd
+	
+	State handleUpdate{
+		printCurrentMessage
+		
+		onMsg(modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT) ){
+			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(1),payloadArg(2))
+		}
+	}
+	Goto waitCmd
+} 
+
+/*QActor console context ctxPantry{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/
