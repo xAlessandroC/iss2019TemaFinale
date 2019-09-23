@@ -1,0 +1,20 @@
+System fridge
+
+Context ctxFridge ip [host="localhost" port=3035]
+
+QActor fridge context ctxFridge{
+	State s0 initial{
+		println("[FRIDGE]: Started...")
+		
+		run itunibo.fridge.fridgeSupport.create()
+		
+	}
+}
+
+QActor resourcemodelfridge context ctxFridge{
+	State s0 initial{
+		println("[RESOURCEMODEL FRIDGE]: Started...")
+		
+		run itunibo.coap.serverCoap.create(myself)
+	}
+} 

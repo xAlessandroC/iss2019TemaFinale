@@ -21,12 +21,6 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[MAITRE]: starts...")
 						itunibo.maitre.maitreGUI.init(myself)
 					}
-					 transition(edgeName="t00",targetState="initStateRoom",cond=whenDispatch("updateMaitre"))
-				}	 
-				state("initStateRoom") { //this:State
-					action { //it:State
-						itunibo.maitre.maitreGUI.readFromFile(  )
-					}
 					 transition( edgeName="goto",targetState="sendingPrepare", cond=doswitch() )
 				}	 
 				state("sendingPrepare") { //this:State
@@ -34,63 +28,48 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[MAITRE]: I'm in sendingPrepare")
 						itunibo.maitre.maitreGUI.enableOnlyPrepare(  )
 					}
-					 transition(edgeName="t01",targetState="notifyPrepare",cond=whenDispatch("prepareSended"))
-					transition(edgeName="t02",targetState="updateSP",cond=whenDispatch("updateMaitre"))
-				}	 
-				state("notifyPrepare") { //this:State
-					action { //it:State
-						forward("taskChange","taskChange(butler, prepare, null, null)","resourcemodelbutler")
-					}
-					 transition( edgeName="goto",targetState="waitingPrepCompleted", cond=doswitch() )
+					 transition(edgeName="t00",targetState="waitingPrepCompleted",cond=whenDispatch("prepareSended"))
+					transition(edgeName="t01",targetState="updateSP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("waitingPrepCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
-						forward("modelUpdateMaitre", "modelUpdate(maitre,prepare)" ,"maitremodel" ) 
+						forward("modelUpdate", "modelUpdate(maitre,prepare)" ,"maitremodel" ) 
+						forward("taskChange", "taskChange(butler,prepare)" ,"resourcemodel" ) 
 						println("[MAITRE]: waiting for a prepareCompleted...")
 					}
-					 transition(edgeName="t03",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t04",targetState="updateP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t02",targetState="sendingAC",cond=whenDispatch("modelChanged"))
+					transition(edgeName="t03",targetState="updateP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("sendingAC") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in sendingAC")
 						itunibo.maitre.maitreGUI.enableOnlyAC(  )
 					}
-					 transition(edgeName="t05",targetState="notifyAddFood",cond=whenDispatch("addFoodSended"))
-					transition(edgeName="t06",targetState="notifyClear",cond=whenDispatch("clearSended"))
-					transition(edgeName="t07",targetState="updateP",cond=whenDispatch("updateMaitre"))
-				}	 
-				state("notifyAddFood") { //this:State
-					action { //it:State
-						forward("taskChange","taskChange(butler, add_food, taralli, 5)","resourcemodelbutler")
-					}
-					 transition( edgeName="goto",targetState="waitingAddFoodCompleted", cond=doswitch() )
+					 transition(edgeName="t04",targetState="waitingAddFoodCompleted",cond=whenDispatch("addFoodSended"))
+					transition(edgeName="t05",targetState="waitingClearCompleted",cond=whenDispatch("clearSended"))
+					transition(edgeName="t06",targetState="updateP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("waitingAddFoodCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
-						forward("modelUpdateMaitre", "modelUpdate(maitre,addFood)" ,"maitremodel" ) 
+						forward("modelUpdate", "modelUpdate(maitre,addFood)" ,"maitremodel" ) 
+						forward("taskChange", "taskChange(butler,add)" ,"resourcemodel" ) 
 						println("[MAITRE]: waiting for an addFoodCompleted...")
 					}
-					 transition(edgeName="t08",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t09",targetState="updateAC",cond=whenDispatch("updateMaitre"))
-					transition(edgeName="t010",targetState="handleWarning",cond=whenEvent("alert"))
-				}	 
-				state("notifyClear") { //this:State
-					action { //it:State
-						forward("taskChange","taskChange(butler, clear, null, null)","resourcemodelbutler")
-					}
-					 transition( edgeName="goto",targetState="waitingClearCompleted", cond=doswitch() )
+					 transition(edgeName="t07",targetState="sendingAC",cond=whenDispatch("modelChanged"))
+					transition(edgeName="t08",targetState="updateAC",cond=whenDispatch("updateMaitre"))
+					transition(edgeName="t09",targetState="handleWarning",cond=whenEvent("alert"))
 				}	 
 				state("waitingClearCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
-						forward("modelUpdateMaitre", "modelUpdate(maitre,clear)" ,"maitremodel" ) 
+						forward("modelUpdate", "modelUpdate(maitre,clear)" ,"maitremodel" ) 
+						forward("taskChange", "taskChange(butler,clear)" ,"resourcemodel" ) 
 						println("[MAITRE]: waiting for a clearCompleted...")
 					}
-					 transition(edgeName="t011",targetState="sendingPrepare",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t012",targetState="updateC",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t010",targetState="sendingPrepare",cond=whenDispatch("modelChanged"))
+					transition(edgeName="t011",targetState="updateC",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("updateSP") { //this:State
 					action { //it:State
@@ -116,14 +95,12 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("updateA") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in updateA")
-						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="waitingAddFoodCompleted", cond=doswitch() )
 				}	 
 				state("updateC") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in updateC")
-						itunibo.maitre.maitreGUI.readFromFile(  )
 					}
 					 transition( edgeName="goto",targetState="waitingClearCompleted", cond=doswitch() )
 				}	 
