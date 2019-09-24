@@ -1005,7 +1005,13 @@ QActor preparehandler context ctxButler {
 
 				foodToPut.put(FoodCode, Qnt)
 			"]							
+				
 				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
+				
+				//with coap
+				["var qntInteger=Integer.parseInt(Qnt)"]
+				run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
 		}
@@ -1069,8 +1075,15 @@ QActor addfoodhandler context ctxButler {
 			Qnt = payloadArg(1)
 			"]
 		}
+		
+		//fake interaction
 		//forward resourcemodelfridge -m qualcosa : qualcosa(RISPOSTA)
-		forward addfoodhandler -m responseFood : responseFood(yes)
+		//forward addfoodhandler -m responseFood : responseFood(yes)
+		
+		//real interaction
+		["var QntInt = Integer.parseInt(Qnt)"]
+		run itunibo.robot.fridgeInteraction.ask(myself,FoodCode,QntInt)
+		
 	}
 	Transition t0 whenMsg responseFood -> analyzeResponse
 	
@@ -1097,6 +1110,11 @@ QActor addfoodhandler context ctxButler {
 		printCurrentMessage
 		println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
 		//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, food, take, $FoodCode, $Qnt)
+		
+		//with coap
+		["var qntInteger=Integer.parseInt(Qnt)"]
+		run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		
 		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
 	Goto planT
@@ -1213,7 +1231,10 @@ QActor clearhandler context ctxButler {
 		printCurrentMessage
 		println("[CLEAR_HANDLER]: I'm putting food into the fridge")
 		["foodToPut.forEach { (K, V) -> println(\"[CLEAR_HANDLER]: I'm putting into the fridge $K, $V\")"] 	
-			//ragiono con il frigo
+			//with coap
+			["var qntInteger=Integer.parseInt(V)"]
+			run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+			
 			emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]
 	}

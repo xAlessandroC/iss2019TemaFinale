@@ -98,6 +98,8 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 										Qnt = s.split(",")[1]
 						
 										foodToPut.put(FoodCode, Qnt)
+						var qntInteger=Integer.parseInt(Qnt)
+						itunibo.robot.fridgeInteraction.takeFood(myself ,FoodCode, qntInteger )
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 						}
 						 }

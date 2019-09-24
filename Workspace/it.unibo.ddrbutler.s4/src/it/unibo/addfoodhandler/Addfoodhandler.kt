@@ -41,7 +41,8 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								FoodCode = payloadArg(0)
 											Qnt = payloadArg(1)
 						}
-						forward("responseFood", "responseFood(yes)" ,"addfoodhandler" ) 
+						var QntInt = Integer.parseInt(Qnt)
+						itunibo.robot.fridgeInteraction.ask(myself ,FoodCode, QntInt )
 					}
 					 transition(edgeName="t066",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
 				}	 
@@ -72,6 +73,8 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
+						var qntInteger=Integer.parseInt(Qnt)
+						itunibo.robot.fridgeInteraction.takeFood(myself ,FoodCode, qntInteger )
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 					}
 					 transition( edgeName="goto",targetState="planT", cond=doswitch() )

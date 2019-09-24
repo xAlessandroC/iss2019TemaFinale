@@ -27,8 +27,8 @@ class Resourcemodelpantry ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangePantry"))
-					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdatePantry"))
+					 transition(edgeName="t083",targetState="handleChange",cond=whenDispatch("modelChangePantry"))
+					transition(edgeName="t084",targetState="handleUpdate",cond=whenDispatch("modelUpdatePantry"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State
