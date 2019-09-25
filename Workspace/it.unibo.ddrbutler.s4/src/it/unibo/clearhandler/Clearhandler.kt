@@ -91,8 +91,8 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[CLEAR_HANDLER]: I'm putting food into the fridge")
 						foodToPut.forEach { (K, V) -> println("[CLEAR_HANDLER]: I'm putting into the fridge $K, $V")
-						var qntInteger=Integer.parseInt(V)
-						itunibo.robot.fridgeInteraction.putFood(myself ,K, qntInteger )
+						var QntInteger=Integer.parseInt(V)
+						forward("modelChangeFridge","modelChangeFridge(K,QntInteger)","modelresourcefridge")
 						emit("updateContent", "updateContent(fridge,food,$K,$V,put)" ) 
 						}
 					}

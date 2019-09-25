@@ -16,8 +16,6 @@ object serverCoap{
 			var takeResourceCoap = fridgeTakeResource("take")
 			server.add( contentResourceCoap );
 			server.add( availableResourceCoap );
-			server.add( putResourceCoap );
-			server.add( takeResourceCoap );
 			println("[COAP]: Server Started at coap://localhost:$port");	
 			server.start();
  		}

@@ -22,10 +22,7 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						solve("consult('sysRules.pl')","") //set resVar	
 						solve("assert(content(pantry,dish,null,20))","") //set resVar	
 						solve("assert(content(dishwasher,dish,null,0))","") //set resVar	
-						solve("assert(content(fridge,food,taralli,20))","") //set resVar	
-						solve("assert(content(fridge,food,brasciole,20))","") //set resVar	
-						solve("assert(content(fridge,food,polpette,20))","") //set resVar	
-						solve("assert(content(fridge,food,cicorie,20))","") //set resVar	
+						itunibo.maitre.fridgeInteraction.getContent(myself)
 						forward("updateMaitre", "updateMaitre" ,"maitre" ) 
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )

@@ -19,8 +19,39 @@ class Resourcemodelfridge ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("s0") { //this:State
 					action { //it:State
 						println("[RESOURCEMODEL FRIDGE]: Started...")
+						solve("consult('sysRules.pl')","") //set resVar	
+						solve("consult('modelFridge.pl')","") //set resVar	
 						itunibo.coap.serverCoap.create(myself)
 					}
+				}	 
+				state("waitCmd") { //this:State
+					action { //it:State
+					}
+					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangeFridge"))
+					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateFridge"))
+				}	 
+				state("handleChange") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("modelChangeFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangeTable(table,put,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelChangeFridge", "modelChangedTable(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
+						}
+						if( checkMsgContent( Term.createTerm("modelChangeFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangeTable(table,take,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelChangeFridge", "modelChangedTable(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
+						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("handleUpdate") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("modelUpdateFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelUpdateTable(table,TASK,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								itunibo.table.resourceModelSupport.updateTableModel(myself ,payloadArg(1), payloadArg(2), payloadArg(3) )
+						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 			}
 		}

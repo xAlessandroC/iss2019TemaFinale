@@ -1,6 +1,7 @@
 System rasp
 
-mqttBroker "192.168.43.145" : 1883 
+//mqttBroker "192.168.43.145" : 1883
+mqttBroker "localhost" : 1883 
 
 /* MESSAGES */
 Event sonarRobot : sonar(DISTANCE)
@@ -88,7 +89,7 @@ Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
 Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
 
 /* CONTEXT */
-Context ctxRasp ip [host="localhost" port=3031] -mqtt
+Context ctxRasp ip [host="localhost" port=3030] -mqtt
 
 QActor basicrobot context ctxRasp {
 	State s0 initial {
@@ -98,7 +99,7 @@ QActor basicrobot context ctxRasp {
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved {
   			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  			//run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
   		} 
   		else {
   		 	println("no robot")
@@ -114,7 +115,7 @@ QActor basicrobot context ctxRasp {
 	State handleCmd {
 		
 		onMsg (robotCmd : robotCmd(X)) {
-			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -956,7 +957,10 @@ QActor preparehandler context ctxRasp {
 		solve(dish(X))
 		ifSolved {
 			["var Temp=getCurSol(\"X\").toString()"]
-			forward resourcemodelpantry -m modelChangePantry : modelChangePantry(pantry, take, $Temp)
+			
+			//forward resourcemodelpantry -m modelChangePantry : modelChangePantry(pantry, take, $Temp)
+			["forward(\"modelChangePantry\",\"modelChangePantry(pantry, take, $Temp)\",\"resourcemodelpantry\")"]
+			
 			["DishesToPut = Integer.parseInt(getCurSol(\"X\").toString())"]
 			println("[PREPARE_HANDLER]: I'm taking ${getCurSol(\"X\")} dishes")
 			emit updateContent : updateContent(pantry, dish, null, $DishesToPut, take)
@@ -980,7 +984,9 @@ QActor preparehandler context ctxRasp {
 		println("[PREPARE_HANDLER]: I'm putting the dishes")
 		["if(!isFood) isFood = true"]
 		
-		forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, put, null, $DishesToPut)
+		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, put, null, $DishesToPut)
+		["forward(\"modelChangeTable\",\"modelChangeTable(table, dish, put, null, $DishesToPut)\",\"resourcemodeltable\")"]
+		
 		emit updateContent : updateContent(table, dish, null, $DishesToPut, put)
 	}
 	Goto planF
@@ -1006,7 +1012,13 @@ QActor preparehandler context ctxRasp {
 
 				foodToPut.put(FoodCode, Qnt)
 			"]							
+				
 				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
+				
+				//with coap
+				["var qntInteger=Integer.parseInt(Qnt)"]
+				run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
 		}
@@ -1021,7 +1033,10 @@ QActor preparehandler context ctxRasp {
 		printCurrentMessage
 		println("[PREPARE_HANDLER]: I'm putting all the food on the table")
 		["foodToPut.forEach { (K, V) -> println(\"[PREPARE_HANDLER]: I'm putting on the table $K, $V\")"] 	
-			forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $K, $V)
+			
+			//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $K, $V)
+			["forward(\"modelChangeTable\",\"modelChangeTable(table, food, put, $K, $V)\",\"resourcemodeltable\")"]
+			
 			emit updateContent : updateContent(table, food, $K, $V, put)
 		["}"]
 
@@ -1067,8 +1082,15 @@ QActor addfoodhandler context ctxRasp {
 			Qnt = payloadArg(1)
 			"]
 		}
+		
+		//fake interaction
 		//forward resourcemodelfridge -m qualcosa : qualcosa(RISPOSTA)
-		forward addfoodhandler -m responseFood : responseFood(yes)
+		//forward addfoodhandler -m responseFood : responseFood(yes)
+		
+		//real interaction
+		["var QntInt = Integer.parseInt(Qnt)"]
+		run itunibo.robot.fridgeInteraction.ask(myself,FoodCode,QntInt)
+		
 	}
 	Transition t0 whenMsg responseFood -> analyzeResponse
 	
@@ -1095,6 +1117,11 @@ QActor addfoodhandler context ctxRasp {
 		printCurrentMessage
 		println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
 		//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, food, take, $FoodCode, $Qnt)
+		
+		//with coap
+		["var qntInteger=Integer.parseInt(Qnt)"]
+		run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		
 		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
 	Goto planT
@@ -1109,7 +1136,9 @@ QActor addfoodhandler context ctxRasp {
 		printCurrentMessage
 		println("[ADD_FOOD_HANDLER]: I'm putting the new food to the table")
 		
-		forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $FoodCode, $Qnt)
+		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $FoodCode, $Qnt)
+		["forward(\"modelChangeTable\",\"modelChangeTable(table, food, put, $FoodCode, $Qnt)\",\"resourcemodeltable\")"]
+		
 		emit updateContent : updateContent(table, food, $FoodCode, $Qnt, put)
 	}
 	Goto planRH
@@ -1186,7 +1215,10 @@ QActor clearhandler context ctxRasp {
 				foodToPut.put(FoodCode,Qnt)
 				println(\"prendo $FoodCode $Qnt\")
 		"]
-			forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, take, $FoodCode, $Qnt)
+			
+			//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, take, $FoodCode, $Qnt)
+			["forward(\"modelChangeTable\",\"modelChangeTable(table, food, take, $FoodCode, $Qnt)\",\"resourcemodeltable\")"]
+			
 			emit updateContent : updateContent(table, food, $FoodCode, $Qnt, take)	
 		["
 			}
@@ -1206,7 +1238,10 @@ QActor clearhandler context ctxRasp {
 		printCurrentMessage
 		println("[CLEAR_HANDLER]: I'm putting food into the fridge")
 		["foodToPut.forEach { (K, V) -> println(\"[CLEAR_HANDLER]: I'm putting into the fridge $K, $V\")"] 	
-			//ragiono con il frigo
+			//with coap
+			["var qntInteger=Integer.parseInt(V)"]
+			run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+			
 			emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]
 	}
@@ -1223,7 +1258,10 @@ QActor clearhandler context ctxRasp {
 				break
 			}
 		}"]
-		forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, take, null, $Qnt)	
+		
+		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, take, null, $Qnt)
+		["forward(\"modelChangeTable\",\"modelChangeTable(table, dish, take, null, $Qnt)\",\"resourcemodeltable\")"]	
+		
 		emit updateContent : updateContent(table, dish, null, $Qnt, take)
 	}
 	Goto planD
@@ -1237,7 +1275,10 @@ QActor clearhandler context ctxRasp {
 	State puttingDishes {
 		printCurrentMessage
 		println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
-		forward resourcemodeldishwasher -m modelChangeDishwasher : modelChangeDishwasher(dishwasher, put, $Qnt)	
+		
+		//forward resourcemodeldishwasher -m modelChangeDishwasher : modelChangeDishwasher(dishwasher, put, $Qnt)	
+		["forward(\"modelChangeDishwasher\",\"modelChangeDishwasher(dishwasher, put, $Qnt)	\",\"resourcemodeldishwasher\")"]
+		
 		emit updateContent : updateContent(dishwasher, dish, null, $Qnt, put)
 	}
 	Goto planRH
@@ -1621,11 +1662,11 @@ QActor resourcemodeltable context ctxRasp{
 	Goto waitCmd
 }
 
-/*QActor console context ctxRasp{
+QActor console context ctxRasp{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}*/
+}

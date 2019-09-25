@@ -74,7 +74,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
 						var qntInteger=Integer.parseInt(Qnt)
-						itunibo.robot.fridgeInteraction.takeFood(myself ,FoodCode, qntInteger )
+						forward("modelChangeFridge","modelChangeFridge(FoodCode,qntInteger)","modelresourcefridge")
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 					}
 					 transition( edgeName="goto",targetState="planT", cond=doswitch() )

@@ -99,7 +99,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						
 										foodToPut.put(FoodCode, Qnt)
 						var qntInteger=Integer.parseInt(Qnt)
-						itunibo.robot.fridgeInteraction.takeFood(myself ,FoodCode, qntInteger )
+						forward("modelChangeFridge","modelChangeFridge(FoodCode,qntInteger)","modelresourcefridge")
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 						}
 						 }

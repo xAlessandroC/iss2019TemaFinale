@@ -162,10 +162,8 @@ QActor maitremodel context ctxMaitre {
 		/*initial values */
 		solve(assert(content(pantry, dish, null, 20)))
 		solve(assert(content(dishwasher, dish, null, 0)))
-		solve(assert(content(fridge, food, taralli, 20)))
-		solve(assert(content(fridge, food, brasciole, 20)))
-		solve(assert(content(fridge, food, polpette, 20)))
-		solve(assert(content(fridge, food, cicorie, 20)))
+		
+		run itunibo.maitre.fridgeInteraction.getContent(myself)
 		
 		forward maitre -m updateMaitre : updateMaitre
 	}

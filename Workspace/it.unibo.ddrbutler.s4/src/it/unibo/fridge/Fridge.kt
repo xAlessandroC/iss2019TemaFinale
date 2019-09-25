@@ -15,12 +15,54 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				var qnt=-1
+				var foodcode=""
+				var goToPut=false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[FRIDGE]: Started...")
 						itunibo.fridge.fridgeSupport.create(  )
 					}
+				}	 
+				state("waitCmd") { //this:State
+					action { //it:State
+						forward("modelUpdateFridge", "modelUpdateFridge(fridge,idle,null,null)" ,"resourcemodelfridge" ) 
+					}
+					 transition(edgeName="t00",targetState="analyzeMessage",cond=whenDispatch("modelChangedFridge"))
+				}	 
+				state("analyzeMessage") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("modelChangedFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangedFridge(NAME,TASK,FOODCODE,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								if(payloadArg(1).equals("put")){
+												goToPut=true
+											}
+								if(payloadArg(1).equals("take")){
+												goToPut=false
+											}
+								qnt = Integer.parseInt(payloadArg(3))
+								foodcode = payloadArg(2)
+						}
+					}
+					 transition( edgeName="goto",targetState="putDish", cond=doswitchGuarded({goToPut}) )
+					transition( edgeName="goto",targetState="takeDish", cond=doswitchGuarded({! goToPut}) )
+				}	 
+				state("putDish") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.fridge.fridgeSupport.putFood(myself ,foodcode, qnt )
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("takeDish") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.fridge.fridgeSupport.putFood(myself ,foodcode, qnt )
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 			}
 		}

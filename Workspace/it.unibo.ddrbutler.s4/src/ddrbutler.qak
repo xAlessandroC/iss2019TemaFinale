@@ -62,18 +62,15 @@ Dispatch responseContent : responseContent(L)
 
 //dishwasher
 Dispatch modelChangedDishwasher : modelChangedDishwasher(NAME, OP, QNT)
-Dispatch modelChangeDishwasher : modelChangeDishwasher(NAME, OP, QNT)
-Dispatch modelUpdateDishwasher : modelUpdateDishwasher(NAME, OP, QNT)
 
 //pantry
 Dispatch modelChangedPantry : modelChangedPantry(NAME, OP, QNT)
-Dispatch modelChangePantry : modelChangePantry(NAME, OP, QNT)
-Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
 
 //table
 Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
-Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
-Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
+
+//fridge
+Dispatch modelChangeFridge : modelChangeFridge(NAME, TASK, FOODCODE, QNT)
 
 
 Context ctxButler ip [host="localhost" port=3030] -mqtt
@@ -1008,9 +1005,9 @@ QActor preparehandler context ctxButler {
 				
 				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
 				
-				//with coap
 				["var qntInteger=Integer.parseInt(Qnt)"]
-				run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
 				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
@@ -1111,9 +1108,9 @@ QActor addfoodhandler context ctxButler {
 		println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
 		//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, food, take, $FoodCode, $Qnt)
 		
-		//with coap
 		["var qntInteger=Integer.parseInt(Qnt)"]
-		run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
 		
 		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
@@ -1231,9 +1228,10 @@ QActor clearhandler context ctxButler {
 		printCurrentMessage
 		println("[CLEAR_HANDLER]: I'm putting food into the fridge")
 		["foodToPut.forEach { (K, V) -> println(\"[CLEAR_HANDLER]: I'm putting into the fridge $K, $V\")"] 	
-			//with coap
-			["var qntInteger=Integer.parseInt(V)"]
-			run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+		
+			["var QntInteger=Integer.parseInt(V)"]
+			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+			["forward(\"modelChangeFridge\",\"modelChangeFridge(K,QntInteger)\",\"modelresourcefridge\")"]
 			
 			emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]

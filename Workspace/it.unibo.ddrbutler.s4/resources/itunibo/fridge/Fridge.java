@@ -10,9 +10,9 @@ public class Fridge {
 	public Fridge() {
 		this.mapFood=new HashMap<>();
 		this.mapFood.put("taralli", 20);
-		this.mapFood.put("brasciole", 6);
-		this.mapFood.put("polpette", 7);
-		this.mapFood.put("cicorie", 10);
+		this.mapFood.put("brasciole", 20);
+		this.mapFood.put("polpette", 20);
+		this.mapFood.put("cicorie", 20);
 	}
 	
 	public Map<String,Integer> getAll(){

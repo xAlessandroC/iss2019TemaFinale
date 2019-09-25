@@ -1,7 +1,7 @@
 %====================================================================================
 % rasp description   
 %====================================================================================
-mqttBroker("192.168.43.145", "1883").
+mqttBroker("localhost", "1883").
 context(ctxrasp, "localhost",  "MQTT", "0" ).
  qactor( basicrobot, ctxrasp, "it.unibo.basicrobot.Basicrobot").
   qactor( obstacledetector, ctxrasp, "it.unibo.obstacledetector.Obstacledetector").
@@ -21,3 +21,4 @@ context(ctxrasp, "localhost",  "MQTT", "0" ).
   qactor( resourcemodelpantry, ctxrasp, "it.unibo.resourcemodelpantry.Resourcemodelpantry").
   qactor( table, ctxrasp, "it.unibo.table.Table").
   qactor( resourcemodeltable, ctxrasp, "it.unibo.resourcemodeltable.Resourcemodeltable").
+  qactor( console, ctxrasp, "it.unibo.console.Console").
