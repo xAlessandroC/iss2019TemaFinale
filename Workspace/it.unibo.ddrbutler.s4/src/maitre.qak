@@ -81,7 +81,7 @@ QActor maitre context ctxMaitre {
 	
 	State notifyAddFood {
 		//forward resourcemodelbutler -m taskChange : taskChange(butler, add_food, taralli, 5)
-		["forward(\"taskChange\",\"taskChange(butler, add_food, taralli, 5)\",\"resourcemodelbutler\")"]
+		["forward(\"taskChange\",\"taskChange(butler, add_food, taralli, 30)\",\"resourcemodelbutler\")"]
 	}	
 	Goto waitingAddFoodCompleted
 					  
@@ -149,8 +149,11 @@ QActor maitre context ctxMaitre {
 	/* */
 	State handleWarning{
 		println("[MAITRE]: received an alert")
+		
+		run itunibo.maitre.maitreGUI.warning()
 	}
-	Goto sendingAC	
+	Transition t0 whenMsg modelChangedMaitre -> sendingAC
+	
 }
 
 /* MAITRE MODEL */
@@ -177,6 +180,7 @@ QActor maitremodel context ctxMaitre {
 				  whenEvent updateContent -> updatingRoom
 						
 	State modelUpdating {
+		printCurrentMessage
 		println("[MAITRE_MODEL]: updating model...")
 		
 		onMsg(modelUpdateMaitre : modelUpdateMaitre(maitre, STATE)) {
@@ -186,6 +190,7 @@ QActor maitremodel context ctxMaitre {
 	Goto waitingCmd					
 						
 	State modelChanging {
+		printCurrentMessage
 		println("[MAITRE_MODEL]: received a modelChange command")
 		
 		onMsg(modelChangeMaitre : modelChangeMaitre(maitre, STATE)) {

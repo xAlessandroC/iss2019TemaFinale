@@ -31,7 +31,7 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						forward("modelUpdateDishwasher", "modelUpdateDishwasher(dishwasher,idle,null)" ,"resourcemodeldishwasher" ) 
 					}
-					 transition(edgeName="t079",targetState="analyzeMsg",cond=whenDispatch("modelChangedDishwasher"))
+					 transition(edgeName="t082",targetState="analyzeMsg",cond=whenDispatch("modelChangedDishwasher"))
 				}	 
 				state("analyzeMsg") { //this:State
 					action { //it:State

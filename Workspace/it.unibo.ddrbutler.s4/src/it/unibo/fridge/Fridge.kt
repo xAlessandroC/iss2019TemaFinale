@@ -25,6 +25,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[FRIDGE]: Started...")
 						itunibo.fridge.fridgeSupport.create(  )
 					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
@@ -60,7 +61,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("takeDish") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						itunibo.fridge.fridgeSupport.putFood(myself ,foodcode, qnt )
+						itunibo.fridge.fridgeSupport.takeFood(myself ,foodcode, qnt )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

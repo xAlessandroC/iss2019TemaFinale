@@ -74,13 +74,6 @@ Dispatch modelChangeFridge : modelChangeFridge(NAME, TASK, FOODCODE, QNT)
 
 
 Context ctxButler ip [host="localhost" port=3030] -mqtt
-//Context ctxMaitre ip [host="localhost" port=3031] -mqtt
-
-//ExternalQActor resourcemodelpantry context ctxButler
-//ExternalQActor resourcemodeldishwasher context ctxButler
-//ExternalQActor resourcemodeltable context ctxButler
-
-//ExternalQActor maitremodel context ctxMaitre
   
 QActor basicrobot context ctxButler{
 	State s0 initial{
@@ -889,16 +882,6 @@ QActor planner context ctxButler{
 			["finito=true"]
 		} 
 		
-		["if(!finito){"]
-			solve(retract(move(_)))
-			ifSolved {
-				println("move cancelled")
-			}
-			else {
-				println("move not cancelled")
-			}
-		["}"]
-		
 		forward planner -m schedulingCompleted : schedulingCompleted
 	}
 	Transition t0 whenMsg schedulingCompleted and "finito" -> waitCmd
@@ -908,10 +891,40 @@ QActor planner context ctxButler{
 		delay 1000
 		
 		forward movementhandler -m movementCmd : movementCmd($NextMove)
-		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
+		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
-	Transition t0 whenMsg moveCompleted -> schedulingNextMove
+	Transition t0 whenMsg moveCompleted -> confirmStep
+				  whenMsg moveFailed -> backward
+				  
+	State confirmStep{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
+		
+		solve(retract(move(_)))
+		ifSolved {
+			println("move cancelled")
+		}
+		else {
+			println("move not cancelled")
+		}
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		
+	}
+	Goto schedulingNextMove
+				  
+	State backward{
+		printCurrentMessage
+		forward movementhandler -m movementCmd : movementCmd(s)
+	}
+	Transition t0 whenMsg moveCompleted -> waitObstacleToGo
+	
+	State waitObstacleToGo{
+		printCurrentMessage
+	}
+	Transition t0 whenTime 1500 -> schedulingNextMove
+	
 }
 
 QActor preparehandler context ctxButler {
@@ -1007,7 +1020,7 @@ QActor preparehandler context ctxButler {
 				
 				["var qntInteger=Integer.parseInt(Qnt)"]
 				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
-				["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
+				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
@@ -1074,7 +1087,6 @@ QActor addfoodhandler context ctxButler {
 		}
 		
 		//fake interaction
-		//forward resourcemodelfridge -m qualcosa : qualcosa(RISPOSTA)
 		//forward addfoodhandler -m responseFood : responseFood(yes)
 		
 		//real interaction
@@ -1095,7 +1107,7 @@ QActor addfoodhandler context ctxButler {
 			["isPresent = false"]
 		}
 	}
-	Goto waitingCmd if "!isPresent" else planF
+	Goto endAddFood if "!isPresent" else planF
 	
 	State planF {
 		printCurrentMessage
@@ -1110,7 +1122,7 @@ QActor addfoodhandler context ctxButler {
 		
 		["var qntInteger=Integer.parseInt(Qnt)"]
 		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
-		["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
+		["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 		
 		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
@@ -1141,7 +1153,7 @@ QActor addfoodhandler context ctxButler {
 	
 	State endAddFood {
 		printCurrentMessage
-		println("[ADD_FOOD_HANDLER]: I'm finishing to adding the new food")
+		println("[ADD_FOOD_HANDLER]: Ended")
 		forward butlermind -m addFoodCompleted : addFoodCompleted
 	}
 	Goto waitingCmd
@@ -1231,7 +1243,7 @@ QActor clearhandler context ctxButler {
 		
 			["var QntInteger=Integer.parseInt(V)"]
 			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
-			["forward(\"modelChangeFridge\",\"modelChangeFridge(K,QntInteger)\",\"modelresourcefridge\")"]
+			["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,put,$K,$V)\",\"resourcemodelfridge\")"]
 			
 			emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]

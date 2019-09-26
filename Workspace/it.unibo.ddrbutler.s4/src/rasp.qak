@@ -828,37 +828,37 @@ QActor calibration context ctxRasp {
 }
 
 
-QActor planner context ctxRasp {
+QActor planner context ctxRasp{
 	["
 		var NextMove = \"\"
 		var finito = false
 	"]
 	
-	State s0 initial {
+	State s0 initial{
 		println("[PLANNER]: Started...")
 		
 	}
 	Goto waitCmd
 	
-	State waitCmd {
+	State waitCmd{
 		printCurrentMessage
 		
-		onMsg(schedulingCompleted : schedulingCompleted) {
+		onMsg(schedulingCompleted : schedulingCompleted){
 			["replyToCaller(\"planningCompleted\",\"planningCompleted\")"]
 		}
 	}
 	Transition t0 whenMsg goto -> calculatePath
 				  whenMsg setLocation -> updateRoomDescription
 				  
-	State updateRoomDescription {
+	State updateRoomDescription{
 		
-		onMsg(setLocation : setLocation(NAME,X,Y)) {
+		onMsg(setLocation : setLocation(NAME,X,Y)){
 			solve(assert(location($payloadArg(0),$payloadArg(1),$payloadArg(2))))
 			
-			ifSolved {
+			ifSolved{
 				println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
 			} 
-			else {
+			else{
 				println("Errore salvataggio posizione table")
 			} 
 		}
@@ -866,11 +866,11 @@ QActor planner context ctxRasp {
 	}
 	Goto waitCmd
 	
-	State calculatePath {
+	State calculatePath{
 		printCurrentMessage
 		
 		["storeCurrentMessageForReply()"]
-		onMsg( goto : goto(X)) {
+		onMsg( goto : goto(X)){
 			solve(location($payloadArg(0),X,Y))
 			["
 				var cX=getCurSol(\"X\").toString()
@@ -884,7 +884,7 @@ QActor planner context ctxRasp {
 	}
 	Goto schedulingNextMove
 	
-	State schedulingNextMove {
+	State schedulingNextMove{
 		["
 			finito=false
 			NextMove=\"\"
@@ -898,29 +898,44 @@ QActor planner context ctxRasp {
 			["finito=true"]
 		} 
 		
-		["if(!finito){"]
-			solve(retract(move(_)))
-			ifSolved {
-				println("move cancelled")
-			}
-			else {
-				println("move not cancelled")
-			}
-		["}"]
-		
 		forward planner -m schedulingCompleted : schedulingCompleted
 	}
 	Transition t0 whenMsg schedulingCompleted and "finito" -> waitCmd
 				  whenMsg schedulingCompleted and "!finito" -> execMove		  
 	
-	State execMove {
+	State execMove{
 		delay 1000
 		
 		forward movementhandler -m movementCmd : movementCmd($NextMove)
-		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
+		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
-	Transition t0 whenMsg moveCompleted -> schedulingNextMove
+	Transition t0 whenMsg moveCompleted -> confirmStep
+				  whenMsg moveFailed -> backward
+				  
+	State confirmStep{
+		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
+		
+		solve(retract(move(_)))
+		ifSolved {
+			println("move cancelled")
+		}
+		else {
+			println("move not cancelled")
+		}
+	}
+	Goto schedulingNextMove
+				  
+	State backward{
+		forward movementhandler -m movementCmd : movementCmd(s)
+	}
+	Transition t0 whenMsg moveCompleted -> waitObstacleToGo
+	
+	State waitObstacleToGo{
+		
+	}
+	Transition t0 whenTime 1500 -> schedulingNextMove
+	
 }
 
 
@@ -1015,9 +1030,9 @@ QActor preparehandler context ctxRasp {
 				
 				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
 				
-				//with coap
 				["var qntInteger=Integer.parseInt(Qnt)"]
-				run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
 				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
@@ -1118,9 +1133,9 @@ QActor addfoodhandler context ctxRasp {
 		println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
 		//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, food, take, $FoodCode, $Qnt)
 		
-		//with coap
 		["var qntInteger=Integer.parseInt(Qnt)"]
-		run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
 		
 		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
@@ -1238,9 +1253,10 @@ QActor clearhandler context ctxRasp {
 		printCurrentMessage
 		println("[CLEAR_HANDLER]: I'm putting food into the fridge")
 		["foodToPut.forEach { (K, V) -> println(\"[CLEAR_HANDLER]: I'm putting into the fridge $K, $V\")"] 	
-			//with coap
-			["var qntInteger=Integer.parseInt(V)"]
-			run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+		
+			["var QntInteger=Integer.parseInt(V)"]
+			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+			["forward(\"modelChangeFridge\",\"modelChangeFridge(K,QntInteger)\",\"modelresourcefridge\")"]
 			
 			emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]

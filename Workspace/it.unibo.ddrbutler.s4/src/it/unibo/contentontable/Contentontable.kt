@@ -28,8 +28,8 @@ class Contentontable ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[contentontable]: I'm waiting for a command...")
 					}
-					 transition(edgeName="t077",targetState="gettingContent",cond=whenDispatch("getContent"))
-					transition(edgeName="t078",targetState="settingContent",cond=whenEvent("updateContent"))
+					 transition(edgeName="t080",targetState="gettingContent",cond=whenDispatch("getContent"))
+					transition(edgeName="t081",targetState="settingContent",cond=whenEvent("updateContent"))
 				}	 
 				state("gettingContent") { //this:State
 					action { //it:State

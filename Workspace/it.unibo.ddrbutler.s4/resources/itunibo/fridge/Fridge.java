@@ -22,7 +22,7 @@ public class Fridge {
 	public boolean isAvailable(String fc, int qnt) {
 		boolean res = false;
 		
-		if(mapFood.containsKey(fc) && mapFood.get(fc)==qnt) {
+		if(mapFood.containsKey(fc) && mapFood.get(fc)>=qnt) {
 			res = true;
 		}
 		

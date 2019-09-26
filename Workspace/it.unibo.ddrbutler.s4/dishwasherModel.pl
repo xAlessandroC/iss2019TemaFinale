@@ -2,7 +2,7 @@
 
 state(dishwasher, idle, unknown). %%initial state
 
-action(dishwasher, X, QNT) :- changeModelMaitre(dishwasher, X, QNT).
+action(dishwasher, X, QNT) :- changeModelDishwasher(dishwasher, X, QNT).
 
-changeModelMaitre(NAME, VALUE, QNT) :- 
+changeModelDishwasher(NAME, VALUE, QNT) :- 
 	replaceRule(state(NAME, _, _), state(NAME, VALUE, QNT)).

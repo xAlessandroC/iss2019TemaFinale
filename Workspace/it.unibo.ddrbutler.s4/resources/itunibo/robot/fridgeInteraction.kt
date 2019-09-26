@@ -20,6 +20,7 @@ object fridgeInteraction{
 		GlobalScope.launch{
 			a.autoMsg("responseFood","responseFood($coapResp)")
 		}
+		println("RISPOSTA : $coapResp")
 	}
 	
 }

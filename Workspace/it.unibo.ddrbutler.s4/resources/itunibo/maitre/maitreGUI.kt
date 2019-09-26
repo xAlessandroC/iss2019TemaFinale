@@ -101,6 +101,13 @@ object maitreGUI {
 		reactivateButton.setEnabled(false);
 	}
 	
+	public fun warning(){
+		JOptionPane.showMessageDialog(frame,
+				"Non c'è la quantità richiesta di taralli",
+				"Add Food warning",
+				JOptionPane.WARNING_MESSAGE);
+	}
+	
 	public fun readFromFile(){
 		var actor = sysUtil.getActor("maitremodel")
 		actor!!.solve("findall(content(X, Y, Z, W), content(X, Y, Z, W), L)")

@@ -35,14 +35,14 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						     		foodToPut = HashMap<String, String>()
 						println("[PREPARE_HANDLER]: waiting for a command...")
 					}
-					 transition(edgeName="t059",targetState="planP",cond=whenDispatch("startPrepare"))
+					 transition(edgeName="t062",targetState="planP",cond=whenDispatch("startPrepare"))
 				}	 
 				state("planP") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(pantry)" ,"planner" ) 
 					}
-					 transition(edgeName="t060",targetState="takingDishes",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t063",targetState="takingDishes",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingDishes") { //this:State
 					action { //it:State
@@ -65,8 +65,8 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t061",targetState="puttingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
-					transition(edgeName="t062",targetState="puttingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
+					 transition(edgeName="t064",targetState="puttingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
+					transition(edgeName="t065",targetState="puttingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
 				}	 
 				state("puttingDishes") { //this:State
 					action { //it:State
@@ -83,7 +83,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t063",targetState="takingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t066",targetState="takingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -99,7 +99,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						
 										foodToPut.put(FoodCode, Qnt)
 						var qntInteger=Integer.parseInt(Qnt)
-						forward("modelChangeFridge","modelChangeFridge(FoodCode,qntInteger)","modelresourcefridge")
+						forward("modelChangeFridge","modelChangeFridge(fridge,take,$FoodCode,$Qnt)","resourcemodelfridge")
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 						}
 						 }
@@ -125,7 +125,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t064",targetState="endPrepare",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t067",targetState="endPrepare",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endPrepare") { //this:State
 					action { //it:State

@@ -31,7 +31,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						isPresent = false
 						println("[ADD_FOOD_HANDLER]: waiting for a command...")
 					}
-					 transition(edgeName="t065",targetState="askingFood",cond=whenDispatch("startAddFood"))
+					 transition(edgeName="t068",targetState="askingFood",cond=whenDispatch("startAddFood"))
 				}	 
 				state("askingFood") { //this:State
 					action { //it:State
@@ -44,7 +44,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						var QntInt = Integer.parseInt(Qnt)
 						itunibo.robot.fridgeInteraction.ask(myself ,FoodCode, QntInt )
 					}
-					 transition(edgeName="t066",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
+					 transition(edgeName="t069",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
 				}	 
 				state("analyzeResponse") { //this:State
 					action { //it:State
@@ -59,7 +59,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								isPresent = false
 						}
 					}
-					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitchGuarded({!isPresent}) )
+					 transition( edgeName="goto",targetState="endAddFood", cond=doswitchGuarded({!isPresent}) )
 					transition( edgeName="goto",targetState="planF", cond=doswitchGuarded({! !isPresent}) )
 				}	 
 				state("planF") { //this:State
@@ -67,14 +67,14 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t067",targetState="takingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t070",targetState="takingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
 						var qntInteger=Integer.parseInt(Qnt)
-						forward("modelChangeFridge","modelChangeFridge(FoodCode,qntInteger)","modelresourcefridge")
+						forward("modelChangeFridge","modelChangeFridge(fridge,take,$FoodCode,$Qnt)","resourcemodelfridge")
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 					}
 					 transition( edgeName="goto",targetState="planT", cond=doswitch() )
@@ -84,7 +84,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t068",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t071",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
@@ -100,12 +100,12 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t069",targetState="endAddFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t072",targetState="endAddFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endAddFood") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						println("[ADD_FOOD_HANDLER]: I'm finishing to adding the new food")
+						println("[ADD_FOOD_HANDLER]: Ended")
 						forward("addFoodCompleted", "addFoodCompleted" ,"butlermind" ) 
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )

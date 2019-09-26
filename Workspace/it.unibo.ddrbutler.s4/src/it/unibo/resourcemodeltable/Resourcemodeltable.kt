@@ -27,8 +27,8 @@ class Resourcemodeltable ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangeTable"))
-					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateTable"))
+					 transition(edgeName="t089",targetState="handleChange",cond=whenDispatch("modelChangeTable"))
+					transition(edgeName="t090",targetState="handleUpdate",cond=whenDispatch("modelUpdateTable"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State

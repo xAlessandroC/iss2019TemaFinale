@@ -38,7 +38,8 @@ class fridgeAvailableResource (name : String ) : CoapResource(name) {
 		}else{
 			res="no"
 		}
-		exchange!!.respond(res);
+		println("RISPOSTA SERVER : $res")
+		exchange.respond(res);
 	}
 	
 	override fun handlePUT(exchange: CoapExchange?) {
