@@ -27,8 +27,8 @@ class Resourcemodeldishwasher ( name: String, scope: CoroutineScope ) : ActorBas
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t083",targetState="handleChange",cond=whenDispatch("modelChangeDishwasher"))
-					transition(edgeName="t084",targetState="handleUpdate",cond=whenDispatch("modelUpdateDishwasher"))
+					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangeDishwasher"))
+					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateDishwasher"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State

@@ -24,7 +24,7 @@ QActor dishwasher context ctxDishwasher{
 		println("[DISHWASHER]: Started...")
 	
 		//forward planner -m setLocation : setLocation(dishwasher,3,3);
-		["forward(\"setLocation\",\"setLocation(dishwasher,3,3)\",\"planner\")"]
+		//["forward(\"setLocation\",\"setLocation(dishwasher,3,3)\",\"planner\")"]
 		run itunibo.dishwasher.dishwasherSupport.create()
 	}
 	Goto waitCmd

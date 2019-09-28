@@ -71,8 +71,11 @@ Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
 //fridge
 Dispatch modelChangeFridge : modelChangeFridge(NAME, TASK, FOODCODE, QNT)
 
-Event stopTask : stopTask
-Event reactivateTask : reactivateTask
+//Event stopTask : stopTask
+//Event reactivateTask : reactivateTask
+
+Dispatch stopTask : stopTask
+Dispatch reactivateTask : reactivateTask
 
 Context ctxButler ip [host="localhost" port=3030] -mqtt
   
@@ -355,6 +358,7 @@ QActor robotmind context ctxButler{
 
 QActor butlermind context ctxButler {
 	["
+		var isCorrect = false
 		var task : String = \"\"
 	"]
 			
@@ -373,10 +377,10 @@ QActor butlermind context ctxButler {
 		else {
 			println("Errore nel setting di RH")
 		}
-		
+
 		/* */
-		//forward planner -m setLocation : setLocation(pantry,0,3)
-		//forward planner -m setLocation : setLocation(dishwasher,3,3)
+		forward planner -m setLocation : setLocation(pantry,0,3)
+		forward planner -m setLocation : setLocation(dishwasher,3,3)
 		forward planner -m setLocation : setLocation(fridge,3,0)
 		/* */
 		delay 5000
@@ -412,23 +416,29 @@ QActor butlermind context ctxButler {
 		printCurrentMessage
 		
 		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
-			emit stopTask : stopTask
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
 		}
 	}
 	Transition t0 whenMsg prepareCompleted -> notifyPrepareMaitre
 				  whenMsg taskChanged -> waitingPrepCompleted
-				  whenEvent stopTask -> suspendedPrepare
+				  whenMsg stopTask -> suspendedPrepare
 				  
 	State suspendedPrepare{
+		printCurrentMessage
 		
 		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
-			emit reactivateTask : reactivateTask
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
 		}
 	}
 	Transition t0 whenEvent reactivateTask ->waitingPrepCompleted
 				  whenMsg taskChanged -> suspendedPrepare
 	
 	State notifyPrepareMaitre {
+		printCurrentMessage
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
 		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
 	}
@@ -464,7 +474,9 @@ QActor butlermind context ctxButler {
 		printCurrentMessage
 		
 		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
-			emit stopTask : stopTask
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
 		}
 	}
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
@@ -472,9 +484,12 @@ QActor butlermind context ctxButler {
 				  whenEvent stopTask -> suspendedAddFood
 				  
 	State suspendedAddFood{
+		printCurrentMessage
 		
 		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
-			emit reactivateTask : reactivateTask
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
 		}
 	}
 	Transition t0 whenEvent reactivateTask ->waitingAddFoodCompleted
@@ -490,7 +505,9 @@ QActor butlermind context ctxButler {
 		printCurrentMessage
 		
 		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
-			emit stopTask : stopTask
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
 		}
 	}
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
@@ -498,9 +515,12 @@ QActor butlermind context ctxButler {
 				  whenEvent stopTask -> suspendedClear
 				  
 	State suspendedClear{
+		printCurrentMessage
 		
 		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
-			emit reactivateTask : reactivateTask
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
 		}
 	}
 	Transition t0 whenEvent reactivateTask ->waitingClearCompleted
@@ -873,9 +893,11 @@ QActor planner context ctxButler{
 	State waitCmd{
 		printCurrentMessage
 		
-		onMsg(schedulingCompleted : schedulingCompleted){
-			["replyToCaller(\"planningCompleted\",\"planningCompleted\")"]
-		}
+		["if(finito){
+			replyToCaller(\"planningCompleted\",\"planningCompleted\")
+			finito=false
+		}"]
+		
 	}
 	Transition t0 whenMsg goto -> calculatePath
 				  whenMsg setLocation -> updateRoomDescription
@@ -930,7 +952,7 @@ QActor planner context ctxButler{
 		
 	}
 	Transition t0 whenTime 1000 -> checkFinish
-				  whenEvent stopTask -> schedulingStopped
+				  whenMsg stopTask -> schedulingStopped
 				  
 	State checkFinish{
 		printCurrentMessage
@@ -947,6 +969,7 @@ QActor planner context ctxButler{
 	
 	State execMove{
 		//delay 1000
+		printCurrentMessage
 		
 		forward movementhandler -m movementCmd : movementCmd($NextMove)
 		

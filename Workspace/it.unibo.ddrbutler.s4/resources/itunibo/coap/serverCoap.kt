@@ -12,8 +12,8 @@ object serverCoap{
 			val server   = CoapServer(port);		//COAP SERVER
 			var contentResourceCoap = fridgeContentResource( "content" )
 			var availableResourceCoap = fridgeAvailableResource("available")
-			var putResourceCoap = fridgePutResource("put")
-			var takeResourceCoap = fridgeTakeResource("take")
+			//var putResourceCoap = fridgePutResource("put")
+			//var takeResourceCoap = fridgeTakeResource("take")
 			server.add( contentResourceCoap );
 			server.add( availableResourceCoap );
 			println("[COAP]: Server Started at coap://localhost:$port");	

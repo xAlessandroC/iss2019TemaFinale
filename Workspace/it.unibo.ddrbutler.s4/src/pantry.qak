@@ -27,7 +27,7 @@ QActor pantry context ctxPantry{
 		
 		run itunibo.pantry.pantrySupport.create(20)
 		//forward planner -m setLocation : setLocation(pantry,0,3)
-		["forward(\"setLocation\",\"setLocation(pantry,0,3)\",\"planner\")"]
+		//["forward(\"setLocation\",\"setLocation(pantry,0,3)\",\"planner\")"]
 	}
 	Goto waitCmd
 	

@@ -28,10 +28,10 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				state("waitCmd") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("schedulingCompleted"), Term.createTerm("schedulingCompleted"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								replyToCaller("planningCompleted","planningCompleted")
-						}
+						if(finito){
+									replyToCaller("planningCompleted","planningCompleted")
+									finito=false
+								}
 					}
 					 transition(edgeName="t065",targetState="calculatePath",cond=whenDispatch("goto"))
 					transition(edgeName="t066",targetState="updateRoomDescription",cond=whenDispatch("setLocation"))
@@ -83,7 +83,7 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 							scope, context!!, "local_tout_planner_schedulingNextMove", 1000.toLong() )
 					}
 					 transition(edgeName="t067",targetState="checkFinish",cond=whenTimeout("local_tout_planner_schedulingNextMove"))   
-					transition(edgeName="t068",targetState="schedulingStopped",cond=whenEvent("stopTask"))
+					transition(edgeName="t068",targetState="schedulingStopped",cond=whenDispatch("stopTask"))
 				}	 
 				state("checkFinish") { //this:State
 					action { //it:State
@@ -101,6 +101,7 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				}	 
 				state("execMove") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("movementCmd", "movementCmd($NextMove)" ,"movementhandler" ) 
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
