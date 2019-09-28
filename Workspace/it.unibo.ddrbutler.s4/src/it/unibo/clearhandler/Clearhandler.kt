@@ -36,14 +36,14 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 									Qnt=""
 						println("[CLEAR_HANDLER]: waiting for a clear command...")
 					}
-					 transition(edgeName="t074",targetState="getAllContent",cond=whenDispatch("startClear"))
+					 transition(edgeName="t086",targetState="getAllContent",cond=whenDispatch("startClear"))
 				}	 
 				state("getAllContent") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("getContent", "getContent" ,"stuffontable" ) 
 					}
-					 transition(edgeName="t075",targetState="planT",cond=whenDispatch("responseContent"))
+					 transition(edgeName="t087",targetState="planT",cond=whenDispatch("responseContent"))
 				}	 
 				state("planT") { //this:State
 					action { //it:State
@@ -55,8 +55,8 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						}
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t076",targetState="takingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
-					transition(edgeName="t077",targetState="takingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
+					 transition(edgeName="t088",targetState="takingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
+					transition(edgeName="t089",targetState="takingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -83,7 +83,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t078",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t090",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
@@ -116,7 +116,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(dishwasher)" ,"planner" ) 
 					}
-					 transition(edgeName="t079",targetState="puttingDishes",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t091",targetState="puttingDishes",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingDishes") { //this:State
 					action { //it:State
@@ -131,7 +131,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t080",targetState="endClear",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t092",targetState="endClear",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endClear") { //this:State
 					action { //it:State

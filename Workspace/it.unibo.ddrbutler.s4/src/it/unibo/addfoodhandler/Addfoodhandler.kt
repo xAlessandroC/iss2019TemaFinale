@@ -31,7 +31,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						isPresent = false
 						println("[ADD_FOOD_HANDLER]: waiting for a command...")
 					}
-					 transition(edgeName="t069",targetState="askingFood",cond=whenDispatch("startAddFood"))
+					 transition(edgeName="t081",targetState="askingFood",cond=whenDispatch("startAddFood"))
 				}	 
 				state("askingFood") { //this:State
 					action { //it:State
@@ -43,7 +43,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						}
 						forward("responseFood", "responseFood(yes)" ,"addfoodhandler" ) 
 					}
-					 transition(edgeName="t070",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
+					 transition(edgeName="t082",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
 				}	 
 				state("analyzeResponse") { //this:State
 					action { //it:State
@@ -66,7 +66,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t071",targetState="takingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t083",targetState="takingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -81,7 +81,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t072",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t084",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
@@ -96,7 +96,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t073",targetState="endAddFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t085",targetState="endAddFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endAddFood") { //this:State
 					action { //it:State

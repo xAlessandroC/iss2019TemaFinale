@@ -21,7 +21,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[MAITRE]: starts...")
 						itunibo.maitre.maitreGUI.init(myself)
 					}
-					 transition(edgeName="t083",targetState="initStateRoom",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t095",targetState="initStateRoom",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("initStateRoom") { //this:State
 					action { //it:State
@@ -34,8 +34,8 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[MAITRE]: I'm in sendingPrepare")
 						itunibo.maitre.maitreGUI.enableOnlyPrepare(  )
 					}
-					 transition(edgeName="t084",targetState="notifyPrepare",cond=whenDispatch("prepareSended"))
-					transition(edgeName="t085",targetState="updateSP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t096",targetState="notifyPrepare",cond=whenDispatch("prepareSended"))
+					transition(edgeName="t097",targetState="updateSP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("notifyPrepare") { //this:State
 					action { //it:State
@@ -49,17 +49,17 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("modelUpdateMaitre", "modelUpdate(maitre,prepare)" ,"maitremodel" ) 
 						println("[MAITRE]: waiting for a prepareCompleted...")
 					}
-					 transition(edgeName="t086",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t087",targetState="updateP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t098",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
+					transition(edgeName="t099",targetState="updateP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("sendingAC") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in sendingAC")
 						itunibo.maitre.maitreGUI.enableOnlyAC(  )
 					}
-					 transition(edgeName="t088",targetState="notifyAddFood",cond=whenDispatch("addFoodSended"))
-					transition(edgeName="t089",targetState="notifyClear",cond=whenDispatch("clearSended"))
-					transition(edgeName="t090",targetState="updateP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t0100",targetState="notifyAddFood",cond=whenDispatch("addFoodSended"))
+					transition(edgeName="t0101",targetState="notifyClear",cond=whenDispatch("clearSended"))
+					transition(edgeName="t0102",targetState="updateP",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("notifyAddFood") { //this:State
 					action { //it:State
@@ -73,9 +73,9 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("modelUpdateMaitre", "modelUpdate(maitre,addFood)" ,"maitremodel" ) 
 						println("[MAITRE]: waiting for an addFoodCompleted...")
 					}
-					 transition(edgeName="t091",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t092",targetState="updateAC",cond=whenDispatch("updateMaitre"))
-					transition(edgeName="t093",targetState="handleWarning",cond=whenEvent("alert"))
+					 transition(edgeName="t0103",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
+					transition(edgeName="t0104",targetState="updateAC",cond=whenDispatch("updateMaitre"))
+					transition(edgeName="t0105",targetState="handleWarning",cond=whenEvent("alert"))
 				}	 
 				state("notifyClear") { //this:State
 					action { //it:State
@@ -89,8 +89,8 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("modelUpdateMaitre", "modelUpdate(maitre,clear)" ,"maitremodel" ) 
 						println("[MAITRE]: waiting for a clearCompleted...")
 					}
-					 transition(edgeName="t094",targetState="sendingPrepare",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t095",targetState="updateC",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t0106",targetState="sendingPrepare",cond=whenDispatch("modelChangedMaitre"))
+					transition(edgeName="t0107",targetState="updateC",cond=whenDispatch("updateMaitre"))
 				}	 
 				state("updateSP") { //this:State
 					action { //it:State

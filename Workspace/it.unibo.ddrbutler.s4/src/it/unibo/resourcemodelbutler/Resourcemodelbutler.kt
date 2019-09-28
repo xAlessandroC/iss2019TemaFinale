@@ -33,7 +33,6 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 					transition(edgeName="t06",targetState="handleUpdate",cond=whenDispatch("robotUpdate"))
 					transition(edgeName="t07",targetState="handleUpdate",cond=whenDispatch("sonarUpdate"))
 					transition(edgeName="t08",targetState="handleUpdate",cond=whenDispatch("taskUpdate"))
-					transition(edgeName="t09",targetState="stopButler",cond=whenDispatch("stop"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State
@@ -73,18 +72,6 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 								println("$name in ${currentState.stateName} | $currentMsg")
 								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
 						}
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
-				}	 
-				state("stopButler") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-					}
-					 transition(edgeName="t010",targetState="reactivateButler",cond=whenDispatch("reactivate"))
-				}	 
-				state("reactivateButler") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

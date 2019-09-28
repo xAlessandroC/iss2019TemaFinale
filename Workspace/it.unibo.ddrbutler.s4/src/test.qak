@@ -50,8 +50,8 @@ Dispatch prepareSended : prepareSended
 Dispatch addFoodSended : addFoodSended
 Dispatch clearSended : clearSended
 
-Dispatch stop : stop
-Dispatch reactivate : reactivate
+Event stopTask : stopTask
+Event reactivateTask : reactivateTask
 
 Dispatch updateMaitre : updateMaitre
 
@@ -162,7 +162,6 @@ QActor resourcemodelbutler context ctxTest {
 				  whenMsg robotUpdate -> handleUpdate
 				  whenMsg sonarUpdate -> handleUpdate
 				  whenMsg taskUpdate -> handleUpdate
-				  whenMsg stop -> stopButler
 	
 	State handleChange {
 		onMsg(robotChange : robotChange(robot, X)) {
@@ -198,16 +197,6 @@ QActor resourcemodelbutler context ctxTest {
 			printCurrentMessage
 			run itunibo.robot.resourceModelSupport.updateButlerModel(myself, payloadArg(1))
 		}
-	}
-	Goto waitCmd
-	
-	State stopButler {
-		printCurrentMessage
-	}
-	Transition t0 whenMsg reactivate -> reactivateButler
-	
-	State reactivateButler {
-		printCurrentMessage		
 	}
 	Goto waitCmd
 }
@@ -412,13 +401,27 @@ QActor butlermind context ctxTest {
 			forward preparehandler -m startPrepare : startPrepare
 			["isCorrect = true"]
 		}
-		
-		["if(!isCorrect) { println(\"[BUTLER_MIND]: expected prepare command\")"]
-			forward butlermind -m backWait : backWait
-		["}"]
 	}
+	Goto waitingPrepare if "!isCorrect" else waitPrepCompleted
+	
+	State waitPrepCompleted {
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			emit stopTask : stopTask
+		}
+ 	}
 	Transition t0 whenMsg prepareCompleted -> notifyPrepareMaitre
-				  whenMsg backWait -> waitingPrepare
+				  whenMsg taskChanged -> waitPrepCompleted
+				  whenMsg stopTask -> suspendedPrepare
+				  
+	State suspendedPrepare {
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			emit reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask -> waitPrepCompleted
+				  whenMsg taskChanged -> suspendedPrepare
 	
 	State notifyPrepareMaitre {
 		forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare) 
@@ -432,44 +435,65 @@ QActor butlermind context ctxTest {
 	
 	State startAC {
 		printCurrentMessage
-		["isCorrect = false"]
+		["task = \"\""]
 		
 		onMsg(taskChanged : taskChanged(TARGET, add_food, FC, QNT)) {
 			forward addfoodhandler -m startAddFood : startAddFood($payloadArg(2), $payloadArg(3))
 			["task = \"add_food\""]
-			forward butlermind -m taskAssigned : taskAssigned
-			["isCorrect = true"]	
 		}
 		
 		onMsg(taskChanged : taskChanged(TARGET, clear, FC, QNT)) {
 			forward clearhandler -m startClear : startClear
 			["task = \"clear\""]
-			forward butlermind -m taskAssigned : taskAssigned			
-			["isCorrect = true"]
 		}
 		
-		["if(!isCorrect) { println(\"[BUTLER_MIND]: expected AC command\")"]
-			forward butlermind -m backWait : backWait
-		["}"]
-	}
-	Transition t0 whenMsg taskAssigned and "task == \"add_food\"" -> startAddFood
-				  whenMsg taskAssigned and "task == \"clear\"" -> startClear
-				  whenMsg backWait -> waitingAC
-	
-	State startAddFood {
+	}	
+	Transition t0 whenMsg taskAssigned and "task == \"add_food\"" -> waitAddFoodCompleted
+				  whenMsg taskAssigned and "task == \"clear\"" -> waitClearCompleted
+				  whenMsg taskAssigned and "task == \"\"" -> waitingAC
+
+	State waitAddFoodCompleted {
 		printCurrentMessage	
-	}
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			emit stopTask : stopTask
+		}
+ 	}
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
+				  whenMsg taskChanged -> waitAddFoodCompleted
+				  whenMsg stopTask -> suspendedAddFood
+				  
+	State suspendedAddFood {
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			emit reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask -> waitAddFoodCompleted
+				  whenMsg taskChanged -> suspendedAddFood
 	
 	State notifyAddFoodMaitre {
 		forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food) 
 	}
 	Goto waitingAC
 	
-	State startClear {
+	State waitClearCompleted {
 		printCurrentMessage	
-	}
+	
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			emit stopTask : stopTask
+		}
+ 	}
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
+				  whenMsg taskChanged -> waitClearCompleted
+				  whenMsg stopTask -> suspendedClear
+				  
+	State suspendedClear {
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			emit reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask -> waitClearCompleted
+				  whenMsg taskChanged -> suspendedClear
 	
 	State notifyClearMaitre {
 		forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear) 
@@ -888,21 +912,12 @@ QActor planner context ctxTest {
 		else {
 			["finito=true"]
 		} 
-		
-		["if(!finito){"]
-			solve(retract(move(_)))
-			ifSolved {
-				println("move cancelled")
-			}
-			else {
-				println("move not cancelled")
-			}
-		["}"]
+	
 	}
-	Transition t0 whenTime 5000 -> checkStopped
-	              whenMsg stop -> schedulingStopped
+	Transition t0 whenTime 1000 -> checkFinish
+	              whenEvent stopTask -> schedulingStopped
 				  
-	State checkStopped {
+	State checkFinish {
 			
 	}
 	Goto execMove if "!finito" else waitCmd 
@@ -910,17 +925,46 @@ QActor planner context ctxTest {
 	State schedulingStopped {
 		println("[PLANNER]: I've been stopped")
 	}		  
-	Transition t0 whenMsg reactivate and "!finito" -> execMove
-				  whenMsg reactivate and "finito" -> waitCmd 
+	Transition t0 whenMsg reactivateTask and "!finito" -> execMove
+				  whenMsg reactivateTask and "finito" -> waitCmd 
 	
 	State execMove {
-		delay 1000
+		//delay 1000
 		
 		forward movementhandler -m movementCmd : movementCmd($NextMove)
 		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
-	Transition t0 whenMsg moveCompleted -> schedulingNextMove
+	Transition t0 whenMsg moveCompleted -> confirmStep
+				  whenMsg moveFailed -> backward
+				  
+	State confirmStep {
+		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself, NextMove)
+		
+		solve(retract(move(_)))
+		ifSolved {
+			println("move cancelled")
+		}
+		else {
+			println("move not cancelled")
+		}
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Goto schedulingNextMove
+
+	State backward {
+		printCurrentMessage
+		forward movementhandler -m movementCmd : movementCmd(s)
+	}
+	Transition t0 whenMsg moveCompleted -> waitObstacleToGo
+	
+	State waitObstacleToGo {
+		printCurrentMessage	
+	}
+	Transition t0 whenTime 1500 -> schedulingNextMove
+	
 }
 
 

@@ -28,8 +28,8 @@ class Stuffontable ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[stuffontable]: I'm waiting for a command...")
 					}
-					 transition(edgeName="t081",targetState="gettingContent",cond=whenDispatch("getContent"))
-					transition(edgeName="t082",targetState="settingContent",cond=whenEvent("updateContent"))
+					 transition(edgeName="t093",targetState="gettingContent",cond=whenDispatch("getContent"))
+					transition(edgeName="t094",targetState="settingContent",cond=whenEvent("updateContent"))
 				}	 
 				state("gettingContent") { //this:State
 					action { //it:State

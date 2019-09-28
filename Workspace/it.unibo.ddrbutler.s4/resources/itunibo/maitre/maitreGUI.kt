@@ -128,10 +128,10 @@ object maitreGUI {
 					maitreActor.forward("clearSended", "clearSended", maitreActor)
 				}
 				"Stop" -> GlobalScope.launch {
-					maitreActor.forward("stop", "stop", "resourcemodelbutler")
+					maitreActor.forward("taskChange", "taskChange(butler, stop, null, null)", "resourcemodelbutler")
 				}
 				"Reactivate" -> GlobalScope.launch {
-					maitreActor.forward("reactivate", "reactivate", "resourcemodelbutler")
+					maitreActor.forward("taskChange", "taskChange(butler, reactivate, null, null)", "resourcemodelbutler")
 				}
 			else -> GlobalScope.launch {
 					println("[MAITRE]: unexpected command received")

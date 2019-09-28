@@ -33,8 +33,8 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								replyToCaller("planningCompleted","planningCompleted")
 						}
 					}
-					 transition(edgeName="t056",targetState="calculatePath",cond=whenDispatch("goto"))
-					transition(edgeName="t057",targetState="updateRoomDescription",cond=whenDispatch("setLocation"))
+					 transition(edgeName="t065",targetState="calculatePath",cond=whenDispatch("goto"))
+					transition(edgeName="t066",targetState="updateRoomDescription",cond=whenDispatch("setLocation"))
 				}	 
 				state("updateRoomDescription") { //this:State
 					action { //it:State
@@ -79,21 +79,13 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						else
 						{ finito=true
 						 }
-						if(!finito){
-						solve("retract(move(_))","") //set resVar	
-						if(currentSolution.isSuccess()) { println("move cancelled")
-						 }
-						else
-						{ println("move not cancelled")
-						 }
-						}
 						stateTimer = TimerActor("timer_schedulingNextMove", 
-							scope, context!!, "local_tout_planner_schedulingNextMove", 5000.toLong() )
+							scope, context!!, "local_tout_planner_schedulingNextMove", 1000.toLong() )
 					}
-					 transition(edgeName="t058",targetState="checkStopped",cond=whenTimeout("local_tout_planner_schedulingNextMove"))   
-					transition(edgeName="t059",targetState="schedulingStopped",cond=whenDispatch("stop"))
+					 transition(edgeName="t067",targetState="checkFinish",cond=whenTimeout("local_tout_planner_schedulingNextMove"))   
+					transition(edgeName="t068",targetState="schedulingStopped",cond=whenEvent("stopTask"))
 				}	 
-				state("checkStopped") { //this:State
+				state("checkFinish") { //this:State
 					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="execMove", cond=doswitchGuarded({!finito}) )
@@ -103,17 +95,46 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 					action { //it:State
 						println("[PLANNER]: I've been stopped")
 					}
-					 transition(edgeName="t060",targetState="execMove",cond=whenDispatchGuarded("reactivate",{!finito}))
-					transition(edgeName="t061",targetState="waitCmd",cond=whenDispatchGuarded("reactivate",{finito}))
+					 transition(edgeName="t069",targetState="execMove",cond=whenDispatchGuarded("reactivateTask",{!finito}))
+					transition(edgeName="t070",targetState="waitCmd",cond=whenDispatchGuarded("reactivateTask",{finito}))
 				}	 
 				state("execMove") { //this:State
 					action { //it:State
-						delay(1000) 
 						forward("movementCmd", "movementCmd($NextMove)" ,"movementhandler" ) 
 						itunibo.planner.moveUtils.doPlannedMove(myself ,NextMove )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t062",targetState="schedulingNextMove",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t071",targetState="confirmStep",cond=whenDispatch("moveCompleted"))
+					transition(edgeName="t072",targetState="backward",cond=whenDispatch("moveFailed"))
+				}	 
+				state("confirmStep") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						itunibo.planner.moveUtils.doPlannedMove(myself ,NextMove )
+						solve("retract(move(_))","") //set resVar	
+						if(currentSolution.isSuccess()) { println("move cancelled")
+						 }
+						else
+						{ println("move not cancelled")
+						 }
+						itunibo.planner.moveUtils.showCurrentRobotState(  )
+					}
+					 transition( edgeName="goto",targetState="schedulingNextMove", cond=doswitch() )
+				}	 
+				state("backward") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("movementCmd", "movementCmd(s)" ,"movementhandler" ) 
+					}
+					 transition(edgeName="t073",targetState="waitObstacleToGo",cond=whenDispatch("moveCompleted"))
+				}	 
+				state("waitObstacleToGo") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						stateTimer = TimerActor("timer_waitObstacleToGo", 
+							scope, context!!, "local_tout_planner_waitObstacleToGo", 1500.toLong() )
+					}
+					 transition(edgeName="t074",targetState="schedulingNextMove",cond=whenTimeout("local_tout_planner_waitObstacleToGo"))   
 				}	 
 			}
 		}
