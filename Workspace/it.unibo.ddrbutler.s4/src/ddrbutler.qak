@@ -481,7 +481,7 @@ QActor butlermind context ctxButler {
 	}
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
 				  whenMsg taskChanged -> waitingAddFoodCompleted
-				  whenEvent stopTask -> suspendedAddFood
+				  whenMsg stopTask -> suspendedAddFood
 				  
 	State suspendedAddFood{
 		printCurrentMessage
@@ -512,7 +512,7 @@ QActor butlermind context ctxButler {
 	}
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
 				  whenMsg taskChanged -> waitingClearCompleted
-				  whenEvent stopTask -> suspendedClear
+				  whenMsg stopTask -> suspendedClear
 				  
 	State suspendedClear{
 		printCurrentMessage
@@ -1034,8 +1034,8 @@ QActor preparehandler context ctxButler {
 		printCurrentMessage
 		forward planner -m goto : goto(pantry)
 	}
-	Transition t0 whenMsg planningCompleted -> takingDishes 
-
+	Transition t0 whenMsg planningCompleted -> takingDishes
+	
 	State takingDishes {
 		printCurrentMessage
 		solve(dish(X))

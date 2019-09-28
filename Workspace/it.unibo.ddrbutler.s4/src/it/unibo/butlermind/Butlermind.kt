@@ -136,7 +136,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					}
 					 transition(edgeName="t030",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
 					transition(edgeName="t031",targetState="waitingAddFoodCompleted",cond=whenDispatch("taskChanged"))
-					transition(edgeName="t032",targetState="suspendedAddFood",cond=whenEvent("stopTask"))
+					transition(edgeName="t032",targetState="suspendedAddFood",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedAddFood") { //this:State
 					action { //it:State
@@ -167,7 +167,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					}
 					 transition(edgeName="t035",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
 					transition(edgeName="t036",targetState="waitingClearCompleted",cond=whenDispatch("taskChanged"))
-					transition(edgeName="t037",targetState="suspendedClear",cond=whenEvent("stopTask"))
+					transition(edgeName="t037",targetState="suspendedClear",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedClear") { //this:State
 					action { //it:State
