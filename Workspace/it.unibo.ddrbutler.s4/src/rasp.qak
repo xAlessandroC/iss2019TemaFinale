@@ -1,7 +1,7 @@
 System rasp
 
-//mqttBroker "192.168.43.145" : 1883
-mqttBroker "localhost" : 1883 
+mqttBroker "192.168.43.145" : 1883
+//mqttBroker "localhost" : 1883 
 
 /* MESSAGES */
 Event sonarRobot : sonar(DISTANCE)
@@ -99,7 +99,7 @@ QActor basicrobot context ctxRasp {
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved {
   			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  			//run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
   		} 
   		else {
   		 	println("no robot")
@@ -115,7 +115,7 @@ QActor basicrobot context ctxRasp {
 	State handleCmd {
 		
 		onMsg (robotCmd : robotCmd(X)) {
-			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -327,7 +327,11 @@ QActor movementhandler context ctxRasp {
 	Goto waitCustomTime
 	
 	State waitCustomTime {
-		["var timeToWait=(endF-startF)"]
+		["var timeToWait=(endF-startF)-75"]
+		["
+			if(timeToWait<100)
+				timeToWait=0
+		"]
 		println("###BACK PER $timeToWait millis")
 		run itunibo.planner.moveUtils.wait(timeToWait)
 	} 
@@ -486,8 +490,7 @@ QActor butlermind context ctxRasp {
 	Goto waitingPrepare	
 }
 
-
-QActor calibration context ctxRasp {
+QActor calibration context ctxRasp{
 	["
 		var terminato = false
 		var nextDir = \"\"
@@ -502,29 +505,29 @@ QActor calibration context ctxRasp {
 		var finito = false;
 	"]
 		
-	State s0 initial {
+	State s0 initial{
 		println("[CALIBRATION]: Started...")
 		
 	}
 	Goto waitCmd
 	
-	State waitCmd { 
+	State waitCmd{
 		
-		onMsg(planningCompleted : planningCompleted) {
+		onMsg(planningCompleted : planningCompleted){
 			forward butlermind -m calibrationCompleted : calibrationCompleted
 		}
 	}
 	Transition t0 whenMsg startCalibration -> initAi
 	
-	State initAi {
+	State initAi{
 		run itunibo.planner.plannerUtil.initAI()
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
 	Goto forwardStep
 	
-	State forwardStep {
+	State forwardStep{
 		
-		onMsg(moveCompleted: moveCompleted) {
+		onMsg(moveCompleted: moveCompleted){
 			["
 			  	var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
 			  	["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
@@ -558,38 +561,43 @@ QActor calibration context ctxRasp {
 				  whenMsg moveFailed -> backtracking
 				  whenMsg endBoundary -> terminazioneboundary
 	
-	State confirmForwardStep {
+	State confirmForwardStep{
+		
 		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
-	} Goto forwardStep
 	
+	}Goto forwardStep
 	
-	State backtracking {
+	State backtracking{
+		
 		run itunibo.planner.moveUtils.backToCompensate(myself)
 		run itunibo.planner.plannerUtil.wallFound()
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 	}
 	Transition t0 whenMsg moveCompleted -> turnLeft
 				  
-    State turnLeft { 	
+    State turnLeft{
+    	
 		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
 	}
 	Transition t0 whenMsg moveCompleted -> forwardStep
 	
-	State terminazioneboundary {
+	State terminazioneboundary{
 		printCurrentMessage
 		
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
+		
 	}
 	Goto startExploration
 	
-	State startExploration {
+	State startExploration{
 		println("---START EXPLORATION ROOM---")
 		println("---SNAKE STRATEGY---")
+		
 	}
 	Goto snakeForwardStep
 	
-	State snakeForwardStep {
+	State snakeForwardStep{
 		//assumo che non ci siano ostacoli in questa fase
 		run itunibo.planner.moveUtils.moveAhead(myself)
 		//forward robotmind -m mindCmd : mindCmd(w)
@@ -613,7 +621,7 @@ QActor calibration context ctxRasp {
 	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"left\")" -> snakeTurnLeft
 				  whenMsg moveCompleted and "nextDir.equals(\"right\")" -> snakeTurnRight
 	
-	State snakeTurnLeft {
+	State snakeTurnLeft{
 		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
 		
 		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
@@ -631,7 +639,7 @@ QActor calibration context ctxRasp {
 				  whenMsg moveCompleted and "nextDir.equals(\"goAhead\")" -> snakeGoAhead
 	
 	
-	State snakeTurnRight {
+	State snakeTurnRight{
 		run itunibo.planner.moveUtils.rotateRight90tuning(myself)
 		
 		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
@@ -648,7 +656,7 @@ QActor calibration context ctxRasp {
 	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"forward\")" -> snakeForwardStep
 				  whenMsg moveCompleted and "nextDir.equals(\"goAhead\")" -> snakeGoAhead
 	
-	State snakeGoAhead {
+	State snakeGoAhead{
 		//assumo che non ci siano ostacoli in questa fase
 		run itunibo.planner.moveUtils.moveAhead(myself)
 		
@@ -682,7 +690,7 @@ QActor calibration context ctxRasp {
 				  whenMsg moveCompleted and "nextDir.equals(\"straight\")" -> snakeGoAhead
 				  whenMsg moveFailed -> findTable
 				  
-	State findTable {
+	State findTable{
 		printCurrentMessage
 		run itunibo.planner.moveUtils.doPlannedMove(myself,"s")
 		run itunibo.planner.moveUtils.backToCompensate(myself)
@@ -702,7 +710,7 @@ QActor calibration context ctxRasp {
 	}
 	Transition t0 whenMsg moveCompleted -> goSouthFT
 	
-	State goSouthFT {
+	State goSouthFT{
 		printCurrentMessage
 		["var temp="]run itunibo.planner.moveUtils.getDirection(myself)
 		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
@@ -728,7 +736,7 @@ QActor calibration context ctxRasp {
 	}
 	Transition t0 whenMsg moveCompleted -> forwardStepFT
 	
-	State forwardStepFT {
+	State forwardStepFT{
 		printCurrentMessage
 		//assumo che non ci siano ostacoli in questa fase
 		run itunibo.planner.moveUtils.moveAhead(myself)
@@ -737,7 +745,7 @@ QActor calibration context ctxRasp {
 	}
 	Transition t0 whenMsg moveCompleted -> goIntern
 	
-	State goIntern {
+	State goIntern{
 		printCurrentMessage
 		["if(findTableInitDir.equals(\"leftDir\")){"]
 				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
@@ -750,7 +758,7 @@ QActor calibration context ctxRasp {
 	}
 	Transition t0 whenMsg moveCompleted -> checkTable
 	
-	State checkTable {
+	State checkTable{
 		printCurrentMessage
 		
 		forward movementhandler -m movementCmd : movementCmd(w)
@@ -758,19 +766,19 @@ QActor calibration context ctxRasp {
 	Transition t0 whenMsg moveCompleted -> confirmForwardStepFT
 				  whenMsg moveFailed -> backtrackingFT	  
 	
-	State backtrackingFT {
+	State backtrackingFT{
 		printCurrentMessage
 		run itunibo.planner.moveUtils.backToCompensate(myself)
 	}
 	Transition t0 whenMsg moveCompleted -> goSouthFT
 	
-	State confirmForwardStepFT {
+	State confirmForwardStepFT{
 		printCurrentMessage
 		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
 	}
 	Goto angle
 	
-	State angle {
+	State angle{
 		printCurrentMessage
 		["if(angle){
 			finito=true
@@ -791,7 +799,7 @@ QActor calibration context ctxRasp {
 	}
 	Goto endExploration if "finito" else goIntern
 	
-	State endExploration {
+	State endExploration{
 		printCurrentMessage
 		println("END EXPLORATION")
 		println("START_X=$startX")
@@ -821,12 +829,11 @@ QActor calibration context ctxRasp {
 	}
 	Goto goHome
 	
-	State goHome {
+	State goHome{
 		forward planner -m goto : goto(rh)
 	}
 	Transition t0 whenMsg planningCompleted -> waitCmd
 }
-
 
 QActor planner context ctxRasp{
 	["
@@ -914,6 +921,7 @@ QActor planner context ctxRasp{
 				  whenMsg moveFailed -> backward
 				  
 	State confirmStep{
+		printCurrentMessage
 		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
 		
 		solve(retract(move(_)))
@@ -923,21 +931,24 @@ QActor planner context ctxRasp{
 		else {
 			println("move not cancelled")
 		}
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		
 	}
 	Goto schedulingNextMove
 				  
 	State backward{
+		printCurrentMessage
 		forward movementhandler -m movementCmd : movementCmd(s)
 	}
 	Transition t0 whenMsg moveCompleted -> waitObstacleToGo
 	
 	State waitObstacleToGo{
-		
+		printCurrentMessage
 	}
 	Transition t0 whenTime 1500 -> schedulingNextMove
 	
 }
-
 
 QActor preparehandler context ctxRasp {
 	["var isFood : Boolean = false
@@ -1032,7 +1043,7 @@ QActor preparehandler context ctxRasp {
 				
 				["var qntInteger=Integer.parseInt(Qnt)"]
 				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
-				["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
+				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
@@ -1099,7 +1110,6 @@ QActor addfoodhandler context ctxRasp {
 		}
 		
 		//fake interaction
-		//forward resourcemodelfridge -m qualcosa : qualcosa(RISPOSTA)
 		//forward addfoodhandler -m responseFood : responseFood(yes)
 		
 		//real interaction
@@ -1120,7 +1130,7 @@ QActor addfoodhandler context ctxRasp {
 			["isPresent = false"]
 		}
 	}
-	Goto waitingCmd if "!isPresent" else planF
+	Goto endAddFood if "!isPresent" else planF
 	
 	State planF {
 		printCurrentMessage
@@ -1135,7 +1145,7 @@ QActor addfoodhandler context ctxRasp {
 		
 		["var qntInteger=Integer.parseInt(Qnt)"]
 		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
-		["forward(\"modelChangeFridge\",\"modelChangeFridge(FoodCode,qntInteger)\",\"modelresourcefridge\")"]
+		["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 		
 		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
@@ -1166,7 +1176,7 @@ QActor addfoodhandler context ctxRasp {
 	
 	State endAddFood {
 		printCurrentMessage
-		println("[ADD_FOOD_HANDLER]: I'm finishing to adding the new food")
+		println("[ADD_FOOD_HANDLER]: Ended")
 		forward butlermind -m addFoodCompleted : addFoodCompleted
 	}
 	Goto waitingCmd
@@ -1256,7 +1266,7 @@ QActor clearhandler context ctxRasp {
 		
 			["var QntInteger=Integer.parseInt(V)"]
 			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
-			["forward(\"modelChangeFridge\",\"modelChangeFridge(K,QntInteger)\",\"modelresourcefridge\")"]
+			["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,put,$K,$V)\",\"resourcemodelfridge\")"]
 			
 			emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]
@@ -1678,11 +1688,11 @@ QActor resourcemodeltable context ctxRasp{
 	Goto waitCmd
 }
 
-QActor console context ctxRasp{
+/*QActor console context ctxRasp{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/

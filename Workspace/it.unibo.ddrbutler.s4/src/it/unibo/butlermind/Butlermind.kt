@@ -15,8 +15,8 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var task : String = ""
-			  var isCorrect = false
+		
+				var task : String = ""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -59,12 +59,31 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("startPrepare", "startPrepare" ,"preparehandler" ) 
 								isCorrect = true
 						}
-						if(!isCorrect) { println("[BUTLER_MIND]: expected prepare command")
-						forward("backWait", "backWait" ,"butlermind" ) 
+					}
+					 transition( edgeName="goto",targetState="waitingPrepare", cond=doswitchGuarded({!isCorrect}) )
+					transition( edgeName="goto",targetState="waitingPrepCompleted", cond=doswitchGuarded({! !isCorrect}) )
+				}	 
+				state("waitingPrepCompleted") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,stop,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("stopTask", "stopTask" ) 
 						}
 					}
 					 transition(edgeName="t021",targetState="notifyPrepareMaitre",cond=whenDispatch("prepareCompleted"))
-					transition(edgeName="t022",targetState="waitingPrepare",cond=whenDispatch("backWait"))
+					transition(edgeName="t022",targetState="waitingPrepCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t023",targetState="suspendedPrepare",cond=whenEvent("stopTask"))
+				}	 
+				state("suspendedPrepare") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,reactivate,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("reactivateTask", "reactivateTask" ) 
+						}
+					}
+					 transition(edgeName="t024",targetState="waitingPrepCompleted",cond=whenEvent("reactivateTask"))
+					transition(edgeName="t025",targetState="suspendedPrepare",cond=whenDispatch("taskChanged"))
 				}	 
 				state("notifyPrepareMaitre") { //this:State
 					action { //it:State
@@ -76,39 +95,50 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for an AC command...")
 					}
-					 transition(edgeName="t023",targetState="startAC",cond=whenDispatch("taskChanged"))
+					 transition(edgeName="t026",targetState="startAC",cond=whenDispatch("taskChanged"))
 				}	 
 				state("startAC") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						isCorrect = false
+						task = ""
 						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(TARGET,add_food,FC,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("startAddFood", "startAddFood(${payloadArg(2)},${payloadArg(3)})" ,"addfoodhandler" ) 
 								task = "add_food"
 								forward("taskAssigned", "taskAssigned" ,"butlermind" ) 
-								isCorrect = true
 						}
 						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(TARGET,clear,FC,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("startClear", "startClear" ,"clearhandler" ) 
 								task = "clear"
-								forward("taskAssigned", "taskAssigned" ,"butlermind" ) 
-								isCorrect = true
 						}
-						if(!isCorrect) { println("[BUTLER_MIND]: expected AC command")
-						forward("backWait", "backWait" ,"butlermind" ) 
-						}
+						forward("taskAssigned", "taskAssigned" ,"butlermind" ) 
 					}
-					 transition(edgeName="t024",targetState="startAddFood",cond=whenDispatchGuarded("taskAssigned",{task == "add_food"}))
-					transition(edgeName="t025",targetState="startClear",cond=whenDispatchGuarded("taskAssigned",{task == "clear"}))
-					transition(edgeName="t026",targetState="waitingAC",cond=whenDispatch("backWait"))
+					 transition(edgeName="t027",targetState="waitingAddFoodCompleted",cond=whenDispatchGuarded("taskAssigned",{task == "add_food"}))
+					transition(edgeName="t028",targetState="waitingClearCompleted",cond=whenDispatchGuarded("taskAssigned",{task == "clear"}))
+					transition(edgeName="t029",targetState="waitingAC",cond=whenDispatchGuarded("taskAssigned",{task == ""}))
 				}	 
-				state("startAddFood") { //this:State
+				state("waitingAddFoodCompleted") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,stop,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("stopTask", "stopTask" ) 
+						}
 					}
-					 transition(edgeName="t027",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
+					 transition(edgeName="t030",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
+					transition(edgeName="t031",targetState="waitingAddFoodCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t032",targetState="suspendedAddFood",cond=whenEvent("stopTask"))
+				}	 
+				state("suspendedAddFood") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,reactivate,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("reactivateTask", "reactivateTask" ) 
+						}
+					}
+					 transition(edgeName="t033",targetState="waitingAddFoodCompleted",cond=whenEvent("reactivateTask"))
+					transition(edgeName="t034",targetState="suspendedAddFood",cond=whenDispatch("taskChanged"))
 				}	 
 				state("notifyAddFoodMaitre") { //this:State
 					action { //it:State
@@ -116,11 +146,27 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					}
 					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
 				}	 
-				state("startClear") { //this:State
+				state("waitingClearCompleted") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,stop,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("stopTask", "stopTask" ) 
+						}
 					}
-					 transition(edgeName="t028",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
+					 transition(edgeName="t035",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
+					transition(edgeName="t036",targetState="waitingClearCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t037",targetState="suspendedClear",cond=whenEvent("stopTask"))
+				}	 
+				state("suspendedClear") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,reactivate,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("reactivateTask", "reactivateTask" ) 
+						}
+					}
+					 transition(edgeName="t038",targetState="waitingClearCompleted",cond=whenEvent("reactivateTask"))
+					transition(edgeName="t039",targetState="suspendedClear",cond=whenDispatch("taskChanged"))
 				}	 
 				state("notifyClearMaitre") { //this:State
 					action { //it:State

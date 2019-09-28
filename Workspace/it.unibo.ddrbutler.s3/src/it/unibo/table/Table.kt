@@ -34,7 +34,7 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 						
 						forward("modelUpdateTable", "modelUpdateTable(table,null,idle,null,null)" ,"resourcemodeltable" ) 
 					}
-					 transition(edgeName="t085",targetState="analyzeMsg",cond=whenDispatch("modelChangedTable"))
+					 transition(edgeName="t00",targetState="analyzeMsg",cond=whenDispatch("modelChangedTable"))
 				}	 
 				state("analyzeMsg") { //this:State
 					action { //it:State

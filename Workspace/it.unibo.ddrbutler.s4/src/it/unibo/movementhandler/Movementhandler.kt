@@ -116,6 +116,9 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("waitCustomTime") { //this:State
 					action { //it:State
 						var timeToWait=(endF-startF)
+						
+									if(timeToWait<100)
+										timeToWait=0
 						println("###BACK PER $timeToWait millis")
 						itunibo.planner.moveUtils.wait( timeToWait  )
 					}

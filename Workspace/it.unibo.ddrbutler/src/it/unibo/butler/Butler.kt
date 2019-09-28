@@ -40,8 +40,9 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[BUTLER]: Sono in preparing")
 						delay(1000) 
+						forward("prepareCompleted", "prepareCompleted" ,"butler" ) 
 					}
-					 transition(edgeName="t02",targetState="waitAC",cond=whenDispatch("prepareCompleted"))
+					 transition(edgeName="t02",targetState="wait2",cond=whenDispatch("prepareCompleted"))
 					transition(edgeName="t03",targetState="prepareSuspend",cond=whenDispatch("stopPrepare"))
 				}	 
 				state("prepareSuspend") { //this:State
@@ -49,48 +50,43 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("[BUTLER]: Sono in prepareSuspend")
 					}
 					 transition(edgeName="t04",targetState="preparing",cond=whenDispatch("reactivatePrepare"))
-					transition(edgeName="t05",targetState="prepareSuspend",cond=whenDispatch("stopPrepare"))
 				}	 
-				state("waitAC") { //this:State
+				state("wait2") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in waitAC")
+						println("[BUTLER]: Sono in wait2")
 					}
-					 transition(edgeName="t06",targetState="adding",cond=whenDispatch("addFood"))
-					transition(edgeName="t07",targetState="clearing",cond=whenDispatch("clear"))
+					 transition(edgeName="t05",targetState="adding",cond=whenDispatch("addFood"))
+					transition(edgeName="t06",targetState="clearing",cond=whenDispatch("clear"))
 				}	 
 				state("adding") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in adding")
 						delay(1000) 
 						forward("addFoodCompleted", "addFoodCompleted" ,"butler" ) 
-						forward("addFoodCompleted", "addFoodCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t08",targetState="waitAC",cond=whenDispatch("addFoodCompleted"))
-					transition(edgeName="t09",targetState="addFoodSuspend",cond=whenDispatch("stopAddFood"))
+					 transition(edgeName="t07",targetState="wait2",cond=whenDispatch("addFoodCompleted"))
+					transition(edgeName="t08",targetState="addFoodSuspend",cond=whenDispatch("stopAddFood"))
 				}	 
 				state("clearing") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in clearing")
 						delay(1000) 
 						forward("clearCompleted", "clearCompleted" ,"butler" ) 
-						forward("clearCompleted", "clearCompleted" ,"maitre" ) 
 					}
-					 transition(edgeName="t010",targetState="waitPrepare",cond=whenDispatch("clearCompleted"))
-					transition(edgeName="t011",targetState="clearSuspend",cond=whenDispatch("stopClear"))
+					 transition(edgeName="t09",targetState="waitPrepare",cond=whenDispatch("clearCompleted"))
+					transition(edgeName="t010",targetState="clearSuspend",cond=whenDispatch("stopClear"))
 				}	 
 				state("addFoodSuspend") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in addFoodSuspend")
 					}
-					 transition(edgeName="t012",targetState="adding",cond=whenDispatch("reactivateAddFood"))
-					transition(edgeName="t013",targetState="addFoodSuspend",cond=whenDispatch("stopAddFood"))
+					 transition(edgeName="t011",targetState="adding",cond=whenDispatch("reactivateAddFood"))
 				}	 
 				state("clearSuspend") { //this:State
 					action { //it:State
 						println("[BUTLER]: Sono in clearSuspend")
 					}
-					 transition(edgeName="t014",targetState="clearing",cond=whenDispatch("reactivateClear"))
-					transition(edgeName="t015",targetState="clearSuspend",cond=whenDispatch("stopClear"))
+					 transition(edgeName="t012",targetState="clearing",cond=whenDispatch("reactivateClear"))
 				}	 
 			}
 		}

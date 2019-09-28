@@ -9,7 +9,9 @@ object fridgeInteraction{
 	
 	fun ask(a: ActorBasic, fc : String, qnt : Int ){
 		
-		val hostAddr = "localhost" // "192.168.43.67 3"
+		//val hostAddr = "localhost" // "192.168.43.67 3"
+		val hostAddr = "192.168.43.145"
+		
 		val port = 5863
 		val resourceName = "available"
 		var coapClient = CoapClient("coap://$hostAddr:" + port + "/" + resourceName)
