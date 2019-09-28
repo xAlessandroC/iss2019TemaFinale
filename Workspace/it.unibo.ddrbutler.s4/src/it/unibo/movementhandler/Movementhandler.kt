@@ -19,10 +19,46 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				var input=""
 				var startF = 0L
 				var endF = 0L
+		
+				var ForwardTime=-1L
+				var TurnLeftTime=-1L
+				var TurnRightTime=-1L
+				var TuningTime=-1L
+				var DifferenceLimitTime=-1L
+		
+				var TimeToWait=-1L
+		
+				var temp=""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[MOVEMENT HANDLER]: Started...")
+						solve("consult('movementConfig.pl')","") //set resVar	
+						solve("time(forw4rd,X)","") //set resVar	
+						if(currentSolution.isSuccess()) { temp=getCurSol("X").toString()
+						ForwardTime=temp.toLong()
+						println("Settato forwardTime a $ForwardTime")
+						 }
+						solve("time(turnLeft,X)","") //set resVar	
+						if(currentSolution.isSuccess()) { temp=getCurSol("X").toString()
+						TurnLeftTime=temp.toLong()
+						println("Settato turnLeftTime a $TurnLeftTime")
+						 }
+						solve("time(turnRight,X)","") //set resVar	
+						if(currentSolution.isSuccess()) { temp=getCurSol("X").toString()
+						TurnRightTime=temp.toLong()
+						println("Settato turnRightTime a $TurnRightTime")
+						 }
+						solve("time(tuning,X)","") //set resVar	
+						if(currentSolution.isSuccess()) { temp=getCurSol("X").toString()
+						TuningTime=temp.toLong()
+						println("Settato tuningTime a $TuningTime")
+						 }
+						solve("time(differenceLimit,X)","") //set resVar	
+						if(currentSolution.isSuccess()) { temp=getCurSol("X").toString()
+						DifferenceLimitTime=temp.toLong()
+						println("Settato differenceLimitTime a $DifferenceLimitTime")
+						 }
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -57,7 +93,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						forward("robotChange", "robotChange(robot,w)" ,"resourcemodelbutler" ) 
 						startF = System.currentTimeMillis()
 						stateTimer = TimerActor("timer_startForward", 
-							scope, context!!, "local_tout_movementhandler_startForward", 1000.toLong() )
+							scope, context!!, "local_tout_movementhandler_startForward", ForwardTime )
 					}
 					 transition(edgeName="t014",targetState="stopForward",cond=whenTimeout("local_tout_movementhandler_startForward"))   
 					transition(edgeName="t015",targetState="waitCmd",cond=whenEvent("obstacle"))
@@ -75,7 +111,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,a)" ,"resourcemodelbutler" ) 
 						stateTimer = TimerActor("timer_startTurnLeft", 
-							scope, context!!, "local_tout_movementhandler_startTurnLeft", 1850.toLong() )
+							scope, context!!, "local_tout_movementhandler_startTurnLeft", TurnLeftTime )
 					}
 					 transition(edgeName="t016",targetState="stopTurnLeft",cond=whenTimeout("local_tout_movementhandler_startTurnLeft"))   
 				}	 
@@ -93,7 +129,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,d)" ,"resourcemodelbutler" ) 
 						stateTimer = TimerActor("timer_startTurnRight", 
-							scope, context!!, "local_tout_movementhandler_startTurnRight", 1850.toLong() )
+							scope, context!!, "local_tout_movementhandler_startTurnRight", TurnRightTime )
 					}
 					 transition(edgeName="t017",targetState="stopTurnRight",cond=whenTimeout("local_tout_movementhandler_startTurnRight"))   
 				}	 
@@ -109,20 +145,16 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				state("startBacktracking") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("robotChange", "robotChange(robot,s)" ,"resourcemodelbutler" ) 
-					}
-					 transition( edgeName="goto",targetState="waitCustomTime", cond=doswitch() )
-				}	 
-				state("waitCustomTime") { //this:State
-					action { //it:State
-						var timeToWait=(endF-startF)
+						 TimeToWait=((endF-startF)-TuningTime).toLong()
 						
-									if(timeToWait<100)
-										timeToWait=0
-						println("###BACK PER $timeToWait millis")
-						itunibo.planner.moveUtils.wait( timeToWait  )
+									if(TimeToWait<DifferenceLimitTime)
+										TimeToWait=0L
+						println("###BACK PER $TimeToWait millis")
+						forward("robotChange", "robotChange(robot,s)" ,"resourcemodelbutler" ) 
+						stateTimer = TimerActor("timer_startBacktracking", 
+							scope, context!!, "local_tout_movementhandler_startBacktracking", TimeToWait )
 					}
-					 transition( edgeName="goto",targetState="stopBacktracking", cond=doswitch() )
+					 transition(edgeName="t018",targetState="stopBacktracking",cond=whenTimeout("local_tout_movementhandler_startBacktracking"))   
 				}	 
 				state("stopBacktracking") { //this:State
 					action { //it:State

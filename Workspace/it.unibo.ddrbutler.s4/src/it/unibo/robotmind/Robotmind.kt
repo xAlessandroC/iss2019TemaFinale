@@ -25,7 +25,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t018",targetState="handleChange",cond=whenDispatch("robotChanged"))
+					 transition(edgeName="t019",targetState="handleChange",cond=whenDispatch("robotChanged"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State

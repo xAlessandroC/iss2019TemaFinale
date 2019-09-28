@@ -88,6 +88,9 @@ Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
 Dispatch modelChangedTable : modelChangedTable(NAME, TYPE, TASK, FOODCODE, QNT)
 Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
 
+Dispatch stopTask : stopTask
+Dispatch reactivateTask : reactivateTask
+
 /* CONTEXT */
 Context ctxRasp ip [host="localhost" port=3030] -mqtt
 
@@ -372,8 +375,9 @@ QActor robotmind context ctxRasp {
 
 
 QActor butlermind context ctxRasp {
-	["var task : String = \"\"
-	  var isCorrect = false
+	["
+		var isCorrect = false
+		var task : String = \"\"
 	"]
 			
 	State s0 initial {
@@ -391,10 +395,10 @@ QActor butlermind context ctxRasp {
 		else {
 			println("Errore nel setting di RH")
 		}
-		
+
 		/* */
-		//forward planner -m setLocation : setLocation(pantry,0,3)
-		//forward planner -m setLocation : setLocation(dishwasher,3,3)
+		forward planner -m setLocation : setLocation(pantry,0,3)
+		forward planner -m setLocation : setLocation(dishwasher,3,3)
 		forward planner -m setLocation : setLocation(fridge,3,0)
 		/* */
 		delay 5000
@@ -423,14 +427,36 @@ QActor butlermind context ctxRasp {
 			["isCorrect = true"]
 		}
 		
-		["if(!isCorrect) { println(\"[BUTLER_MIND]: expected prepare command\")"]
-			forward butlermind -m backWait : backWait
-		["}"]
+	}
+	Goto waitingPrepare if "!isCorrect" else waitingPrepCompleted
+	
+	State waitingPrepCompleted{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
+		}
 	}
 	Transition t0 whenMsg prepareCompleted -> notifyPrepareMaitre
-				  whenMsg backWait -> waitingPrepare
+				  whenMsg taskChanged -> waitingPrepCompleted
+				  whenMsg stopTask -> suspendedPrepare
+				  
+	State suspendedPrepare{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask ->waitingPrepCompleted
+				  whenMsg taskChanged -> suspendedPrepare
 	
 	State notifyPrepareMaitre {
+		printCurrentMessage
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
 		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
 	}
@@ -443,34 +469,49 @@ QActor butlermind context ctxRasp {
 	
 	State startAC {
 		printCurrentMessage
-		["isCorrect = false"]
+		["task = \"\""]
 		
 		onMsg(taskChanged : taskChanged(TARGET, add_food, FC, QNT)) {
 			forward addfoodhandler -m startAddFood : startAddFood($payloadArg(2), $payloadArg(3))
 			["task = \"add_food\""]
-			forward butlermind -m taskAssigned : taskAssigned
-			["isCorrect = true"]	
+			forward butlermind -m taskAssigned : taskAssigned	
 		}
 		
 		onMsg(taskChanged : taskChanged(TARGET, clear, FC, QNT)) {
 			forward clearhandler -m startClear : startClear
 			["task = \"clear\""]
-			forward butlermind -m taskAssigned : taskAssigned			
-			["isCorrect = true"]
 		}
 		
-		["if(!isCorrect) { println(\"[BUTLER_MIND]: expected AC command\")"]
-			forward butlermind -m backWait : backWait
-		["}"]
+		forward butlermind -m taskAssigned : taskAssigned		
 	}
-	Transition t0 whenMsg taskAssigned and "task == \"add_food\"" -> startAddFood
-				  whenMsg taskAssigned and "task == \"clear\"" -> startClear
-				  whenMsg backWait -> waitingAC
+	Transition t0 whenMsg taskAssigned and "task == \"add_food\"" -> waitingAddFoodCompleted
+				  whenMsg taskAssigned and "task == \"clear\"" -> waitingClearCompleted
+				  whenMsg taskAssigned and "task == \"\""-> waitingAC
 	
-	State startAddFood {
-		printCurrentMessage	
+	State waitingAddFoodCompleted {
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
+		}
 	}
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
+				  whenMsg taskChanged -> waitingAddFoodCompleted
+				  whenMsg stopTask -> suspendedAddFood
+				  
+	State suspendedAddFood{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask ->waitingAddFoodCompleted
+				  whenMsg taskChanged -> suspendedAddFood
 	
 	State notifyAddFoodMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
@@ -478,10 +519,30 @@ QActor butlermind context ctxRasp {
 	}
 	Goto waitingAC
 	
-	State startClear {
-		printCurrentMessage	
+	State waitingClearCompleted {
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
+		}
 	}
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
+				  whenMsg taskChanged -> waitingClearCompleted
+				  whenMsg stopTask -> suspendedClear
+				  
+	State suspendedClear{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask ->waitingClearCompleted
+				  whenMsg taskChanged -> suspendedClear
 	
 	State notifyClearMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
@@ -850,9 +911,11 @@ QActor planner context ctxRasp{
 	State waitCmd{
 		printCurrentMessage
 		
-		onMsg(schedulingCompleted : schedulingCompleted){
-			["replyToCaller(\"planningCompleted\",\"planningCompleted\")"]
-		}
+		["if(finito){
+			replyToCaller(\"planningCompleted\",\"planningCompleted\")
+			finito=false
+		}"]
+		
 	}
 	Transition t0 whenMsg goto -> calculatePath
 				  whenMsg setLocation -> updateRoomDescription
@@ -905,13 +968,26 @@ QActor planner context ctxRasp{
 			["finito=true"]
 		} 
 		
-		forward planner -m schedulingCompleted : schedulingCompleted
 	}
-	Transition t0 whenMsg schedulingCompleted and "finito" -> waitCmd
-				  whenMsg schedulingCompleted and "!finito" -> execMove		  
+	Transition t0 whenTime 1000 -> checkFinish
+				  whenMsg stopTask -> schedulingStopped
+				  
+	State checkFinish{
+		printCurrentMessage
+	}
+	Goto execMove if "!finito" else waitCmd
+	
+	State schedulingStopped{
+		printCurrentMessage
+		
+		
+	}
+	Transition t0 whenEvent reactivateTask and "!finito" -> execMove
+				  whenEvent reactivateTask and "finito" -> waitCmd
 	
 	State execMove{
-		delay 1000
+		//delay 1000
+		printCurrentMessage
 		
 		forward movementhandler -m movementCmd : movementCmd($NextMove)
 		
@@ -976,8 +1052,8 @@ QActor preparehandler context ctxRasp {
 		printCurrentMessage
 		forward planner -m goto : goto(pantry)
 	}
-	Transition t0 whenMsg planningCompleted -> takingDishes 
-
+	Transition t0 whenMsg planningCompleted -> takingDishes
+	
 	State takingDishes {
 		printCurrentMessage
 		solve(dish(X))

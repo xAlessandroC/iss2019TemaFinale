@@ -2,7 +2,8 @@
 
 state(pantry, idle, unknown). %%initial state
 
-action(pantry, X, QNT) :- changeModelPantry(pantry, X, QNT).
+action(pantry, put, QNT) :- changeModelPantry(pantry, put, QNT).
+action(pantry, take, QNT) :- changeModelPantry(pantry, take, QNT).
 
 changeModelPantry(NAME, VALUE, QNT) :- 
 	replaceRule(state(NAME, _, _), state(NAME, VALUE, QNT)).

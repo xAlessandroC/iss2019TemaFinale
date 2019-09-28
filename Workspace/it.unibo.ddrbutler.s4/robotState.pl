@@ -12,7 +12,9 @@ action(robot, move(h)) :- changeModelRobot( robot, stopped        ).
 
 action(sonar, V, OBSTACLE)  :- changeModelSonar( sonar, V, OBSTACLE  ).
  
-action(butler, TASK) :- changeModelButler( butler, TASK ):
+action(butler, prepare) :- changeModelButler( butler, prepare ).
+action(butler, add_food) :- changeModelButler( butler, add_food ).
+action(butler, clear) :- changeModelButler( butler, clear ).
 
 changeModelRobot( NAME, VALUE ) :-
    replaceRule( state(NAME,_),  state(NAME,state(VALUE)) ).
