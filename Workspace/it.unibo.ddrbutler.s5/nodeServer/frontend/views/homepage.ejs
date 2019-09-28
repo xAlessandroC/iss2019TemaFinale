@@ -1,0 +1,40 @@
+<html>
+  <head>
+      <title><%= title %> </title>
+  </head>
+
+  <body>
+      <div id="title">
+        <h1>MAITRE</h1>
+      </div>
+      <div id="controlPanel">
+        <div id="mainCommand">
+          <form action="/task" method="post">
+            <input type="submit" name="task" value="PREPARE"/>
+            <input type="submit" name="task" value="ADD_FOOD" disabled/>
+            <input type="submit" name="task" value="CLEAR" disabled/>
+          </form>
+
+        </div>
+        <div id="srCommand">
+          <input type="submit" name="task" value="STOP" disabled/>
+          <input type="submit" name="task" value="REACTIVATE" disabled/>
+        </div>
+      </div>
+      <div id="contentRoom">
+          <div id="pantryContent">
+            <h3>Pantry</h3>
+          </div>
+          <div id="dishwasherContent">
+            <h3>Dishwasher</h3>
+
+          </div>
+          <div id="fridgeContent">
+            <h3>Fridge</h3>
+          </div>
+          <div id="tableContent">
+            <h3>Table</h3>
+          </div>
+      </div>
+  </body>
+</html>
