@@ -22,18 +22,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', homepageRouter);
 app.use('/', taskRouter);
 
-/*TEST SPACE*/
-/*app.post('/task', function(req, res, next) {
-   res.send(`${req.body.task}`)
-});*/
-
-// print request
-/*app.use(function(req, res, next) {
-  console.log(req)
-  next()
-});*/
-
-/*END TEST SPACE*/
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -45,6 +33,9 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
+  //print console
+  console.log(err)
+  
   // render the error page
   res.status(err.status || 500);
   res.render('error');

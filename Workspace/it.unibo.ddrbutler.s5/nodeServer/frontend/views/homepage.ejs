@@ -34,13 +34,90 @@
             document.getElementById('reactivateButton').disabled=true;
             break;
           case v.includes('updateContent'):
-            
-
+            var field=v.replace("updateContent(","").replace(")","").split(",")
+            console.log(field)
+            updateData(field)
             break;
         }
       });
 
         /*functions*/
+        function updateData(field){
+          var section=document.getElementById(field[0]+"Content")
+          var trovato=false;
+          section.childNodes.forEach((e)=>{
+            if(e.id===field[1]){
+              trovato=true
+              console.log(parseInt(e.innerHTML.split(" ")[1]))
+              if(field[4]==="put"){
+                e.innerHTML=parseInt(e.innerHTML.split(" ")[1])+parseInt(field[4])
+              }
+              if(field[4]==="take"){
+                e.innerHTML=parseInt(e.innerHTML.split(" ")[1])-parseInt(field[4])
+              }
+            }
+          })
+          if(!trovato){
+            var node = document.createElement("P");
+            nome.id=field[1]
+            var textnode = document.createTextNode("");
+            node.appendChild(textnode);
+            fatherDiv.appendChild(node);
+          }
+        }
+
+        function loadInitParam(){
+            loadPantryData()
+            loadFridgeData()
+            loadDishwasherData()
+            loadTableData()
+        }
+
+        function fillWithData(data,nameSection){
+          var fatherDiv = document.getElementById(nameSection);
+          if(data===null){
+            var node = document.createElement("P");
+            node.id="empty"
+            var textnode = document.createTextNode("empty");
+            node.appendChild(textnode);
+            fatherDiv.appendChild(node);
+            return
+          }
+
+          data=data.replace(/{|}|"/g,'').trim()
+          var field=data.split(",")
+          field.forEach((e)=>{
+            var name=e.split(":")[0]
+            var value=e.split(":")[1]
+
+            var node = document.createElement("P");
+            node.id=name
+            var textnode = document.createTextNode(name+" "+value);
+            node.appendChild(textnode);
+            fatherDiv.appendChild(node);
+          })
+        }
+
+        function loadPantryData(){
+          var initData = <%-JSON.stringify(pantryInitialContent) %>
+          fillWithData(initData,"pantryContent")
+        }
+
+        function loadFridgeData(){
+          var initData = <%-JSON.stringify(fridgeInitialContent) %>
+          fillWithData(initData,"fridgeContent")
+        }
+
+        function loadDishwasherData(){
+          var initData = <%-JSON.stringify(dishwasherInitialContent) %>
+          fillWithData(initData,"dishwasherContent")
+        }
+
+        function loadTableData(){
+          var initData = <%-JSON.stringify(tableInitialContent) %>
+          fillWithData(initData,"tableContent")
+        }
+
         function send(task){
           console.log("onClick:"+task);
           var buttonToDisabled=task+"Button"
@@ -59,7 +136,7 @@
       </script>
   </head>
 
-  <body>
+  <body onLoad="loadInitParam()">
       <div id="title">
         <h1>MAITRE</h1>
       </div>
@@ -82,18 +159,29 @@
         </div>
       </div>
       <div id="contentRoom">
-          <div id="pantryContent">
+          <div id="pantrySection">
             <h3>Pantry</h3>
-          </div>
-          <div id="dishwasherContent">
-            <h3>Dishwasher</h3>
+            <div id="pantryContent">
 
+            </div>
           </div>
-          <div id="fridgeContent">
+          <div id="dishwasherSection">
+            <h3>Dishwasher</h3>
+            <div id="dishwasherContent">
+
+            </div>
+          </div>
+          <div id="fridgeSection">
             <h3>Fridge</h3>
+            <div id="fridgeContent">
+
+            </div>
           </div>
-          <div id="tableContent">
+          <div id="tableSection">
             <h3>Table</h3>
+            <div id="tableContent">
+
+            </div>
           </div>
       </div>
 
