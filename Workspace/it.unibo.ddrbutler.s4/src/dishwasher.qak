@@ -85,7 +85,7 @@ QActor resourcemodeldishwasher context ctxDishwasher{
 		printCurrentMessage
 		
 		//due OnMsg per evitare messaggi errati
-		onMsg(modelChangeDishwasher : modelChangeDishwasher(dishwasher,put, QNT) ){
+		/*onMsg(modelChangeDishwasher : modelChangeDishwasher(dishwasher,put, QNT) ){
 			forward dishwasher -m modelChangedDishwasher : modelChangedDishwasher($payloadArg(0), $payloadArg(1), $payloadArg(2))
 			run itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself,payloadArg(1), payloadArg(2))
 		}
@@ -93,6 +93,15 @@ QActor resourcemodeldishwasher context ctxDishwasher{
 		onMsg(modelChangeDishwasher : modelChangeDishwasher(dishwasher,take, QNT) ){
 			forward dishwasher -m modelChangedDishwasher : modelChangedDishwasher($payloadArg(0), $payloadArg(1), $payloadArg(2))
 			run itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself,payloadArg(1), payloadArg(2))
+		}*/
+		
+		onMsg(modelChangeDishwasher : modelChangeDishwasher(dishwasher,OP, QNT) ){
+			solve(action(dishwasher, $payloadArg(1), $payloadArg(2)))
+			ifSolved{
+				forward dishwasher -m modelChangedDishwasher : modelChangedDishwasher($payloadArg(0), $payloadArg(1), $payloadArg(2))
+			}else{
+				println("Cambiamento non permesso!")
+			}
 		}
 	}
 	Goto waitCmd

@@ -22,10 +22,7 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						solve("consult('sysRules.pl')","") //set resVar	
 						solve("assert(content(pantry,dish,null,20))","") //set resVar	
 						solve("assert(content(dishwasher,dish,null,0))","") //set resVar	
-						solve("assert(content(fridge,food,taralli,20))","") //set resVar	
-						solve("assert(content(fridge,food,brasciole,20))","") //set resVar	
-						solve("assert(content(fridge,food,polpette,20))","") //set resVar	
-						solve("assert(content(fridge,food,cicorie,20))","") //set resVar	
+						itunibo.maitre.fridgeInteraction.getContent(myself)
 						forward("updateMaitre", "updateMaitre" ,"maitre" ) 
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
@@ -34,12 +31,13 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: waiting for a command...")
 					}
-					 transition(edgeName="t013",targetState="modelChanging",cond=whenDispatch("modelChangeMaitre"))
-					transition(edgeName="t014",targetState="modelUpdating",cond=whenDispatch("modelUpdateMaitre"))
-					transition(edgeName="t015",targetState="updatingRoom",cond=whenEvent("updateContent"))
+					 transition(edgeName="t014",targetState="modelChanging",cond=whenDispatch("modelChangeMaitre"))
+					transition(edgeName="t015",targetState="modelUpdating",cond=whenDispatch("modelUpdateMaitre"))
+					transition(edgeName="t016",targetState="updatingRoom",cond=whenEvent("updateContent"))
 				}	 
 				state("modelUpdating") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[MAITRE_MODEL]: updating model...")
 						if( checkMsgContent( Term.createTerm("modelUpdateMaitre(NAME,STATE)"), Term.createTerm("modelUpdateMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -50,6 +48,7 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				}	 
 				state("modelChanging") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[MAITRE_MODEL]: received a modelChange command")
 						if( checkMsgContent( Term.createTerm("modelChangeMaitre(NAME,STATE)"), Term.createTerm("modelChangeMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

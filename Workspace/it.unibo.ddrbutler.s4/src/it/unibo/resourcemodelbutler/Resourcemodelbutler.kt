@@ -39,8 +39,12 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						if( checkMsgContent( Term.createTerm("robotChange(TARGET,VALUE)"), Term.createTerm("robotChange(robot,X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								forward("robotChanged", "robotChanged(robot,${payloadArg(1)})" ,"robotmind" ) 
-								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
+								solve("action(robot,move(${payloadArg(1)}))","") //set resVar	
+								if(currentSolution.isSuccess()) { forward("robotChanged", "robotChanged(robot,${payloadArg(1)})" ,"robotmind" ) 
+								 }
+								else
+								{ println("Cambiamento non accettato")
+								 }
 						}
 						if( checkMsgContent( Term.createTerm("sonarChange(TARGET,VALUE,OBSTACLE)"), Term.createTerm("sonarChange(sonar,VALUE,OBSTACLE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -49,8 +53,12 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						if( checkMsgContent( Term.createTerm("taskChange(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChange(butler,TASK,FC,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								forward("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butlermind" ) 
-								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
+								solve("action(butler,${payloadArg(1)})","") //set resVar	
+								if(currentSolution.isSuccess()) { forward("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butlermind" ) 
+								 }
+								else
+								{ println("Cambiamento non accettato")
+								 }
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

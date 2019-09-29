@@ -12,10 +12,8 @@ Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
 
 Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
 
-//Context ctxButler ip [host="localhost" port=3030] -mqtt
 Context ctxPantry ip [host="localhost" port=3033] -mqtt
 
-//ExternalQActor planner context ctxButler
 
 QActor pantry context ctxPantry{
 	["
@@ -82,14 +80,13 @@ QActor resourcemodelpantry context ctxPantry{
 	State handleChange{
 		printCurrentMessage
 		
-		onMsg(modelChangePantry : modelChangePantry(pantry, put, QNT) ){
-			forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1), $payloadArg(2))
-			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(1),payloadArg(2))
-		}
-		
-		onMsg(modelChangePantry : modelChangePantry(pantry, take, QNT) ){
-			forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1), $payloadArg(2))
-			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(1),payloadArg(2))
+		onMsg(modelChangePantry : modelChangePantry(pantry, OP, QNT) ){
+			solve(action(pantry, $payloadArg(1), $payloadArg(2)))
+			ifSolved{
+				forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1), $payloadArg(2))
+			}else{
+				println("Cambiamento non permesso!")
+			}
 		}
 	}
 	Goto waitCmd

@@ -168,8 +168,15 @@ QActor resourcemodelbutler context ctxButler{
 	State handleChange{
 		onMsg(robotChange : robotChange(robot, X)){
 			printCurrentMessage
-			forward robotmind -m robotChanged : robotChanged(robot, $payloadArg(1))
-			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+			
+			solve(  action(robot, move($payloadArg(1)) ) ) 
+			ifSolved{
+				forward robotmind -m robotChanged : robotChanged(robot, $payloadArg(1))
+			}else{
+				println("Cambiamento non accettato")
+			}
+			
+			//run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 		}
 		
 		onMsg(sonarChange : sonarChange(sonar, VALUE, OBSTACLE)){
@@ -178,8 +185,15 @@ QActor resourcemodelbutler context ctxButler{
 		
 		onMsg(taskChange : taskChange(butler, TASK, FC, QNT)){
 			printCurrentMessage
-			forward butlermind -m taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
-			run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
+			
+			solve(  action(butler, $payloadArg(1)) ) 
+			ifSolved{
+				forward butlermind -m taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
+			}else{
+				println("Cambiamento non accettato")
+			}
+			
+			//run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
 		}
 	}
 	Goto waitCmd

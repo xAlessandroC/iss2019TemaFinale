@@ -63,7 +63,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("notifyAddFood") { //this:State
 					action { //it:State
-						forward("taskChange","taskChange(butler, add_food, taralli, 5)","resourcemodelbutler")
+						forward("taskChange","taskChange(butler, add_food, taralli, 30)","resourcemodelbutler")
 					}
 					 transition( edgeName="goto",targetState="waitingAddFoodCompleted", cond=doswitch() )
 				}	 
@@ -130,8 +130,9 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("handleWarning") { //this:State
 					action { //it:State
 						println("[MAITRE]: received an alert")
+						itunibo.maitre.maitreGUI.warning(  )
 					}
-					 transition( edgeName="goto",targetState="sendingAC", cond=doswitch() )
+					 transition(edgeName="t013",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
 				}	 
 			}
 		}

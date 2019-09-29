@@ -34,13 +34,14 @@ class Resourcemodelfridge ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("handleChange") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangeFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangeFridge(fridge,put,FC,QNT)"), 
+						if( checkMsgContent( Term.createTerm("modelChangeFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangeFridge(fridge,OP,FC,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedFridge", "modelChangedFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
-						}
-						if( checkMsgContent( Term.createTerm("modelChangeFridge(NAME,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangeFridge(fridge,take,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedFridge", "modelChangedFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
+								solve("action(fridge,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})","") //set resVar	
+								if(currentSolution.isSuccess()) { forward("modelChangedFridge", "modelChangedFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
+								 }
+								else
+								{ println("Cambiamento non permesso!")
+								 }
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

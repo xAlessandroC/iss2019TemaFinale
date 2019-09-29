@@ -87,27 +87,12 @@ QActor resourcemodeltable context ctxTable{
 	State handleChange{
 		printCurrentMessage
 		
-		//i vari onMsg sono per un minimo di controllo sui messaggi che arrivano
-		onMsg(modelChangeTable : modelChangeTable(table,food,TASK,FC,QNT)){
-			onMsg(modelChangeTable : modelChangeTable(table,food,put,FC,QNT)){
-				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+		onMsg(modelChangeTable : modelChangeTable(table,TYPE,TASK,FC,QNT)){
+			solve(action(table, $payloadArg(1), $payloadArg(2), $payloadArg(3), $payloadArg(4)))
+			ifSolved{
 				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))
-			
-			}
-			onMsg(modelChangeTable : modelChangeTable(table,food,take,FC,QNT)){
-				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
-				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))			
-			}
-		}
-		
-		onMsg(modelChangeTable : modelChangeTable(table,dish,TASK,FC,QNT)){
-			onMsg(modelChangeTable : modelChangeTable(table,dish,put,FC,QNT)){
-				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
-				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))
-			}
-			onMsg(modelChangeTable : modelChangeTable(table,dish,take,FC,QNT)){
-				run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
-				forward table -m modelChangedTable : modelChangedTable($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3),$payloadArg(4))
+			}else{
+				println("Cambiamento non permesso!")
 			}
 		}
 	}
