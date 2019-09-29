@@ -20,14 +20,20 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', homepageRouter);
-app.use('/task', taskRouter);
+app.use('/', taskRouter);
+
+/*TEST SPACE*/
+/*app.post('/task', function(req, res, next) {
+   res.send(`${req.body.task}`)
+});*/
 
 // print request
-app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
   console.log(req)
   next()
-});
+});*/
 
+/*END TEST SPACE*/
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

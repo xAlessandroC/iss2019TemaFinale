@@ -7,6 +7,7 @@
 var app = require('./app');
 var debug = require('debug')('frontend:server');
 var http = require('http');
+var mqtt = require('./supports/mqtt/mqttSupport')
 
 /**
  * Get port from environment and store in Express.
@@ -20,7 +21,8 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
-
+var io = require('socket.io').listen(server)
+mqtt.setIoSocket(io)
 /**
  * Listen on provided port, on all network interfaces.
  */

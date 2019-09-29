@@ -1,6 +1,62 @@
 <html>
   <head>
       <title><%= title %> </title>
+
+      <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+      <script type="text/javascript">
+        var socket = io.connect();
+        socket.on('connect',function(){console.log("socket connected");});
+        socket.on('message',function(v){
+          console.log(v)
+          switch(true){
+            case v.includes('modelChangeMaitre(maitre,prepare'):
+              document.getElementById("temp").innerHTML="prepare";
+              document.getElementById('addFoodButton').disabled=false;
+              document.getElementById('foodcodeText').disabled=false;
+              document.getElementById('quantityText').disabled=false;
+              document.getElementById('stopButton').disabled=true;
+              document.getElementById('reactivateButton').disabled=true;
+              break;
+
+          case v.includes('modelChangeMaitre(maitre,add_food'):
+            document.getElementById("temp").innerHTML="addFood";
+            document.getElementById('clearButton').disabled=false;
+            document.getElementById('foodcodeText').disabled=true;
+            document.getElementById('quantityText').disabled=true;
+            document.getElementById('stopButton').disabled=true;
+            document.getElementById('reactivateButton').disabled=true;
+            break;
+
+          case v.includes('modelChangeMaitre(maitre,clear'):
+            document.getElementById("temp").innerHTML="clear";
+            document.getElementById('prepareButton').disabled=false;
+            document.getElementById('stopButton').disabled=true;
+            document.getElementById('reactivateButton').disabled=true;
+            break;
+          case v.includes('updateContent'):
+            
+
+            break;
+        }
+      });
+
+        /*functions*/
+        function send(task){
+          console.log("onClick:"+task);
+          var buttonToDisabled=task+"Button"
+          document.getElementById(buttonToDisabled).disabled=true
+          document.getElementById('stopButton').disabled=false
+          document.getElementById('reactivateButton').disabled=false
+
+          //submitting with AJAX
+          var foodcode=document.getElementById('foodcodeText').value
+          var quantity=document.getElementById('quantityText').value
+          var http = new XMLHttpRequest();
+          http.open("POST", "/task");
+          http.setRequestHeader( "content-type", "application/x-www-form-urlencoded" );
+          http.send("task="+task+"&foodcode="+foodcode+"&quantity="+quantity)
+        }
+      </script>
   </head>
 
   <body>
@@ -9,16 +65,20 @@
       </div>
       <div id="controlPanel">
         <div id="mainCommand">
-          <form action="/task" method="post">
-            <input type="submit" name="task" value="PREPARE"/>
-            <input type="submit" name="task" value="ADD_FOOD" disabled/>
-            <input type="submit" name="task" value="CLEAR" disabled/>
+          <form id="formTask" action="/task" method="post">
+            <input id="prepareButton" type="button" name="task" value="prepare" onclick="send('prepare')"/>
+            <input id="addFoodButton" type="submit" name="task" value="add_food" onclick="send('addFood')" disabled/>
+            <input id="clearButton" type="submit" name="task" value="clear" onclick="send('clear')" disabled/>
+            <input id="foodcodeText" type="text" name="foodcode" value="foodcode" disabled/>
+            <input id="quantityText" type="text" name="quantity" value="quantity" disabled/>
           </form>
 
         </div>
         <div id="srCommand">
-          <input type="submit" name="task" value="STOP" disabled/>
-          <input type="submit" name="task" value="REACTIVATE" disabled/>
+          <form action="/task" method="post">
+            <input id="stopButton" type="submit" name="task" value="stop" onclick="send('stop')" disabled/>
+            <input id="reactivateButton" type="submit" name="task" value="reactivate" onclick="send('reactivate')" disabled/>
+          </form>
         </div>
       </div>
       <div id="contentRoom">
@@ -35,6 +95,10 @@
           <div id="tableContent">
             <h3>Table</h3>
           </div>
+      </div>
+
+      <div id="arrivato">
+        <p id="temp">Nada</p>
       </div>
   </body>
 </html>
