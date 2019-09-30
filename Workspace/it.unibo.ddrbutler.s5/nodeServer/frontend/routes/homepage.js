@@ -7,6 +7,12 @@ const pic = {
 const dic = {
   dish : 0
 }
+const fic ={
+  taralli : 20,
+  brasciole:20,
+  polpette:20,
+  cicorie:20
+}
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -15,7 +21,7 @@ router.get('/', function(req, res, next) {
      pantryInitialContent : JSON.stringify(pic),//.replace(/{|}|"/g,'').replace(":"," "),
      dishwasherInitialContent : JSON.stringify(dic),//.replace(/{|}|"/g,'').replace(":"," "),
      tableInitialContent : null,
-     fridgeInitialContent : null
+     fridgeInitialContent : JSON.stringify(fic),
    });
 });
 

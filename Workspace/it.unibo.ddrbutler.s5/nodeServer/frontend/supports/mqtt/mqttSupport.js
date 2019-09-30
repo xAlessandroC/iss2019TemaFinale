@@ -29,7 +29,7 @@ client.on('message', function (topic, message){
 
   var msg = ""
   switch(topic){
-    case "unibo/qak/modelmaitre" :
+    case "unibo/qak/maitremodel" :
       var p1=message.toString().indexOf(',modelChangeMaitre')
       var p2=message.toString().indexOf('),')
       msg=message.toString().substring(p1+1,p2+1)
