@@ -15,6 +15,7 @@ Dispatch taskChange : taskChange(TARGET, TASK, FC, QNT)
 Dispatch robotUpdate : robotUpdate(TARGET, VALUE)
 Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
 Dispatch taskUpdate : taskUpdate(TARGET, TASK, FC, QNT)
+Dispatch positionUpdate : positionUpdate(TARGET, X, Y)
 
 Dispatch robotChanged : robotChanged(TARGET, VALUE)
 Dispatch sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
@@ -164,6 +165,7 @@ QActor resourcemodelbutler context ctxButler{
 				  whenMsg robotUpdate -> handleUpdate
 				  whenMsg sonarUpdate -> handleUpdate
 				  whenMsg taskUpdate -> handleUpdate
+				  whenMsg positionUpdate -> handleUpdate
 	
 	State handleChange{
 		onMsg(robotChange : robotChange(robot, X)){
@@ -193,6 +195,13 @@ QActor resourcemodelbutler context ctxButler{
 				println("Cambiamento non accettato")
 			}
 			
+			
+			solve(state(butler, X, Y))
+			["
+				var a1=getCurSol(\"X\")
+				var a2=getCurSol(\"Y\")
+			"]
+			println("STATE ROBOT: butler $a1 $a2")
 			//run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
 		}
 	}
@@ -212,6 +221,11 @@ QActor resourcemodelbutler context ctxButler{
 		onMsg(taskUpdate : taskUpdate(butler, TASK, FC, QNT)){
 			printCurrentMessage
 			run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
+		}
+		
+		onMsg(positionUpdate : positionUpdate(robot, X, Y)){
+			printCurrentMessage
+			run itunibo.robot.resourceModelSupport.updatePositionRobotModel( myself, payloadArg(1), payloadArg(2) )
 		}
 	}
 	Goto waitCmd
@@ -414,6 +428,7 @@ QActor butlermind context ctxButler {
 		delay 5000
 	}
 	Goto calibration
+	//Goto notifyPrepareMaitre
 	
 	State calibration {
 		printCurrentMessage
