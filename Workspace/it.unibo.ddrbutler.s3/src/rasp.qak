@@ -16,6 +16,7 @@ Dispatch taskChange : taskChange(TARGET, TASK, FC, QNT)
 Dispatch robotUpdate : robotUpdate(TARGET, VALUE)
 Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
 Dispatch taskUpdate : taskUpdate(TARGET, TASK, FC, QNT)
+Dispatch positionUpdate : positionUpdate(TARGET, X, Y)
 
 Dispatch robotChanged : robotChanged(TARGET, VALUE)
 Dispatch sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
@@ -177,6 +178,7 @@ QActor resourcemodelbutler context ctxRasp {
 				  whenMsg robotUpdate -> handleUpdate
 				  whenMsg sonarUpdate -> handleUpdate
 				  whenMsg taskUpdate -> handleUpdate
+				  whenMsg positionUpdate -> handleUpdate
 	
 	State handleChange {
 		onMsg(robotChange : robotChange(robot, X)) {
@@ -211,6 +213,11 @@ QActor resourcemodelbutler context ctxRasp {
 		onMsg(taskUpdate : taskUpdate(butler, TASK, FC, QNT)) {
 			printCurrentMessage
 			run itunibo.robot.resourceModelSupport.updateButlerModel(myself, payloadArg(1))
+		}
+		
+		onMsg(positionUpdate : positionUpdate(robot, X, Y)){
+			printCurrentMessage
+			run itunibo.robot.resourceModelSupport.updatePositionRobotModel( myself, payloadArg(1), payloadArg(2) )
 		}
 	}
 	Goto waitCmd

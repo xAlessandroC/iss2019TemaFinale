@@ -31,7 +31,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						isPresent = false
 						println("[ADD_FOOD_HANDLER]: waiting for a command...")
 					}
-					 transition(edgeName="t065",targetState="askingFood",cond=whenDispatch("startAddFood"))
+					 transition(edgeName="t066",targetState="askingFood",cond=whenDispatch("startAddFood"))
 				}	 
 				state("askingFood") { //this:State
 					action { //it:State
@@ -43,7 +43,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						}
 						forward("responseFood", "responseFood(yes)" ,"addfoodhandler" ) 
 					}
-					 transition(edgeName="t066",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
+					 transition(edgeName="t067",targetState="analyzeResponse",cond=whenDispatch("responseFood"))
 				}	 
 				state("analyzeResponse") { //this:State
 					action { //it:State
@@ -66,7 +66,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t067",targetState="takingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t068",targetState="takingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -81,13 +81,13 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t068",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t069",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[ADD_FOOD_HANDLER]: I'm putting the new food to the table")
-						forward("modelChangeTable","modelChangeTable(table, food, put, $FoodCode, $Qnt)","resourcemodeltable")
+						forward("modelChangeTable", "modelChangeTable(table,food,put,$FoodCode,$Qnt)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,food,$FoodCode,$Qnt,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planRH", cond=doswitch() )
@@ -97,7 +97,7 @@ class Addfoodhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t069",targetState="endAddFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t070",targetState="endAddFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endAddFood") { //this:State
 					action { //it:State

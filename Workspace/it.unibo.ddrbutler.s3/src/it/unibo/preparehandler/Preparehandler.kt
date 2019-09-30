@@ -35,21 +35,21 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						     		foodToPut = HashMap<String, String>()
 						println("[PREPARE_HANDLER]: waiting for a command...")
 					}
-					 transition(edgeName="t059",targetState="planP",cond=whenDispatch("startPrepare"))
+					 transition(edgeName="t060",targetState="planP",cond=whenDispatch("startPrepare"))
 				}	 
 				state("planP") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(pantry)" ,"planner" ) 
 					}
-					 transition(edgeName="t060",targetState="takingDishes",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t061",targetState="takingDishes",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingDishes") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						solve("dish(X)","") //set resVar	
 						if(currentSolution.isSuccess()) { var Temp=getCurSol("X").toString()
-						forward("modelChangePantry","modelChangePantry(pantry, take, $Temp)","resourcemodelpantry")
+						forward("modelChangePantry", "modelChangePantry(pantry,take,$Temp)" ,"resourcemodelpantry" ) 
 						DishesToPut = Integer.parseInt(getCurSol("X").toString())
 						println("[PREPARE_HANDLER]: I'm taking ${getCurSol("X")} dishes")
 						emit("updateContent", "updateContent(pantry,dish,null,$DishesToPut,take)" ) 
@@ -65,15 +65,15 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t061",targetState="puttingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
-					transition(edgeName="t062",targetState="puttingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
+					 transition(edgeName="t062",targetState="puttingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
+					transition(edgeName="t063",targetState="puttingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
 				}	 
 				state("puttingDishes") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[PREPARE_HANDLER]: I'm putting the dishes")
 						if(!isFood) isFood = true
-						forward("modelChangeTable","modelChangeTable(table, dish, put, null, $DishesToPut)","resourcemodeltable")
+						forward("modelChangeTable", "modelChangeTable(table,dish,put,null,$DishesToPut)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,dish,null,$DishesToPut,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planF", cond=doswitch() )
@@ -83,7 +83,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t063",targetState="takingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t064",targetState="takingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -112,7 +112,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[PREPARE_HANDLER]: I'm putting all the food on the table")
 						foodToPut.forEach { (K, V) -> println("[PREPARE_HANDLER]: I'm putting on the table $K, $V")
-						forward("modelChangeTable","modelChangeTable(table, food, put, $K, $V)","resourcemodeltable")
+						forward("modelChangeTable", "modelChangeTable(table,food,put,$K,$V)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,food,$K,$V,put)" ) 
 						}
 					}
@@ -123,7 +123,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t064",targetState="endPrepare",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t065",targetState="endPrepare",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endPrepare") { //this:State
 					action { //it:State

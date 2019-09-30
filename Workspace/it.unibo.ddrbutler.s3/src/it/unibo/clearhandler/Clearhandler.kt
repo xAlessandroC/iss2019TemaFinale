@@ -36,14 +36,14 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 									Qnt=""
 						println("[CLEAR_HANDLER]: waiting for a clear command...")
 					}
-					 transition(edgeName="t070",targetState="getAllContent",cond=whenDispatch("startClear"))
+					 transition(edgeName="t071",targetState="getAllContent",cond=whenDispatch("startClear"))
 				}	 
 				state("getAllContent") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("getContent", "getContent" ,"contentontable" ) 
 					}
-					 transition(edgeName="t071",targetState="planT",cond=whenDispatch("responseContent"))
+					 transition(edgeName="t072",targetState="planT",cond=whenDispatch("responseContent"))
 				}	 
 				state("planT") { //this:State
 					action { //it:State
@@ -55,8 +55,8 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						}
 						forward("goto", "goto(table)" ,"planner" ) 
 					}
-					 transition(edgeName="t072",targetState="takingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
-					transition(edgeName="t073",targetState="takingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
+					 transition(edgeName="t073",targetState="takingFood",cond=whenDispatchGuarded("planningCompleted",{isFood}))
+					transition(edgeName="t074",targetState="takingDishes",cond=whenDispatchGuarded("planningCompleted",{!isFood}))
 				}	 
 				state("takingFood") { //this:State
 					action { //it:State
@@ -71,7 +71,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 										var Qnt = s.split(",")[2]
 										foodToPut.put(FoodCode,Qnt)
 										println("prendo $FoodCode $Qnt")
-						forward("modelChangeTable","modelChangeTable(table, food, take, $FoodCode, $Qnt)","resourcemodeltable")
+						forward("modelChangeTable", "modelChangeTable(table,food,take,$FoodCode,$Qnt)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,food,$FoodCode,$Qnt,take)" ) 
 						
 									}
@@ -84,7 +84,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(fridge)" ,"planner" ) 
 					}
-					 transition(edgeName="t074",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t075",targetState="puttingFood",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
@@ -108,7 +108,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 										break
 									}
 								}
-						forward("modelChangeTable","modelChangeTable(table, dish, take, null, $Qnt)","resourcemodeltable")
+						forward("modelChangeTable", "modelChangeTable(table,dish,take,null,$Qnt)" ,"resourcemodeltable" ) 
 						emit("updateContent", "updateContent(table,dish,null,$Qnt,take)" ) 
 					}
 					 transition( edgeName="goto",targetState="planD", cond=doswitch() )
@@ -118,13 +118,13 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(dishwasher)" ,"planner" ) 
 					}
-					 transition(edgeName="t075",targetState="puttingDishes",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t076",targetState="puttingDishes",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("puttingDishes") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
-						forward("modelChangeDishwasher","modelChangeDishwasher(dishwasher, put, $Qnt)	","resourcemodeldishwasher")
+						forward("modelChangeDishwasher", "modelChangeDishwasher(dishwasher,put,$Qnt)" ,"resourcemodeldishwasher" ) 
 						emit("updateContent", "updateContent(dishwasher,dish,null,$Qnt,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planRH", cond=doswitch() )
@@ -134,7 +134,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t076",targetState="endClear",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t077",targetState="endClear",cond=whenDispatch("planningCompleted"))
 				}	 
 				state("endClear") { //this:State
 					action { //it:State
