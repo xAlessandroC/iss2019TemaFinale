@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <title>Maitre</title>
+  </head>
+
+  <body>
+    <h2>MAITRE</h2>
+
+    <div class="main">
+
+      <form class="buttonForm" action="/task" method="post">
+        <div class="pacButton">
+          <button type="submit" id="prepare" name="prepare" value="prepare"> prepare </button>
+          <button type="submit" id="addfood" name="addfood" value="add food" disabled> add food </button>
+          <button type="submit" id="clear" name="clear" value="clear" disabled> clear </button>
+        </div>
+
+        <div class="srButton">
+          <button type="submit" id="stop" name="stop" value="stop" disabled> stop </button>
+          <button type="submit" id="reactivate" name="reactivate" value="reactivate" disabled> reactivate </button>
+        </div>
+      </form>
+
+      <div class="contentRoom">
+        <div class="table">
+          <h3>table</h3>
+          <textarea name="table" rows="8" cols="80" disabled></textarea>
+        </div>
+
+        <div class="dishwasher">
+          <h3>dishwasher</h3>
+          <textarea name="dishwasher" rows="8" cols="80" disabled></textarea>
+        </div>
+
+        <div class="pantry">
+          <h3>pantry</h3>
+          <textarea name="pantry" rows="8" cols="80" disabled><%=initialContent%></textarea>
+        </div>
+
+        <div class="fridge">
+          <h3>fridge</h3>
+          <textarea name="fridge" rows="8" cols="80" disabled></textarea>
+        </div>
+      </div> <!--contentRoom -->
+    </div> <!--main-->
+
+  <body>
+</html>
