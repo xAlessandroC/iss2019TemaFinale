@@ -102,6 +102,9 @@ object moveUtils{
 		plannerUtil.doMove( move )
 		setPosition(actor)
 		//setDirection( actor )
+		GlobalScope.launch{
+			notifyMovement(actor)
+		}
 	}
 	
 	fun setPosition(actor : ActorBasic){
@@ -185,7 +188,16 @@ object moveUtils{
 		//doPlannedMove(actor, "s" )
    	}
 	
+	
 	//CUSTOM
+	
+	suspend fun notifyMovement(actor : ActorBasic){
+		var x = getPosX(actor);
+		var y = getPosY(actor);
+		
+		actor.forward("positionUpdate","positionUpdate(robot,$x,$y)","resourcemodelbutler")
+	}
+	
 	fun setTable(startX : Int,startY : Int,endX : Int,endY : Int,lengthX : Int,lengthY : Int){
 		if(startX>=0 && startY>=0 && endX>=0 && endY>=0){
 			var startMaxX = Math.min(startX,endX)

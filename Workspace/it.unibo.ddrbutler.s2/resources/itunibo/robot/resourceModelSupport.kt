@@ -24,5 +24,12 @@ object resourceModelSupport{
 	fun updateButlerModel( actor: ActorBasic, content: String){	
 		actor.solve(  "action(butler, $content )" )
 	}
+	fun updatePositionRobotModel( actor: ActorBasic, x: String, y: String ){
+ 			actor.solve(  "action(position, $x, $y )" ) //change the robot state model
+			actor.solve(  "position( robot, X,Y)" )
+			val solx = actor.getCurSol("X")
+			val soly = actor.getCurSol("Y")
+			println("UPDATE POSITION: robot $solx $soly")
+	}	
 }
 
