@@ -3,159 +3,15 @@
       <title><%= title %> </title>
 
       <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-      <script type="text/javascript">
-        var socket = io.connect();
-        socket.on('connect',function(){console.log("socket connected");});
-        socket.on('message',function(v){
-          console.log(v)
-          switch(true){
-            case v.includes('modelChangeMaitre(maitre,prepare'):
-              document.getElementById("temp").innerHTML="prepare";
-              document.getElementById('add_foodButton').disabled=false;
-              document.getElementById('clearButton').disabled=false;
-              document.getElementById('foodcodeText').disabled=false;
-              document.getElementById('quantityText').disabled=false;
-              document.getElementById('stopButton').disabled=true;
-              document.getElementById('reactivateButton').disabled=true;
-              break;
-
-          case v.includes('modelChangeMaitre(maitre,add_food'):
-            document.getElementById("temp").innerHTML="addFood";
-            document.getElementById('clearButton').disabled=false;
-            document.getElementById('add_foodButton').disabled=false;
-            document.getElementById('stopButton').disabled=true;
-            document.getElementById('reactivateButton').disabled=true;
-            break;
-
-          case v.includes('modelChangeMaitre(maitre,clear'):
-            document.getElementById("temp").innerHTML="clear";
-            document.getElementById('prepareButton').disabled=false;
-            document.getElementById('stopButton').disabled=true;
-            document.getElementById('reactivateButton').disabled=true;
-            break;
-          case v.includes('updateContent'):
-            var field=v.replace("updateContent(","").replace(")","").split(",")
-            console.log(field)
-            updateData(field)
-            break;
-        }
-      });
-
-        /*functions*/
-        function updateData(field){
-          var section=document.getElementById(field[0]+"Content")
-          var trovato=false;
-          section.childNodes.forEach((e)=>{
-            if(e.id===(field[1]==="dish"?field[1]:field[2])){
-              trovato=true
-              if(field[4]==="put"){
-                e.innerHTML=(field[1]==="dish"?field[1]:field[2]) + " " + (e.innerHTML.split(" ")[1]*1+parseInt(field[3]))
-              }
-              if(field[4]==="take"){
-                e.innerHTML=(field[1]==="dish"?field[1]:field[2]) + " " + (e.innerHTML.split(" ")[1]*1-parseInt(field[3]))
-              }
-            }
-          })
-          if(!trovato){
-            //cancello eventuale empty <p>
-            section.childNodes.forEach((e)=>{
-              if(e.id==="empty"){
-                e.remove()
-              }
-            })
-
-            var node = document.createElement("P");
-            node.id=(field[1]==="dish"?field[1]:field[2])
-            var textnode=document.createTextNode("");
-            if(field[4]==="put"){
-              textnode=document.createTextNode((field[1]==="dish"?field[1]:field[2]) + " " + parseInt(field[3]));
-            }
-            if(field[4]==="take"){
-              textnode=document.createTextNode((field[1]==="dish"?field[1]:field[2]) + " " + (parseInt(field[3])*-1));
-            }
-            node.appendChild(textnode);
-            section.appendChild(node);
-          }
-        }
-
-        function loadInitParam(){
-            loadPantryData()
-            loadFridgeData()
-            loadDishwasherData()
-            loadTableData()
-        }
-
-        function fillWithData(data,nameSection){
-          var fatherDiv = document.getElementById(nameSection);
-          if(data===null){
-            var node = document.createElement("P");
-            node.id="empty"
-            var textnode = document.createTextNode("empty");
-            node.appendChild(textnode);
-            fatherDiv.appendChild(node);
-            return
-          }
-
-          data=data.replace(/{|}|"/g,'').trim()
-          var field=data.split(",")
-          field.forEach((e)=>{
-            var name=e.split(":")[0]
-            var value=e.split(":")[1]
-
-            var node = document.createElement("P");
-            node.id=name
-            var textnode = document.createTextNode(name+" "+value);
-            node.appendChild(textnode);
-            fatherDiv.appendChild(node);
-          })
-        }
-
-        function loadPantryData(){
-          var initData = <%-JSON.stringify(pantryInitialContent) %>
-          fillWithData(initData,"pantryContent")
-        }
-
-        function loadFridgeData(){
-          var initData = <%-JSON.stringify(fridgeInitialContent) %>
-          fillWithData(initData,"fridgeContent")
-        }
-
-        function loadDishwasherData(){
-          var initData = <%-JSON.stringify(dishwasherInitialContent) %>
-          fillWithData(initData,"dishwasherContent")
-        }
-
-        function loadTableData(){
-          var initData = <%-JSON.stringify(tableInitialContent) %>
-          fillWithData(initData,"tableContent")
-        }
-
-        function send(task){
-          console.log("onClick:"+task);
-          var buttonToDisabled=task+"Button"
-          document.getElementById(buttonToDisabled).disabled=true
-          document.getElementById('stopButton').disabled=false
-          document.getElementById('reactivateButton').disabled=false
-          if(task==="add_food"){
-            document.getElementById("clearButton").disabled=true
-          }
-          if(task==="clear"){
-            document.getElementById("add_foodButton").disabled=true
-          }
-
-          //submitting with AJAX
-          var foodcode=document.getElementById('foodcodeText').value
-          var quantity=document.getElementById('quantityText').value
-          //console.log("FOODCODE:"+foodcode+" QNT:"+quantity)
-          var http = new XMLHttpRequest();
-          http.open("POST", "/task");
-          http.setRequestHeader( "content-type", "application/x-www-form-urlencoded" );
-          http.send("task="+task+"&foodcode="+foodcode+"&quantity="+quantity)
-        }
-      </script>
+      <script type="text/javascript" src="/javascripts/socketIo.js"></script>
+      <script type="text/javascript" src="/javascripts/dataManagement.js"></script>
+      <script type="text/javascript" src="/javascripts/eventsHandler.js"></script>
   </head>
 
-  <body onLoad="loadInitParam()">
+  <body onLoad='loadInitParam(<%-JSON.stringify(pantryInitialContent) %>,
+    <%-JSON.stringify(fridgeInitialContent) %>,
+    <%-JSON.stringify(dishwasherInitialContent) %>,
+    <%-JSON.stringify(tableInitialContent) %>)'>
       <div id="title">
         <h1>MAITRE</h1>
       </div>
@@ -202,10 +58,6 @@
 
             </div>
           </div>
-      </div>
-
-      <div id="arrivato">
-        <p id="temp">Nada</p>
       </div>
   </body>
 </html>

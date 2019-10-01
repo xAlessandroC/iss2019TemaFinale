@@ -4,6 +4,7 @@ import org.eclipse.californium.core.CoapResource
 import it.unibo.kactor.ActorBasic
 import org.eclipse.californium.core.CoapServer
 import org.eclipse.californium.core.server.resources.CoapExchange
+import org.eclipse.californium.core.coap.CoAP.Type
 
 class fridgeContentResource (name : String ) : CoapResource(name) {
 	
