@@ -41,7 +41,7 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("action(robot,move(${payloadArg(1)}))","") //set resVar	
-								if(currentSolution.isSuccess()) { forward("robotChanged", "robotChanged(robot,${payloadArg(1)})" ,"robotmind" ) 
+								if(currentSolution.isSuccess()) { emit("robotChanged", "robotChanged(robot,${payloadArg(1)})" ) 
 								 }
 								else
 								{ println("Cambiamento non accettato")
@@ -55,7 +55,7 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("action(butler,${payloadArg(1)})","") //set resVar	
-								if(currentSolution.isSuccess()) { forward("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butlermind" ) 
+								if(currentSolution.isSuccess()) { emit("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ) 
 								 }
 								else
 								{ println("Cambiamento non accettato")

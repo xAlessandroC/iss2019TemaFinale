@@ -17,9 +17,9 @@ Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
 Dispatch taskUpdate : taskUpdate(TARGET, TASK, FC, QNT)
 Dispatch positionUpdate : positionUpdate(TARGET, X, Y)
 
-Dispatch robotChanged : robotChanged(TARGET, VALUE)
-Dispatch sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
-Dispatch taskChanged : taskChanged(TARGET, TASK, FC, QNT)
+Event robotChanged : robotChanged(TARGET, VALUE)
+Event sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
+Event taskChanged : taskChanged(TARGET, TASK, FC, QNT)
 
 Dispatch movementCmd : movementCmd(CMD)
 
@@ -173,7 +173,7 @@ QActor resourcemodelbutler context ctxButler{
 			
 			solve(  action(robot, move($payloadArg(1)) ) ) 
 			ifSolved{
-				forward robotmind -m robotChanged : robotChanged(robot, $payloadArg(1))
+				emit robotChanged : robotChanged(robot, $payloadArg(1))
 			}else{
 				println("Cambiamento non accettato")
 			}
@@ -190,7 +190,7 @@ QActor resourcemodelbutler context ctxButler{
 			
 			solve(  action(butler, $payloadArg(1)) ) 
 			ifSolved{
-				forward butlermind -m taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
+				emit taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
 			}else{
 				println("Cambiamento non accettato")
 			}
@@ -404,7 +404,7 @@ QActor robotmind context ctxButler{
 	State waitCmd{
 		
 	}
-	Transition t0 whenMsg robotChanged -> handleChange
+	Transition t0 whenEvent robotChanged -> handleChange
 				  
 	State handleChange {
 		
@@ -441,7 +441,7 @@ QActor butlermind context ctxButler {
 	State waitingPrepare {
 		println("[BUTLER_MIND]: waiting for a prepare command...")
 	}
-	Transition t0 whenMsg taskChanged -> startPrepare
+	Transition t0 whenEvent taskChanged -> startPrepare
 	
 	State startPrepare {
 		printCurrentMessage
@@ -465,7 +465,7 @@ QActor butlermind context ctxButler {
 		}
 	}
 	Transition t0 whenMsg prepareCompleted -> notifyPrepareMaitre
-				  whenMsg taskChanged -> waitingPrepCompleted
+				  whenEvent taskChanged -> waitingPrepCompleted
 				  whenMsg stopTask -> suspendedPrepare
 				  
 	State suspendedPrepare{
@@ -478,7 +478,7 @@ QActor butlermind context ctxButler {
 		}
 	}
 	Transition t0 whenEvent reactivateTask ->waitingPrepCompleted
-				  whenMsg taskChanged -> suspendedPrepare
+				  whenEvent taskChanged -> suspendedPrepare
 	
 	State notifyPrepareMaitre {
 		printCurrentMessage
@@ -490,7 +490,7 @@ QActor butlermind context ctxButler {
 	State waitingAC {
 		println("[BUTLER_MIND]: waiting for an AC command...")
 	}
-	Transition t0 whenMsg taskChanged -> startAC
+	Transition t0 whenEvent taskChanged -> startAC
 	
 	State startAC {
 		printCurrentMessage
@@ -523,7 +523,7 @@ QActor butlermind context ctxButler {
 		}
 	}
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
-				  whenMsg taskChanged -> waitingAddFoodCompleted
+				  whenEvent taskChanged -> waitingAddFoodCompleted
 				  whenMsg stopTask -> suspendedAddFood
 				  
 	State suspendedAddFood{
@@ -536,7 +536,7 @@ QActor butlermind context ctxButler {
 		}
 	}
 	Transition t0 whenEvent reactivateTask ->waitingAddFoodCompleted
-				  whenMsg taskChanged -> suspendedAddFood
+				  whenEvent taskChanged -> suspendedAddFood
 	
 	State notifyAddFoodMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
@@ -554,7 +554,7 @@ QActor butlermind context ctxButler {
 		}
 	}
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
-				  whenMsg taskChanged -> waitingClearCompleted
+				  whenEvent taskChanged -> waitingClearCompleted
 				  whenMsg stopTask -> suspendedClear
 				  
 	State suspendedClear{
@@ -567,7 +567,7 @@ QActor butlermind context ctxButler {
 		}
 	}
 	Transition t0 whenEvent reactivateTask ->waitingClearCompleted
-				  whenMsg taskChanged -> suspendedClear
+				  whenEvent taskChanged -> suspendedClear
 	
 	State notifyClearMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)

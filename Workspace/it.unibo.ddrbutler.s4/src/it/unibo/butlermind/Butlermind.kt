@@ -38,7 +38,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for a prepare command...")
 					}
-					 transition(edgeName="t022",targetState="startPrepare",cond=whenDispatch("taskChanged"))
+					 transition(edgeName="t022",targetState="startPrepare",cond=whenEvent("taskChanged"))
 				}	 
 				state("startPrepare") { //this:State
 					action { //it:State
@@ -63,7 +63,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 					}
 					 transition(edgeName="t023",targetState="notifyPrepareMaitre",cond=whenDispatch("prepareCompleted"))
-					transition(edgeName="t024",targetState="waitingPrepCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t024",targetState="waitingPrepCompleted",cond=whenEvent("taskChanged"))
 					transition(edgeName="t025",targetState="suspendedPrepare",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedPrepare") { //this:State
@@ -76,7 +76,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 					}
 					 transition(edgeName="t026",targetState="waitingPrepCompleted",cond=whenEvent("reactivateTask"))
-					transition(edgeName="t027",targetState="suspendedPrepare",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t027",targetState="suspendedPrepare",cond=whenEvent("taskChanged"))
 				}	 
 				state("notifyPrepareMaitre") { //this:State
 					action { //it:State
@@ -89,7 +89,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for an AC command...")
 					}
-					 transition(edgeName="t028",targetState="startAC",cond=whenDispatch("taskChanged"))
+					 transition(edgeName="t028",targetState="startAC",cond=whenEvent("taskChanged"))
 				}	 
 				state("startAC") { //this:State
 					action { //it:State
@@ -122,7 +122,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 					}
 					 transition(edgeName="t032",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
-					transition(edgeName="t033",targetState="waitingAddFoodCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t033",targetState="waitingAddFoodCompleted",cond=whenEvent("taskChanged"))
 					transition(edgeName="t034",targetState="suspendedAddFood",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedAddFood") { //this:State
@@ -135,7 +135,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 					}
 					 transition(edgeName="t035",targetState="waitingAddFoodCompleted",cond=whenEvent("reactivateTask"))
-					transition(edgeName="t036",targetState="suspendedAddFood",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t036",targetState="suspendedAddFood",cond=whenEvent("taskChanged"))
 				}	 
 				state("notifyAddFoodMaitre") { //this:State
 					action { //it:State
@@ -153,7 +153,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 					}
 					 transition(edgeName="t037",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
-					transition(edgeName="t038",targetState="waitingClearCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t038",targetState="waitingClearCompleted",cond=whenEvent("taskChanged"))
 					transition(edgeName="t039",targetState="suspendedClear",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedClear") { //this:State
@@ -166,7 +166,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 					}
 					 transition(edgeName="t040",targetState="waitingClearCompleted",cond=whenEvent("reactivateTask"))
-					transition(edgeName="t041",targetState="suspendedClear",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t041",targetState="suspendedClear",cond=whenEvent("taskChanged"))
 				}	 
 				state("notifyClearMaitre") { //this:State
 					action { //it:State
