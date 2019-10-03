@@ -17,9 +17,9 @@ Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
 Dispatch taskUpdate : taskUpdate(TARGET, TASK, FC, QNT)
 Dispatch positionUpdate : positionUpdate(TARGET, X, Y)
 
-Dispatch robotChanged : robotChanged(TARGET, VALUE)
-Dispatch sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
-Dispatch taskChanged : taskChanged(TARGET, TASK, FC, QNT)
+Event robotChanged : robotChanged(TARGET, VALUE)
+Event sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
+Event taskChanged : taskChanged(TARGET, TASK, FC, QNT)
 
 Dispatch movementCmd : movementCmd(CMD)
 
@@ -176,7 +176,7 @@ QActor resourcemodelbutler context ctxButler{
 	State handleChange{
 		onMsg(robotChange : robotChange(robot, X)){
 			printCurrentMessage
-			forward robotmind -m robotChanged : robotChanged(robot, $payloadArg(1))
+			emit robotChanged : robotChanged(robot, $payloadArg(1))
 			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 		}
 		
@@ -186,7 +186,7 @@ QActor resourcemodelbutler context ctxButler{
 		
 		onMsg(taskChange : taskChange(butler, TASK, FC, QNT)){
 			printCurrentMessage
-			forward butlermind -m taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
+			emit taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
 			run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
 		}
 	}
@@ -353,7 +353,7 @@ QActor robotmind context ctxButler{
 	State waitCmd{
 		
 	}
-	Transition t0 whenMsg robotChanged -> handleChange
+	Transition t0 whenEvent robotChanged -> handleChange
 				  
 	State handleChange {
 		
@@ -406,7 +406,7 @@ QActor butlermind context ctxButler {
 	State waitingPrepare {
 		println("[BUTLER_MIND]: waiting for a prepare command...")
 	}
-	Transition t0 whenMsg taskChanged -> startPrepare
+	Transition t0 whenEvent taskChanged -> startPrepare
 	
 	State startPrepare {
 		printCurrentMessage
@@ -433,7 +433,7 @@ QActor butlermind context ctxButler {
 	State waitingAC {
 		println("[BUTLER_MIND]: waiting for an AC command...")
 	}
-	Transition t0 whenMsg taskChanged -> startAC
+	Transition t0 whenEvent taskChanged -> startAC
 	
 	State startAC {
 		printCurrentMessage
