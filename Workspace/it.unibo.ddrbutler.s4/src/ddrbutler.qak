@@ -483,7 +483,7 @@ QActor butlermind context ctxButler {
 	State notifyPrepareMaitre {
 		printCurrentMessage
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
+		["forward(\"notifyPrepare\",\"notifyPrepare\",\"maitre\")"]
 	}
 	Goto waitingAC
 	
@@ -540,7 +540,7 @@ QActor butlermind context ctxButler {
 	
 	State notifyAddFoodMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, add_food)\",\"maitremodel\")"] 
+		["forward(\"notifyAddFood\",\"notifyAddFood\",\"maitre\")"] 
 	}
 	Goto waitingAC
 	
@@ -571,7 +571,7 @@ QActor butlermind context ctxButler {
 	
 	State notifyClearMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, clear)\",\"maitremodel\")"]
+		["forward(\"notifyClear\",\"notifyClear\",\"maitre\")"]
 	}
 	Goto waitingPrepare	
 }
@@ -1144,6 +1144,7 @@ QActor preparehandler context ctxButler {
 								
 				["var qntInteger=Integer.parseInt(Qnt)"]
 				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				delay 500
 				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)

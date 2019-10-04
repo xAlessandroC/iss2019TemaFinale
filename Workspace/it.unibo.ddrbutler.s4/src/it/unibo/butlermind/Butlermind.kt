@@ -81,7 +81,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("notifyPrepareMaitre") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("modelChangeMaitre","modelChangeMaitre(maitre, prepare)","maitremodel")
+						forward("notifyPrepare","notifyPrepare","maitre")
 					}
 					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
 				}	 
@@ -139,7 +139,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("notifyAddFoodMaitre") { //this:State
 					action { //it:State
-						forward("modelChangeMaitre","modelChangeMaitre(maitre, add_food)","maitremodel")
+						forward("notifyAddFood","notifyAddFood","maitre")
 					}
 					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
 				}	 
@@ -170,7 +170,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("notifyClearMaitre") { //this:State
 					action { //it:State
-						forward("modelChangeMaitre","modelChangeMaitre(maitre, clear)","maitremodel")
+						forward("notifyClear","notifyClear","maitre")
 					}
 					 transition( edgeName="goto",targetState="waitingPrepare", cond=doswitch() )
 				}	 

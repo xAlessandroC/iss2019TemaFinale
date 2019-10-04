@@ -100,6 +100,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						
 										foodToPut.put(FoodCode, Qnt)
 						var qntInteger=Integer.parseInt(Qnt)
+						delay(500) 
 						forward("modelChangeFridge","modelChangeFridge(fridge,take,$FoodCode,$Qnt)","resourcemodelfridge")
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 						}

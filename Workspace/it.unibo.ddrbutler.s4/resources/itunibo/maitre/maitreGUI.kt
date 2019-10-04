@@ -109,9 +109,10 @@ object maitreGUI {
 	}
 	
 	public fun readFromFile(){
-		var actor = sysUtil.getActor("maitremodel")
+		var actor = sysUtil.getActor("maitre")
 		actor!!.solve("findall(content(X, Y, Z, W), content(X, Y, Z, W), L)")
 		var lineRead : String = actor.getCurSol("L").toString()
+		println(lineRead)
 		var lines : List<String> = lineRead.replace("[", "").replace("]", "").split("),")
 				
 		val stringBuilder = StringBuilder()
