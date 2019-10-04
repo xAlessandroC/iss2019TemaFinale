@@ -98,6 +98,7 @@ class Preparehandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 										Qnt = s.split(",")[1]
 						
 										foodToPut.put(FoodCode, Qnt)
+						delay(500) 
 						emit("updateContent", "updateContent(fridge,food,$FoodCode,$Qnt,take)" ) 
 						}
 						 }

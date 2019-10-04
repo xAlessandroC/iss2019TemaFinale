@@ -47,10 +47,6 @@ Dispatch modelChangeMaitre : modelChangeMaitre(DEVICE, TASK)
 Dispatch taskAssigned : taskAssigned
 Dispatch backWait : backWait
 
-Dispatch modelChangeMaitre : modelChangeMaitre(NAME, STATE)
-Dispatch modelChangedMaitre : modelChangedMaitre(NAME, TASK)
-Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
-
 /* UPDATING STATE ROOM */
 Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)
 
@@ -422,8 +418,7 @@ QActor butlermind context ctxButler {
 				  whenMsg backWait -> waitingPrepare
 	
 	State notifyPrepareMaitre {
-		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
+		["forward(\"notifyPrepare\",\"notifyPrepare\",\"maitre\")"]
 	}
 	Goto waitingAC
 	
@@ -464,8 +459,7 @@ QActor butlermind context ctxButler {
 	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
 	
 	State notifyAddFoodMaitre {
-		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, add_food)\",\"maitremodel\")"] 
+		["forward(\"notifyAddFood\",\"notifyAddFood\",\"maitre\")"] 
 	}
 	Goto waitingAC
 	
@@ -475,8 +469,7 @@ QActor butlermind context ctxButler {
 	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
 	
 	State notifyClearMaitre {
-		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, clear)\",\"maitremodel\")"]
+		["forward(\"notifyClear\",\"notifyClear\",\"maitre\")"]
 	}
 	Goto waitingPrepare	
 }
@@ -1008,6 +1001,7 @@ QActor preparehandler context ctxButler {
 				foodToPut.put(FoodCode, Qnt)
 			"]							
 				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
+				delay 500
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
 		}

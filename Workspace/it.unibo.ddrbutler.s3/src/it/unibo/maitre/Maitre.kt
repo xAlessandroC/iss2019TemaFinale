@@ -15,13 +15,22 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				var stateToReturn=""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[MAITRE]: starts...")
 						itunibo.maitre.maitreGUI.init(myself)
+						solve("consult('sysRules.pl')","") //set resVar	
+						solve("assert(content(pantry,dish,null,20))","") //set resVar	
+						solve("assert(content(dishwasher,dish,null,0))","") //set resVar	
+						solve("assert(content(fridge,food,taralli,20))","") //set resVar	
+						solve("assert(content(fridge,food,brasciole,20))","") //set resVar	
+						solve("assert(content(fridge,food,polpette,20))","") //set resVar	
+						solve("assert(content(fridge,food,cicorie,20))","") //set resVar	
 					}
-					 transition(edgeName="t00",targetState="initStateRoom",cond=whenDispatch("updateMaitre"))
+					 transition( edgeName="goto",targetState="initStateRoom", cond=doswitch() )
 				}	 
 				state("initStateRoom") { //this:State
 					action { //it:State
@@ -32,10 +41,11 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("sendingPrepare") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in sendingPrepare")
+						stateToReturn="sendingPrepare"
 						itunibo.maitre.maitreGUI.enableOnlyPrepare(  )
 					}
-					 transition(edgeName="t01",targetState="notifyPrepare",cond=whenDispatch("prepareSended"))
-					transition(edgeName="t02",targetState="updateSP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t00",targetState="notifyPrepare",cond=whenDispatch("prepareSended"))
+					transition(edgeName="t01",targetState="update",cond=whenEvent("updateContent"))
 				}	 
 				state("notifyPrepare") { //this:State
 					action { //it:State
@@ -46,20 +56,22 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("waitingPrepCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
+						stateToReturn="waitingPrepCompleted"
 						forward("modelUpdateMaitre", "modelUpdate(maitre,prepare)" ,"maitremodel" ) 
 						println("[MAITRE]: waiting for a prepareCompleted...")
 					}
-					 transition(edgeName="t03",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t04",targetState="updateP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t02",targetState="sendingAC",cond=whenDispatch("notifyPrepare"))
+					transition(edgeName="t03",targetState="update",cond=whenEvent("updateContent"))
 				}	 
 				state("sendingAC") { //this:State
 					action { //it:State
 						println("[MAITRE]: I'm in sendingAC")
 						itunibo.maitre.maitreGUI.enableOnlyAC(  )
+						stateToReturn="sendingAC"
 					}
-					 transition(edgeName="t05",targetState="notifyAddFood",cond=whenDispatch("addFoodSended"))
-					transition(edgeName="t06",targetState="notifyClear",cond=whenDispatch("clearSended"))
-					transition(edgeName="t07",targetState="updateP",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t04",targetState="notifyAddFood",cond=whenDispatch("addFoodSended"))
+					transition(edgeName="t05",targetState="notifyClear",cond=whenDispatch("clearSended"))
+					transition(edgeName="t06",targetState="update",cond=whenEvent("updateContent"))
 				}	 
 				state("notifyAddFood") { //this:State
 					action { //it:State
@@ -70,12 +82,13 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("waitingAddFoodCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
+						stateToReturn="waitingAddFoodCompleted"
 						forward("modelUpdateMaitre", "modelUpdate(maitre,addFood)" ,"maitremodel" ) 
 						println("[MAITRE]: waiting for an addFoodCompleted...")
 					}
-					 transition(edgeName="t08",targetState="sendingAC",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t09",targetState="updateAC",cond=whenDispatch("updateMaitre"))
-					transition(edgeName="t010",targetState="handleWarning",cond=whenEvent("alert"))
+					 transition(edgeName="t07",targetState="sendingAC",cond=whenDispatch("notifyAddFood"))
+					transition(edgeName="t08",targetState="update",cond=whenEvent("updateContent"))
+					transition(edgeName="t09",targetState="handleWarning",cond=whenEvent("alert"))
 				}	 
 				state("notifyClear") { //this:State
 					action { //it:State
@@ -86,46 +99,54 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("waitingClearCompleted") { //this:State
 					action { //it:State
 						itunibo.maitre.maitreGUI.enableOnlySR(  )
+						stateToReturn="waitingClearCompleted"
 						forward("modelUpdateMaitre", "modelUpdate(maitre,clear)" ,"maitremodel" ) 
 						println("[MAITRE]: waiting for a clearCompleted...")
 					}
-					 transition(edgeName="t011",targetState="sendingPrepare",cond=whenDispatch("modelChangedMaitre"))
-					transition(edgeName="t012",targetState="updateC",cond=whenDispatch("updateMaitre"))
+					 transition(edgeName="t010",targetState="sendingPrepare",cond=whenDispatch("notifyClear"))
+					transition(edgeName="t011",targetState="update",cond=whenEvent("updateContent"))
 				}	 
-				state("updateSP") { //this:State
+				state("update") { //this:State
 					action { //it:State
-						println("[MAITRE]: I'm in updateSP")
+						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT,OP_T)"), Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT,OP_T)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("[MAITRE]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
+								solve("content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},X)","") //set resVar	
+								if(currentSolution.isSuccess()) { 
+													var old = Integer.parseInt(getCurSol("X").toString())
+													var difference = Integer.parseInt(payloadArg(3))
+													var New = 0					
+								
+													if(payloadArg(4).equals("put")){
+														New = old + difference
+													}
+													if(payloadArg(4).equals("take")){
+														New = old - difference
+													}
+								solve("replaceRule(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_),content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},$New))","") //set resVar	
+								if(currentSolution.isSuccess()) { println("[MAITRE]: I've replaced a line")
+								 }
+								else
+								{ println("[MAITRE]: error in replacing the new line")
+								 }
+								 }
+								else
+								{ solve("assert(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								if(currentSolution.isSuccess()) { println("[MAITRE]: I've added a new line")
+								 }
+								else
+								{ println("[MAITRE]: error in adding a new line")
+								 }
+								 }
+						}
 						itunibo.maitre.maitreGUI.readFromFile(  )
+						forward("updateCompleted", "updateCompleted" ,"maitre" ) 
 					}
-					 transition( edgeName="goto",targetState="sendingPrepare", cond=doswitch() )
-				}	 
-				state("updateAC") { //this:State
-					action { //it:State
-						println("[MAITRE]: I'm in updateAC")
-						itunibo.maitre.maitreGUI.readFromFile(  )
-					}
-					 transition( edgeName="goto",targetState="sendingAC", cond=doswitch() )
-				}	 
-				state("updateP") { //this:State
-					action { //it:State
-						println("[MAITRE]: I'm in updateP")
-						itunibo.maitre.maitreGUI.readFromFile(  )
-					}
-					 transition( edgeName="goto",targetState="waitingPrepCompleted", cond=doswitch() )
-				}	 
-				state("updateA") { //this:State
-					action { //it:State
-						println("[MAITRE]: I'm in updateA")
-						itunibo.maitre.maitreGUI.readFromFile(  )
-					}
-					 transition( edgeName="goto",targetState="waitingAddFoodCompleted", cond=doswitch() )
-				}	 
-				state("updateC") { //this:State
-					action { //it:State
-						println("[MAITRE]: I'm in updateC")
-						itunibo.maitre.maitreGUI.readFromFile(  )
-					}
-					 transition( edgeName="goto",targetState="waitingClearCompleted", cond=doswitch() )
+					 transition(edgeName="t012",targetState="sendingPrepare",cond=whenDispatchGuarded("updateCompleted",{stateToReturn.equals("sendingPrepare")}))
+					transition(edgeName="t013",targetState="waitingPrepCompleted",cond=whenDispatchGuarded("updateCompleted",{stateToReturn.equals("waitingPrepCompleted")}))
+					transition(edgeName="t014",targetState="sendingAC",cond=whenDispatchGuarded("updateCompleted",{stateToReturn.equals("sendingAC")}))
+					transition(edgeName="t015",targetState="waitingAddFoodCompleted",cond=whenDispatchGuarded("updateCompleted",{stateToReturn.equals("waitingAddFoodCompleted")}))
+					transition(edgeName="t016",targetState="waitingClearCompleted",cond=whenDispatchGuarded("updateCompleted",{stateToReturn.equals("waitingClearCompleted")}))
 				}	 
 				state("handleWarning") { //this:State
 					action { //it:State

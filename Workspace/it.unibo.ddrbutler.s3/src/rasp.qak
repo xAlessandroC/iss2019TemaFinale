@@ -1017,6 +1017,7 @@ QActor preparehandler context ctxRasp {
 				foodToPut.put(FoodCode, Qnt)
 			"]							
 				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
+				delay 500
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
 		}
