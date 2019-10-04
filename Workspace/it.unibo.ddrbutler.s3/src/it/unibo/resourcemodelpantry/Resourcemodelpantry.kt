@@ -27,24 +27,7 @@ class Resourcemodelpantry ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t084",targetState="handleChange",cond=whenDispatch("modelChangePantry"))
-					transition(edgeName="t085",targetState="handleUpdate",cond=whenDispatch("modelUpdatePantry"))
-				}	 
-				state("handleChange") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangePantry(NAME,OP,QNT)"), Term.createTerm("modelChangePantry(pantry,put,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedPantry", "modelChangedPantry(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"pantry" ) 
-								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(1), payloadArg(2) )
-						}
-						if( checkMsgContent( Term.createTerm("modelChangePantry(NAME,OP,QNT)"), Term.createTerm("modelChangePantry(pantry,take,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedPantry", "modelChangedPantry(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"pantry" ) 
-								itunibo.pantry.resourceModelSupport.updatePantryModel(myself ,payloadArg(1), payloadArg(2) )
-						}
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdatePantry"))
 				}	 
 				state("handleUpdate") { //this:State
 					action { //it:State

@@ -27,24 +27,7 @@ class Resourcemodeldishwasher ( name: String, scope: CoroutineScope ) : ActorBas
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t081",targetState="handleChange",cond=whenDispatch("modelChangeDishwasher"))
-					transition(edgeName="t082",targetState="handleUpdate",cond=whenDispatch("modelUpdateDishwasher"))
-				}	 
-				state("handleChange") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangeDishwasher(NAME,OP,QNT)"), Term.createTerm("modelChangeDishwasher(dishwasher,put,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedDishwasher", "modelChangedDishwasher(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"dishwasher" ) 
-								itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself ,payloadArg(1), payloadArg(2) )
-						}
-						if( checkMsgContent( Term.createTerm("modelChangeDishwasher(NAME,OP,QNT)"), Term.createTerm("modelChangeDishwasher(dishwasher,take,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChangedDishwasher", "modelChangedDishwasher(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"dishwasher" ) 
-								itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself ,payloadArg(1), payloadArg(2) )
-						}
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateDishwasher"))
 				}	 
 				state("handleUpdate") { //this:State
 					action { //it:State

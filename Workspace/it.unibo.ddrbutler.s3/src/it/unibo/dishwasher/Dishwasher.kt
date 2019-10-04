@@ -16,13 +16,12 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var goToPut = false
 				var qnt = -1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[DISHWASHER]: Started...")
-						forward("setLocation", "setLocation(dishwasher,3,3)" ,"planner" ) 
+						forward("setLocation","setLocation(dishwasher,3,3)","planner")
 						itunibo.dishwasher.dishwasherSupport.create(  )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -31,36 +30,30 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						forward("modelUpdateDishwasher", "modelUpdateDishwasher(dishwasher,idle,null)" ,"resourcemodeldishwasher" ) 
 					}
-					 transition(edgeName="t080",targetState="analyzeMsg",cond=whenDispatch("modelChangedDishwasher"))
-				}	 
-				state("analyzeMsg") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangedDishwasher(NAME,OP,QNT)"), Term.createTerm("modelChangedDishwasher(dishwasher,OP,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								if(payloadArg(1).equals("put")){
-												goToPut=true
-											}
-								if(payloadArg(1).equals("take")){
-												goToPut=false
-											}
-								qnt = Integer.parseInt(payloadArg(2))
-						}
-					}
-					 transition( edgeName="goto",targetState="putDish", cond=doswitchGuarded({goToPut}) )
-					transition( edgeName="goto",targetState="takeDish", cond=doswitchGuarded({! goToPut}) )
+					 transition(edgeName="t00",targetState="putDish",cond=whenDispatch("putDishDishwasher"))
+					transition(edgeName="t01",targetState="takeDish",cond=whenDispatch("takeDishDishwasher"))
 				}	 
 				state("putDish") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						itunibo.dishwasher.dishwasherSupport.putDishes(myself ,qnt )
+						if( checkMsgContent( Term.createTerm("putDishDishwasher(QNT)"), Term.createTerm("putDishDishwasher(QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelUpdateDishwasher", "modelUpdateDishwasher(dishwasher,put,${payloadArg(0)})" ,"resourcemodeldishwasher" ) 
+								qnt = Integer.parseInt(payloadArg(0))
+								itunibo.dishwasher.dishwasherSupport.putDishes(myself ,qnt )
+						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("takeDish") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						itunibo.dishwasher.dishwasherSupport.takeDishes(myself ,qnt )
+						if( checkMsgContent( Term.createTerm("takeDishDishwasher(QNT)"), Term.createTerm("takeDishDishwasher(QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelUpdateDishwasher", "modelUpdateDishwasher(dishwasher,take,${payloadArg(0)})" ,"resourcemodeldishwasher" ) 
+								qnt = Integer.parseInt(payloadArg(0))
+								itunibo.dishwasher.dishwasherSupport.takeDishes(myself ,qnt )
+						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

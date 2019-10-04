@@ -20,6 +20,13 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: starts...")
 						solve("consult('sysRules.pl')","") //set resVar	
+						solve("assert(content(pantry,dish,null,20))","") //set resVar	
+						solve("assert(content(dishwasher,dish,null,0))","") //set resVar	
+						solve("assert(content(fridge,food,taralli,20))","") //set resVar	
+						solve("assert(content(fridge,food,brasciole,20))","") //set resVar	
+						solve("assert(content(fridge,food,polpette,20))","") //set resVar	
+						solve("assert(content(fridge,food,cicorie,20))","") //set resVar	
+						forward("updateMaitre", "updateMaitre" ,"maitre" ) 
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
 				}	 
@@ -27,14 +34,14 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						println("[MAITRE_MODEL]: waiting for a command...")
 					}
-					 transition(edgeName="t012",targetState="modelChanging",cond=whenDispatch("modelChange"))
-					transition(edgeName="t013",targetState="modelUpdating",cond=whenDispatch("modelUpdate"))
-					transition(edgeName="t014",targetState="updatingRoom",cond=whenEvent("updateContent"))
+					 transition(edgeName="t013",targetState="modelChanging",cond=whenDispatch("modelChangeMaitre"))
+					transition(edgeName="t014",targetState="modelUpdating",cond=whenDispatch("modelUpdateMaitre"))
+					transition(edgeName="t015",targetState="updatingRoom",cond=whenEvent("updateContent"))
 				}	 
 				state("modelUpdating") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: updating model...")
-						if( checkMsgContent( Term.createTerm("modelUpdate(NAME,STATE)"), Term.createTerm("modelUpdate(maitre,STATE)"), 
+						if( checkMsgContent( Term.createTerm("modelUpdateMaitre(NAME,STATE)"), Term.createTerm("modelUpdateMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								itunibo.maitre.resourceModelSupport.updateMaitreModel(myself ,payloadArg(1) )
 						}
@@ -44,9 +51,9 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("modelChanging") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: received a modelChange command")
-						if( checkMsgContent( Term.createTerm("modelChange(NAME,STATE)"), Term.createTerm("modelChange(maitre,STATE)"), 
+						if( checkMsgContent( Term.createTerm("modelChangeMaitre(NAME,STATE)"), Term.createTerm("modelChangeMaitre(maitre,STATE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChanged", "modelChanged" ,"maitre" ) 
+								forward("modelChangedMaitre", "modelChanged" ,"maitre" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="waitingCmd", cond=doswitch() )
@@ -54,11 +61,22 @@ class Maitremodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("updatingRoom") { //this:State
 					action { //it:State
 						println("[MAITRE_MODEL]: received an updatingRoom command")
-						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT)"), Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT)"), 
+						if( checkMsgContent( Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT,OP_T)"), Term.createTerm("updateContent(DEVICE,TYPE,FOODCODE,QNT,OP_T)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("[MAITRE_MODEL]: msg from ${payloadArg(0)}, type ${payloadArg(1)}, foodCode ${payloadArg(2)}, qnt ${payloadArg(3)}")
-								solve("content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_)","") //set resVar	
-								if(currentSolution.isSuccess()) { solve("replaceRule(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_),content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								solve("content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},X)","") //set resVar	
+								if(currentSolution.isSuccess()) { 
+													var old = Integer.parseInt(getCurSol("X").toString())
+													var difference = Integer.parseInt(payloadArg(3))
+													var New = 0					
+								
+													if(payloadArg(4).equals("put")){
+														New = old + difference
+													}
+													if(payloadArg(4).equals("take")){
+														New = old - difference
+													}
+								solve("replaceRule(content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},_),content(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},$New))","") //set resVar	
 								if(currentSolution.isSuccess()) { println("[MAITRE_MODEL]: I've replaced a line")
 								forward("updateMaitre", "updateMaitre" ,"maitre" ) 
 								 }

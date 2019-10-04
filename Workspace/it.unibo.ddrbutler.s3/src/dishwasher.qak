@@ -6,8 +6,8 @@ mqttBroker "localhost" : 1883
 Dispatch setLocation : setLocation(NAME,X,Y)
 
 //dishwasher
-Dispatch modelChangedDishwasher : modelChangedDishwasher(NAME, OP, QNT)
-Dispatch modelChangeDishwasher : modelChangeDishwasher(NAME, OP, QNT)
+Dispatch takeDishDishwasher : takeDishDishwasher(QNT)
+Dispatch putDishDishwasher : putDishDishwasher(QNT)
 Dispatch modelUpdateDishwasher : modelUpdateDishwasher(NAME, OP, QNT)
 
 //Context ctxButler ip [host="localhost" port=3030] -mqtt
@@ -17,7 +17,6 @@ Context ctxDishwasher ip [host="localhost" port=3032] -mqtt
 
 QActor dishwasher context ctxDishwasher{
 	["
-		var goToPut = false
 		var qnt = -1
 	"]
 	State s0 initial{
@@ -33,34 +32,29 @@ QActor dishwasher context ctxDishwasher{
 		
 		forward resourcemodeldishwasher -m modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, idle, null)
 	}
-	Transition t0 whenMsg modelChangedDishwasher -> analyzeMsg
+	Transition t0 whenMsg putDishDishwasher -> putDish
+				  whenMsg takeDishDishwasher -> takeDish
 	
-	State analyzeMsg{
-		printCurrentMessage
-		
-		onMsg(modelChangedDishwasher : modelChangedDishwasher(dishwasher, OP, QNT)){
-			["if(payloadArg(1).equals(\"put\")){
-				goToPut=true
-			}"]
-			["if(payloadArg(1).equals(\"take\")){
-				goToPut=false
-			}"]
-			["qnt = Integer.parseInt(payloadArg(2))"]
-		}
-	}
-	Goto putDish if "goToPut" else takeDish
 	
 	State putDish{
 		printCurrentMessage
+		onMsg(putDishDishwasher : putDishDishwasher(QNT)){
+			forward resourcemodeldishwasher -m modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, put, $payloadArg(0))
+			["qnt = Integer.parseInt(payloadArg(0))"]
+			run itunibo.dishwasher.dishwasherSupport.putDishes(myself, qnt)
+		}
 		
-		run itunibo.dishwasher.dishwasherSupport.putDishes(myself, qnt)
 	}
 	Goto waitCmd
 	
 	State takeDish{
 		printCurrentMessage
+		onMsg(takeDishDishwasher : takeDishDishwasher(QNT)){
+			forward resourcemodeldishwasher -m modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, take, $payloadArg(0))
+			["qnt = Integer.parseInt(payloadArg(0))"]
+			run itunibo.dishwasher.dishwasherSupport.takeDishes(myself, qnt)
+		}
 		
-		run itunibo.dishwasher.dishwasherSupport.takeDishes(myself, qnt)
 	}
 	Goto waitCmd
 	
@@ -78,24 +72,7 @@ QActor resourcemodeldishwasher context ctxDishwasher{
 	State waitCmd{
 		
 	}
-	Transition t0 whenMsg modelChangeDishwasher -> handleChange
-				  whenMsg modelUpdateDishwasher -> handleUpdate
-	
-	State handleChange{
-		printCurrentMessage
-		
-		//due OnMsg per evitare messaggi errati
-		onMsg(modelChangeDishwasher : modelChangeDishwasher(dishwasher,put, QNT) ){
-			forward dishwasher -m modelChangedDishwasher : modelChangedDishwasher($payloadArg(0), $payloadArg(1), $payloadArg(2))
-			run itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself,payloadArg(1), payloadArg(2))
-		}
-		
-		onMsg(modelChangeDishwasher : modelChangeDishwasher(dishwasher,take, QNT) ){
-			forward dishwasher -m modelChangedDishwasher : modelChangedDishwasher($payloadArg(0), $payloadArg(1), $payloadArg(2))
-			run itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself,payloadArg(1), payloadArg(2))
-		}
-	}
-	Goto waitCmd
+	Transition t0 whenMsg modelUpdateDishwasher -> handleUpdate
 	
 	State handleUpdate{
 		printCurrentMessage
