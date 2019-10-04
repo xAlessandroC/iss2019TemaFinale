@@ -16,7 +16,6 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var goToPut = false
 				var qnt = -1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
@@ -30,36 +29,30 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						forward("modelUpdatePantry", "modelUpdatePantry(pantry,idle,null)" ,"resourcemodelpantry" ) 
 					}
-					 transition(edgeName="t00",targetState="analyzeMessage",cond=whenDispatch("modelChangedPantry"))
-				}	 
-				state("analyzeMessage") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangedPantry(NAME,OP,QNT)"), Term.createTerm("modelChangedPantry(NAME,OP,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								if(payloadArg(1).equals("put")){
-												goToPut=true
-											}
-								if(payloadArg(1).equals("take")){
-												goToPut=false
-											}
-								qnt = Integer.parseInt(payloadArg(2))
-						}
-					}
-					 transition( edgeName="goto",targetState="putDish", cond=doswitchGuarded({goToPut}) )
-					transition( edgeName="goto",targetState="takeDish", cond=doswitchGuarded({! goToPut}) )
+					 transition(edgeName="t00",targetState="putDish",cond=whenDispatch("putDishPantry"))
+					transition(edgeName="t01",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
 				}	 
 				state("putDish") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						itunibo.pantry.pantrySupport.putDishes(myself ,qnt )
+						if( checkMsgContent( Term.createTerm("putDishPantry(QNT)"), Term.createTerm("putDishPantry(QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelUpdatePantry", "modelUpdatePantry(pantry,put,${payloadArg(0)})" ,"resourcemodelpantry" ) 
+								qnt = Integer.parseInt(payloadArg(0))
+								itunibo.pantry.pantrySupport.putDishes(myself ,qnt )
+						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("takeDish") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						itunibo.pantry.pantrySupport.takeDishes(myself ,qnt )
+						if( checkMsgContent( Term.createTerm("takeDishPantry(QNT)"), Term.createTerm("takeDishPantry(QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("modelUpdatePantry", "modelUpdatePantry(pantry,take,${payloadArg(0)})" ,"resourcemodelpantry" ) 
+								qnt = Integer.parseInt(payloadArg(0))
+								itunibo.pantry.pantrySupport.takeDishes(myself ,qnt )
+						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

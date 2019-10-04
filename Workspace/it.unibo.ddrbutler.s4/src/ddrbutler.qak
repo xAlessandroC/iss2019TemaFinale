@@ -1089,8 +1089,7 @@ QActor preparehandler context ctxButler {
 		ifSolved {
 			["var Temp=getCurSol(\"X\").toString()"]
 			
-			//forward resourcemodelpantry -m modelChangePantry : modelChangePantry(pantry, take, $Temp)
-			["forward(\"modelChangePantry\",\"modelChangePantry(pantry, take, $Temp)\",\"resourcemodelpantry\")"]
+			["forward(\"takeDishPantry\",\"takeDishPantry($Temp)\",\"pantry\")"]
 			
 			["DishesToPut = Integer.parseInt(getCurSol(\"X\").toString())"]
 			println("[PREPARE_HANDLER]: I'm taking ${getCurSol(\"X\")} dishes")
@@ -1115,8 +1114,7 @@ QActor preparehandler context ctxButler {
 		println("[PREPARE_HANDLER]: I'm putting the dishes")
 		["if(!isFood) isFood = true"]
 		
-		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, put, null, $DishesToPut)
-		["forward(\"modelChangeTable\",\"modelChangeTable(table, dish, put, null, $DishesToPut)\",\"resourcemodeltable\")"]
+		["forward(\"putElementTable\",\"putElementTable(dish, null, $DishesToPut)\",\"table\")"]
 		
 		emit updateContent : updateContent(table, dish, null, $DishesToPut, put)
 	}
@@ -1143,9 +1141,7 @@ QActor preparehandler context ctxButler {
 
 				foodToPut.put(FoodCode, Qnt)
 			"]							
-				
-				//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, take, FoodCode, Qnt)
-				
+								
 				["var qntInteger=Integer.parseInt(Qnt)"]
 				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
 				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
@@ -1165,8 +1161,7 @@ QActor preparehandler context ctxButler {
 		println("[PREPARE_HANDLER]: I'm putting all the food on the table")
 		["foodToPut.forEach { (K, V) -> println(\"[PREPARE_HANDLER]: I'm putting on the table $K, $V\")"] 	
 			
-			//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $K, $V)
-			["forward(\"modelChangeTable\",\"modelChangeTable(table, food, put, $K, $V)\",\"resourcemodeltable\")"]
+			["forward(\"putElementTable\",\"putElementTable(food, $K, $V)\",\"table\")"]
 			
 			emit updateContent : updateContent(table, food, $K, $V, put)
 		["}"]
@@ -1266,8 +1261,7 @@ QActor addfoodhandler context ctxButler {
 		printCurrentMessage
 		println("[ADD_FOOD_HANDLER]: I'm putting the new food to the table")
 		
-		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, put, $FoodCode, $Qnt)
-		["forward(\"modelChangeTable\",\"modelChangeTable(table, food, put, $FoodCode, $Qnt)\",\"resourcemodeltable\")"]
+		["forward(\"putElementTable\",\"putElementTable(food, $FoodCode, $Qnt)\",\"table\")"]
 		
 		emit updateContent : updateContent(table, food, $FoodCode, $Qnt, put)
 	}
@@ -1346,8 +1340,7 @@ QActor clearhandler context ctxButler {
 				println(\"prendo $FoodCode $Qnt\")
 		"]
 			
-			//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, food, take, $FoodCode, $Qnt)
-			["forward(\"modelChangeTable\",\"modelChangeTable(table, food, take, $FoodCode, $Qnt)\",\"resourcemodeltable\")"]
+			["forward(\"takeElementTable\",\"takeElementTable(food, $FoodCode, $Qnt)\",\"table\")"]
 			
 			emit updateContent : updateContent(table, food, $FoodCode, $Qnt, take)	
 		["
@@ -1390,8 +1383,7 @@ QActor clearhandler context ctxButler {
 			}
 		}"]
 		
-		//forward resourcemodeltable -m modelChangeTable : modelChangeTable(table, dish, take, null, $Qnt)
-		["forward(\"modelChangeTable\",\"modelChangeTable(table, dish, take, null, $Qnt)\",\"resourcemodeltable\")"]	
+		["forward(\"takeElementTable\",\"takeElementTable(dish, null, $Qnt)\",\"table\")"]	
 		
 		emit updateContent : updateContent(table, dish, null, $Qnt, take)
 	}
@@ -1407,8 +1399,7 @@ QActor clearhandler context ctxButler {
 		printCurrentMessage
 		println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
 		
-		//forward resourcemodeldishwasher -m modelChangeDishwasher : modelChangeDishwasher(dishwasher, put, $Qnt)	
-		["forward(\"modelChangeDishwasher\",\"modelChangeDishwasher(dishwasher, put, $Qnt)	\",\"resourcemodeldishwasher\")"]
+		["forward(\"putDishDishwasher\",\"putDishDishwasher($Qnt)	\",\"dishwasher\")"]
 		
 		emit updateContent : updateContent(dishwasher, dish, null, $Qnt, put)
 	}

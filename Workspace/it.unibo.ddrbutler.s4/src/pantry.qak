@@ -6,18 +6,19 @@ mqttBroker "localhost" : 1883
 Dispatch setLocation : setLocation(NAME,X,Y)
 
 //pantry
-Dispatch modelChangedPantry : modelChangedPantry(NAME, OP, QNT)
-Dispatch modelChangePantry : modelChangePantry(NAME, OP, QNT)
+Dispatch takeDishPantry : takeDishPantry(QNT)
+Dispatch putDishPantry : putDishPantry(QNT)
 Dispatch modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT)
 
 Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT)
 
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
 Context ctxPantry ip [host="localhost" port=3033] -mqtt
 
+//ExternalQActor planner context ctxButler
 
 QActor pantry context ctxPantry{
 	["
-		var goToPut = false
 		var qnt = -1
 	"]
 	State s0 initial{
@@ -33,31 +34,28 @@ QActor pantry context ctxPantry{
 		
 		forward resourcemodelpantry -m modelUpdatePantry : modelUpdatePantry(pantry, idle, null)
 	}
-	Transition t0 whenMsg modelChangedPantry -> analyzeMessage
-	
-	State analyzeMessage{
-		printCurrentMessage
-		onMsg(modelChangedPantry : modelChangedPantry(NAME, OP, QNT)){
-			["if(payloadArg(1).equals(\"put\")){
-				goToPut=true
-			}"]
-			["if(payloadArg(1).equals(\"take\")){
-				goToPut=false
-			}"]
-			["qnt = Integer.parseInt(payloadArg(2))"]
-		}
-	}
-	Goto putDish if "goToPut" else takeDish
+	Transition t0 whenMsg putDishPantry -> putDish
+				  whenMsg takeDishPantry -> takeDish
 	
 	State putDish{
 		printCurrentMessage
-		run itunibo.pantry.pantrySupport.putDishes(myself,qnt)
+		onMsg(putDishPantry:putDishPantry(QNT)){
+			forward resourcemodelpantry -m modelUpdatePantry : modelUpdatePantry(pantry, put, $payloadArg(0))
+			["qnt = Integer.parseInt(payloadArg(0))"]
+			run itunibo.pantry.pantrySupport.putDishes(myself,qnt)
+		}
+		
 	}
 	Goto waitCmd
 	
 	State takeDish{
 		printCurrentMessage
-		run itunibo.pantry.pantrySupport.takeDishes(myself,qnt)
+		onMsg(takeDishPantry:takeDishPantry(QNT)){
+			forward resourcemodelpantry -m modelUpdatePantry : modelUpdatePantry(pantry, take, $payloadArg(0))
+			["qnt = Integer.parseInt(payloadArg(0))"]
+			run itunibo.pantry.pantrySupport.takeDishes(myself,qnt)
+		}
+		
 	}
 	Goto waitCmd
 }
@@ -74,22 +72,7 @@ QActor resourcemodelpantry context ctxPantry{
 	State waitCmd{
 		
 	}
-	Transition t0 whenMsg modelChangePantry -> handleChange
-				  whenMsg modelUpdatePantry -> handleUpdate
-	
-	State handleChange{
-		printCurrentMessage
-		
-		onMsg(modelChangePantry : modelChangePantry(pantry, OP, QNT) ){
-			solve(action(pantry, $payloadArg(1), $payloadArg(2)))
-			ifSolved{
-				forward pantry -m modelChangedPantry : modelChangedPantry($payloadArg(0), $payloadArg(1), $payloadArg(2))
-			}else{
-				println("Cambiamento non permesso!")
-			}
-		}
-	}
-	Goto waitCmd
+	Transition t0 whenMsg modelUpdatePantry -> handleUpdate
 	
 	State handleUpdate{
 		printCurrentMessage

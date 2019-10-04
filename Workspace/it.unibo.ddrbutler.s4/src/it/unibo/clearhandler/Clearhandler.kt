@@ -71,7 +71,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 										var Qnt = s.split(",")[2]
 										foodToPut.put(FoodCode,Qnt)
 										println("prendo $FoodCode $Qnt")
-						forward("modelChangeTable","modelChangeTable(table, food, take, $FoodCode, $Qnt)","resourcemodeltable")
+						forward("takeElementTable","takeElementTable(food, $FoodCode, $Qnt)","table")
 						emit("updateContent", "updateContent(table,food,$FoodCode,$Qnt,take)" ) 
 						
 									}
@@ -110,7 +110,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 										break
 									}
 								}
-						forward("modelChangeTable","modelChangeTable(table, dish, take, null, $Qnt)","resourcemodeltable")
+						forward("takeElementTable","takeElementTable(dish, null, $Qnt)","table")
 						emit("updateContent", "updateContent(table,dish,null,$Qnt,take)" ) 
 					}
 					 transition( edgeName="goto",targetState="planD", cond=doswitch() )
@@ -126,7 +126,7 @@ class Clearhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
-						forward("modelChangeDishwasher","modelChangeDishwasher(dishwasher, put, $Qnt)	","resourcemodeldishwasher")
+						forward("putDishDishwasher","putDishDishwasher($Qnt)	","dishwasher")
 						emit("updateContent", "updateContent(dishwasher,dish,null,$Qnt,put)" ) 
 					}
 					 transition( edgeName="goto",targetState="planRH", cond=doswitch() )

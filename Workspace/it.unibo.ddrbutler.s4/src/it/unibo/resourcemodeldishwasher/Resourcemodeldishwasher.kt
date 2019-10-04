@@ -27,23 +27,7 @@ class Resourcemodeldishwasher ( name: String, scope: CoroutineScope ) : ActorBas
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangeDishwasher"))
-					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateDishwasher"))
-				}	 
-				state("handleChange") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangeDishwasher(NAME,OP,QNT)"), Term.createTerm("modelChangeDishwasher(dishwasher,OP,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								solve("action(dishwasher,${payloadArg(1)},${payloadArg(2)})","") //set resVar	
-								if(currentSolution.isSuccess()) { forward("modelChangedDishwasher", "modelChangedDishwasher(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"dishwasher" ) 
-								 }
-								else
-								{ println("Cambiamento non permesso!")
-								 }
-						}
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateDishwasher"))
 				}	 
 				state("handleUpdate") { //this:State
 					action { //it:State

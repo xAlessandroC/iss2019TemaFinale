@@ -27,23 +27,7 @@ class Resourcemodelpantry ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangePantry"))
-					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdatePantry"))
-				}	 
-				state("handleChange") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangePantry(NAME,OP,QNT)"), Term.createTerm("modelChangePantry(pantry,OP,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								solve("action(pantry,${payloadArg(1)},${payloadArg(2)})","") //set resVar	
-								if(currentSolution.isSuccess()) { forward("modelChangedPantry", "modelChangedPantry(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"pantry" ) 
-								 }
-								else
-								{ println("Cambiamento non permesso!")
-								 }
-						}
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdatePantry"))
 				}	 
 				state("handleUpdate") { //this:State
 					action { //it:State

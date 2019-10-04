@@ -27,23 +27,7 @@ class Resourcemodeltable ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="handleChange",cond=whenDispatch("modelChangeTable"))
-					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdateTable"))
-				}	 
-				state("handleChange") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("modelChangeTable(NAME,TYPE,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangeTable(table,TYPE,TASK,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								solve("action(table,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})","") //set resVar	
-								if(currentSolution.isSuccess()) { forward("modelChangedTable", "modelChangedTable(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"table" ) 
-								 }
-								else
-								{ println("Cambiamento non permesso!")
-								 }
-						}
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition(edgeName="t0103",targetState="handleUpdate",cond=whenDispatch("modelUpdateTable"))
 				}	 
 				state("handleUpdate") { //this:State
 					action { //it:State
