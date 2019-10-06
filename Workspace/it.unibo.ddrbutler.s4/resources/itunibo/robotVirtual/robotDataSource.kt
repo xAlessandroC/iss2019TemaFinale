@@ -30,9 +30,11 @@ val event = MsgUtil.buildEvent(name,"sonarRobot","sonar( 5 )")
                             inpuStr!!.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1] 
                          val jsonObject = JSONObject(jsonMsgStr)
 						val arg = jsonObject.get("arg").toString()
-						//println( "robotDataSource | arg= ${arg}  ${arg.equals(obstacleName) }"   )
+						println( "robotDataSource | jsonObject=${jsonObject} arg= ${arg}  ${arg.equals(obstacleName) }"   )
 						if( arg.equals(obstacleName) ) {
-							emitLocalStreamEvent(event)
+							//emitLocalStreamEvent(event)
+							println("LANCIO EVENTO SONARRRR")
+							owner.emit(event)
 						}
 						else{
 	                        when (jsonObject.getString("type")) {
@@ -48,7 +50,9 @@ val event = MsgUtil.buildEvent(name,"sonarRobot","sonar( 5 )")
 	                           }
 	                            "collision" -> {
 									obstacleName = jsonObject.get("arg").toString()
-									emitLocalStreamEvent(event)
+									owner.emit(event)
+									println("LANCIO EVENTO SONARRRR")
+									//emitLocalStreamEvent(event)
 	                           }				    
 	                        }
 						}

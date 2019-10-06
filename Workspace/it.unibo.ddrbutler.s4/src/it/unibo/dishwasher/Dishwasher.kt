@@ -21,6 +21,7 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						println("[DISHWASHER]: Started...")
+						forward("setLocation","setLocation(dishwasher,3,3)","planner")
 						itunibo.dishwasher.dishwasherSupport.create(  )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -29,8 +30,8 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						forward("modelUpdateDishwasher", "modelUpdateDishwasher(dishwasher,idle,null)" ,"resourcemodeldishwasher" ) 
 					}
-					 transition(edgeName="t00",targetState="putDish",cond=whenDispatch("putDishDishwasher"))
-					transition(edgeName="t01",targetState="takeDish",cond=whenDispatch("takeDishDishwasher"))
+					 transition(edgeName="t095",targetState="putDish",cond=whenDispatch("putDishDishwasher"))
+					transition(edgeName="t096",targetState="takeDish",cond=whenDispatch("takeDishDishwasher"))
 				}	 
 				state("putDish") { //this:State
 					action { //it:State

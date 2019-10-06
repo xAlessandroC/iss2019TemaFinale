@@ -458,7 +458,7 @@ QActor butlermind context ctxRasp {
 	State notifyPrepareMaitre {
 		printCurrentMessage
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, prepare)\",\"maitremodel\")"]
+		["forward(\"notifyPrepare\",\"notifyPrepare\",\"maitre\")"]
 	}
 	Goto waitingAC
 	
@@ -515,7 +515,7 @@ QActor butlermind context ctxRasp {
 	
 	State notifyAddFoodMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, add_food)\",\"maitremodel\")"] 
+		["forward(\"notifyAddFood\",\"notifyAddFood\",\"maitre\")"] 
 	}
 	Goto waitingAC
 	
@@ -546,7 +546,7 @@ QActor butlermind context ctxRasp {
 	
 	State notifyClearMaitre {
 		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
-		["forward(\"modelChangeMaitre\",\"modelChangeMaitre(maitre, clear)\",\"maitremodel\")"]
+		["forward(\"notifyClear\",\"notifyClear\",\"maitre\")"]
 	}
 	Goto waitingPrepare	
 }

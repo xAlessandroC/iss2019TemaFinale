@@ -77,6 +77,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 				state("confirmForwardStep") { //this:State
 					action { //it:State
 						itunibo.planner.moveUtils.doPlannedMove(myself ,"w" )
+						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="forwardStep", cond=doswitch() )
 				}	 

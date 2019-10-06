@@ -88,7 +88,7 @@ QActor basicrobot context ctxButler{
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
   		ifSolved{
   			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  			//run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
   		} 
   		else{
   		 	println("no robot")
@@ -104,7 +104,7 @@ QActor basicrobot context ctxButler{
 	State handleCmd{
 		
 		onMsg ( robotCmd : robotCmd(X)){
-			//run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
 		}
 		
 	}
@@ -128,12 +128,12 @@ QActor obstacledetector context ctxButler{
    		
    		["distance=Integer.parseInt(getCurSol(\"X\").toString())"]	
 	}
-	Transition t0 whenMsg sonarRobot -> handleSonarData
+	Transition t0 whenEvent sonarRobot -> handleSonarData
 	
 	State handleSonarData{
-		
+		printCurrentMessage
 		onMsg(sonarRobot : sonar(DISTANCE)){
-			printCurrentMessage
+			
 			[" val D = Integer.parseInt( payloadArg(0) )"]
 			["if(D<=distance){"]
 				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
@@ -143,7 +143,7 @@ QActor obstacledetector context ctxButler{
 			["}"]
 		}
 	}
-	Transition t0 whenMsg sonarRobot -> handleSonarData
+	Transition t0 whenEvent sonarRobot -> handleSonarData
 }
 
 QActor resourcemodelbutler context ctxButler{
@@ -650,7 +650,8 @@ QActor calibration context ctxButler{
 	State confirmForwardStep{
 		
 		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
-	
+		
+		delay 1000
 	}Goto forwardStep
 	
 	State backtracking{

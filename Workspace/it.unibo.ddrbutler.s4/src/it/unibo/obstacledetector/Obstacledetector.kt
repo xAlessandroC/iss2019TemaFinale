@@ -29,13 +29,13 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						 }
 						distance=Integer.parseInt(getCurSol("X").toString())
 					}
-					 transition(edgeName="t01",targetState="handleSonarData",cond=whenDispatch("sonarRobot"))
+					 transition(edgeName="t01",targetState="handleSonarData",cond=whenEvent("sonarRobot"))
 				}	 
 				state("handleSonarData") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
 								 val D = Integer.parseInt( payloadArg(0) )
 								if(D<=distance){
 								forward("sonarChange", "sonarChange(sonar,${payloadArg(0)},obstacle)" ,"resourcemodelbutler" ) 
@@ -45,7 +45,7 @@ class Obstacledetector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 								}
 						}
 					}
-					 transition(edgeName="t02",targetState="handleSonarData",cond=whenDispatch("sonarRobot"))
+					 transition(edgeName="t02",targetState="handleSonarData",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}

@@ -16,6 +16,8 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
+				var goToPut = false
+				var type = ""
 				var num = -1
 				var fc = ""
 		return { //this:ActionBasciFsm
@@ -28,42 +30,47 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
+						
+						
 						forward("modelUpdateTable", "modelUpdateTable(table,null,idle,null,null)" ,"resourcemodeltable" ) 
 					}
-					 transition(edgeName="t0101",targetState="putElement",cond=whenDispatch("putElementTable"))
-					transition(edgeName="t0102",targetState="takeElement",cond=whenDispatch("takeElementTable"))
+					 transition(edgeName="t00",targetState="analyzeMsg",cond=whenDispatch("modelChangedTable"))
+				}	 
+				state("analyzeMsg") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("modelChangedTable(NAME,TYPE,TASK,FOODCODE,QNT)"), Term.createTerm("modelChangedTable(table,TYPE,TASK,FC,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								if(payloadArg(2).equals("put"))
+												goToPut=true
+								if(payloadArg(2).equals("take"))
+												goToPut=false
+								
+												num = Integer.parseInt(payloadArg(4))
+												type = payloadArg(1)
+												fc = payloadArg(3)
+						}
+					}
+					 transition( edgeName="goto",targetState="putElement", cond=doswitchGuarded({goToPut }) )
+					transition( edgeName="goto",targetState="takeElement", cond=doswitchGuarded({! goToPut }) )
 				}	 
 				state("putElement") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("putElementTable(TYPE,FC,QNT)"), Term.createTerm("putElementTable(TYPE,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelUpdateTable", "modelUpdateTable(table,${payloadArg(0)},put,${payloadArg(1)},${payloadArg(2)})" ,"resourcemodeltable" ) 
-								
-												fc=payloadArg(1)
-												num=Integer.parseInt(payloadArg(2))
-								if(payloadArg(0).equals("food"))
-								itunibo.table.tableSupport.putFood(myself ,fc, num )
-								if(payloadArg(0).equals("dish"))
-								itunibo.table.tableSupport.putDish(myself ,num )
-						}
+						if(type.equals("food"))
+						itunibo.table.tableSupport.putFood(myself ,fc, num )
+						if(type.equals("dish"))
+						itunibo.table.tableSupport.putDish(myself ,num )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("takeElement") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("takeElementTable(TYPE,FC,QNT)"), Term.createTerm("takeElementTable(TYPE,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelUpdateTable", "modelUpdateTable(table,${payloadArg(0)},take,${payloadArg(1)},${payloadArg(2)})" ,"resourcemodeltable" ) 
-								
-												fc=payloadArg(1)
-												num=Integer.parseInt(payloadArg(2))
-								if(payloadArg(0).equals("food"))
-								itunibo.table.tableSupport.takeFood(myself ,fc, num )
-								if(payloadArg(0).equals("dish"))
-								itunibo.table.tableSupport.takeDish(myself ,num )
-						}
+						if(type.equals("food"))
+						itunibo.table.tableSupport.takeFood(myself ,fc, num )
+						if(type.equals("dish"))
+						itunibo.table.tableSupport.takeDish(myself ,num )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

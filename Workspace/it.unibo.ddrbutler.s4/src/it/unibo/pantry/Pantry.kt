@@ -22,6 +22,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[PANTRY]: Started...")
 						itunibo.pantry.pantrySupport.create( 20  )
+						forward("setLocation","setLocation(pantry,0,3)","planner")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -29,8 +30,8 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						forward("modelUpdatePantry", "modelUpdatePantry(pantry,idle,null)" ,"resourcemodelpantry" ) 
 					}
-					 transition(edgeName="t00",targetState="putDish",cond=whenDispatch("putDishPantry"))
-					transition(edgeName="t01",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
+					 transition(edgeName="t098",targetState="putDish",cond=whenDispatch("putDishPantry"))
+					transition(edgeName="t099",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
 				}	 
 				state("putDish") { //this:State
 					action { //it:State

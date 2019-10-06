@@ -56,6 +56,7 @@ import alice.tuprolog.*
 			"x" -> outS = "{'type': 'turnRight', 'arg': 100 }"
    			    "h"  -> outS = "{'type': 'alarm', 'arg': 0 }"
  			}
+			//println(outS)
 			val jsonObject = JSONObject(outS)
 			val msg= "$sep${jsonObject.toString()}$sep"
 			//println("clientWenvObjTcp | sendMsg $msg   ")
