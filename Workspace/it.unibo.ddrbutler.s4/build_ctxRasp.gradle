@@ -56,6 +56,9 @@ dependencies {
 	//compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
 
 //CUSTOM
+	compile "org.slf4j:slf4j-api:1.6.1"
+	compile "org.slf4j:slf4j-simple:1.6.1"
+	
     compile name: 'uniboInterfaces'
     compile name: '2p301'
     compile name: 'it.unibo.qakactor-1.0'

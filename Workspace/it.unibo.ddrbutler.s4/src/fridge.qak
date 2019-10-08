@@ -40,16 +40,18 @@ QActor fridge context ctxFridge{
 			["foodcode = payloadArg(2)"]
 		}
 	}
-	Goto putDish if "goToPut" else takeDish
+	Goto putFood if "goToPut" else takeFood
 	
-	State putDish{
+	State putFood{
 		printCurrentMessage
+		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, put, null, null)
 		run itunibo.fridge.fridgeSupport.putFood(myself,foodcode,qnt)
 	}
 	Goto waitCmd
 	
-	State takeDish{
+	State takeFood{
 		printCurrentMessage
+		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, put, null, null)
 		run itunibo.fridge.fridgeSupport.takeFood(myself,foodcode,qnt)
 	}
 	Goto waitCmd

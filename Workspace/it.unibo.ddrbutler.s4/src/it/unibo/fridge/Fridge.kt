@@ -48,19 +48,21 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								foodcode = payloadArg(2)
 						}
 					}
-					 transition( edgeName="goto",targetState="putDish", cond=doswitchGuarded({goToPut}) )
-					transition( edgeName="goto",targetState="takeDish", cond=doswitchGuarded({! goToPut}) )
+					 transition( edgeName="goto",targetState="putFood", cond=doswitchGuarded({goToPut}) )
+					transition( edgeName="goto",targetState="takeFood", cond=doswitchGuarded({! goToPut}) )
 				}	 
-				state("putDish") { //this:State
+				state("putFood") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("modelUpdateFridge", "modelUpdateFridge(fridge,put,null,null)" ,"resourcemodelfridge" ) 
 						itunibo.fridge.fridgeSupport.putFood(myself ,foodcode, qnt )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
-				state("takeDish") { //this:State
+				state("takeFood") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("modelUpdateFridge", "modelUpdateFridge(fridge,put,null,null)" ,"resourcemodelfridge" ) 
 						itunibo.fridge.fridgeSupport.takeFood(myself ,foodcode, qnt )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

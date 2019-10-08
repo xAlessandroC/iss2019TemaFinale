@@ -222,20 +222,68 @@ QActor resourcemodelbutler context ctxRasp {
 }
 
 
-QActor movementhandler context ctxRasp {
+QActor movementhandler context ctxRasp{
 	["
 		var input=\"\"
 		var startF = 0L
 		var endF = 0L
+
+		var ForwardTime=-1L
+		var TurnLeftTime=-1L
+		var TurnRightTime=-1L
+		var TuningTime=-1L
+		var DifferenceLimitTime=-1L
+
+		var TimeToWait=-1L
+
+		var temp=\"\"
 	"]
 	
-	State s0 initial {
+	State s0 initial{
 		println("[MOVEMENT HANDLER]: Started...")
+		
+		solve(consult("movementConfig.pl"))
+		
+		solve(time(forw4rd,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["ForwardTime=temp.toLong()"]
+			
+			println("Settato forwardTime a $ForwardTime")
+		}
+		solve(time(turnLeft,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["TurnLeftTime=temp.toLong()"]
+			
+			println("Settato turnLeftTime a $TurnLeftTime")
+		}
+		solve(time(turnRight,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["TurnRightTime=temp.toLong()"]
+			
+			println("Settato turnRightTime a $TurnRightTime")
+		}
+		solve(time(tuning,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["TuningTime=temp.toLong()"]
+			
+			println("Settato tuningTime a $TuningTime")
+		}
+		solve(time(differenceLimit,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["DifferenceLimitTime=temp.toLong()"]
+			
+			println("Settato differenceLimitTime a $DifferenceLimitTime")
+		}
 	}
 	Goto waitCmd
 	
-	State waitCmd {
-		onMsg(obstacle : obstacle) {
+	State waitCmd{
+		onMsg(obstacle : obstacle){
 			["endF = System.currentTimeMillis()"]
 			["replyToCaller(\"moveFailed\",\"moveFailed\")"]
 		}
@@ -243,6 +291,7 @@ QActor movementhandler context ctxRasp {
 	Transition t0 whenMsg movementCmd -> handleCmd
 				  
 	State handleCmd {
+		
 		["storeCurrentMessageForReply()"]
 		onMsg(movementCmd : movementCmd(X)){
 			printCurrentMessage
@@ -257,40 +306,36 @@ QActor movementhandler context ctxRasp {
 				  whenMsg moveReceived and "input.equals(\"a\")" -> startTurnLeft
 				  whenMsg moveReceived and "input.equals(\"d\")" -> startTurnRight
 				  
-	State startForward {
+	State startForward{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(w)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, w)
 		["startF = System.currentTimeMillis()"]
 	}
-	Transition t0 whenTime 1000 -> stopForward
+	Transition t0 whenTimeVar ForwardTime -> stopForward
 				  whenEvent obstacle -> waitCmd
 				  
-	State stopForward {
+	State stopForward{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 	}
 	Goto waitCmd
 	
-	State startTurnLeft {
+	State startTurnLeft{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(a)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, a)
 		
 	}
-	Transition t0 whenTime 1850 -> stopTurnLeft
+	Transition t0 whenTimeVar TurnLeftTime -> stopTurnLeft
 				 // whenEvent obstacle -> waitCmd
 				  
-	State stopTurnLeft {
+	State stopTurnLeft{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
@@ -299,19 +344,17 @@ QActor movementhandler context ctxRasp {
 	}
 	Goto waitCmd
 	
-	State startTurnRight {
+	State startTurnRight{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(d)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, d)
 	}
-	Transition t0 whenTime 1850 -> stopTurnRight
+	Transition t0 whenTimeVar TurnRightTime -> stopTurnRight
 				  //whenEvent obstacle -> waitCmd
 				  
-	State stopTurnRight {
+	State stopTurnRight{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
@@ -319,31 +362,22 @@ QActor movementhandler context ctxRasp {
 	}
 	Goto waitCmd
 	
-	State startBacktracking {
+	State startBacktracking{
 		printCurrentMessage
-		
-		//forward basicrobot -m robotCmd : robotCmd(s)
+		[" TimeToWait=((endF-startF)-TuningTime).toLong()"]
+		["
+			if(TimeToWait<DifferenceLimitTime)
+				TimeToWait=0L
+		"]
+		println("###BACK PER $TimeToWait millis")
 		forward resourcemodelbutler -m robotChange : robotChange(robot, s)
 	}
-	//Transition t0 whenTime 500 -> stopBacktracking
+	Transition t0 whenTimeVar TimeToWait -> stopBacktracking
 				  //whenEvent obstacle -> waitCmd
-	Goto waitCustomTime
-	
-	State waitCustomTime {
-		["var timeToWait=(endF-startF)-75"]
-		["
-			if(timeToWait<100)
-				timeToWait=0
-		"]
-		println("###BACK PER $timeToWait millis")
-		run itunibo.planner.moveUtils.wait(timeToWait)
-	} 
-	Goto stopBacktracking
 		
-	State stopBacktracking {
+	State stopBacktracking{
 		printCurrentMessage
 		
-		//forward basicrobot -m robotCmd : robotCmd(h)
 		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
@@ -383,8 +417,8 @@ QActor butlermind context ctxRasp {
 	State s0 initial {
 		println("[BUTLERMIND]: Started...")
 		
-		solve(consult("RHLocation.pl"))
-		solve(location(RH,X,Y))
+		/*solve(consult("roomDescription.pl"))
+		solve(location(rh,X,Y))
 		["
 				var CX=getCurSol(\"X\").toString()
 				var CY=getCurSol(\"Y\").toString()
@@ -397,9 +431,9 @@ QActor butlermind context ctxRasp {
 		}
 
 		/* */
-		forward planner -m setLocation : setLocation(pantry,0,3)
+		/*forward planner -m setLocation : setLocation(pantry,0,3)
 		forward planner -m setLocation : setLocation(dishwasher,3,3)
-		forward planner -m setLocation : setLocation(fridge,3,0)
+		forward planner -m setLocation : setLocation(fridge,3,0)*/
 		/* */
 		delay 5000
 	}
@@ -904,7 +938,7 @@ QActor planner context ctxRasp{
 	
 	State s0 initial{
 		println("[PLANNER]: Started...")
-		
+		solve(consult("roomDescription.pl"))	
 	}
 	Goto waitCmd
 	
@@ -1118,6 +1152,7 @@ QActor preparehandler context ctxRasp {
 								
 				["var qntInteger=Integer.parseInt(Qnt)"]
 				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				delay 500
 				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 				
 				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
@@ -1447,19 +1482,19 @@ QActor contentontable context ctxRasp {
 					solve(replaceRule(ontable($payloadArg(1), $payloadArg(2), _), ontable($payloadArg(1), $payloadArg(2), $New)))		
 				["}"]
 				ifSolved {
-					println("[stuffontable]: I've replaced a line")	
+					println("[contentontable]: I've replaced a line")	
 				}
 				else {
-					println("[stuffontable]: error in replacing the new line")
+					println("[contentontable]: error in replacing the new line")
 				}			
 			}
 			else {
 				solve(assert(ontable($payloadArg(1), $payloadArg(2), $payloadArg(3))))
 				ifSolved {
-					println("[stuffontable]: I've added a new line")
+					println("[contentontable]: I've added a new line")
 				}
 				else {
-					println("[stuffontable]: error in adding a new line")
+					println("[contentontable]: error in adding a new line")
 				}	
 			}			
 		}
@@ -1476,7 +1511,7 @@ QActor dishwasher context ctxRasp{
 		println("[DISHWASHER]: Started...")
 	
 		//forward planner -m setLocation : setLocation(dishwasher,3,3);
-		["forward(\"setLocation\",\"setLocation(dishwasher,3,3)\",\"planner\")"]
+		//["forward(\"setLocation\",\"setLocation(dishwasher,3,3)\",\"planner\")"]
 		run itunibo.dishwasher.dishwasherSupport.create()
 	}
 	Goto waitCmd
@@ -1546,7 +1581,7 @@ QActor pantry context ctxRasp{
 		
 		run itunibo.pantry.pantrySupport.create(20)
 		//forward planner -m setLocation : setLocation(pantry,0,3)
-		["forward(\"setLocation\",\"setLocation(pantry,0,3)\",\"planner\")"]
+		//["forward(\"setLocation\",\"setLocation(pantry,0,3)\",\"planner\")"]
 	}
 	Goto waitCmd
 	
