@@ -30,8 +30,8 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						forward("modelUpdatePantry", "modelUpdatePantry(pantry,idle,null)" ,"resourcemodelpantry" ) 
 					}
-					 transition(edgeName="t083",targetState="putDish",cond=whenDispatch("putDishPantry"))
-					transition(edgeName="t084",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
+					 transition(edgeName="t00",targetState="putDish",cond=whenDispatch("putDishPantry"))
+					transition(edgeName="t01",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
 				}	 
 				state("putDish") { //this:State
 					action { //it:State
@@ -48,7 +48,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("takeDish") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("putDishPantry(QNT)"), Term.createTerm("putDishPantry(QNT)"), 
+						if( checkMsgContent( Term.createTerm("takeDishPantry(QNT)"), Term.createTerm("takeDishPantry(QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelUpdatePantry", "modelUpdatePantry(pantry,take,${payloadArg(0)})" ,"resourcemodelpantry" ) 
 								qnt = Integer.parseInt(payloadArg(0))

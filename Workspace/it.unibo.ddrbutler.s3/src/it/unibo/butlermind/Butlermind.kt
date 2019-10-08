@@ -15,8 +15,6 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var task : String = ""
-			  var isCorrect = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -31,102 +29,22 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						else
 						{ println("Errore nel setting di RH")
 						 }
-						forward("setLocation", "setLocation(fridge,3,0)" ,"planner" ) 
-						delay(5000) 
+						delay(3000) 
 					}
 					 transition( edgeName="goto",targetState="calibration", cond=doswitch() )
 				}	 
 				state("calibration") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("taskUpdate", "taskUpdate(butler,calibration,null,null)" ,"resourcemodelbutler" ) 
+						forward("taskUpdate", "taskUpdate(butler,calibration)" ,"resourcemodel" ) 
 						forward("startCalibration", "startCalibration" ,"calibration" ) 
 					}
-					 transition(edgeName="t020",targetState="waitingPrepare",cond=whenDispatch("calibrationCompleted"))
+					 transition(edgeName="t019",targetState="endCalibration",cond=whenDispatch("calibrationCompleted"))
 				}	 
-				state("waitingPrepare") { //this:State
-					action { //it:State
-						println("[BUTLER_MIND]: waiting for a prepare command...")
-					}
-					 transition(edgeName="t021",targetState="startPrepare",cond=whenEvent("taskChanged"))
-				}	 
-				state("startPrepare") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						isCorrect = false
-						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(butler,prepare,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("startPrepare", "startPrepare" ,"preparehandler" ) 
-								isCorrect = true
-						}
-						if(!isCorrect) { println("[BUTLER_MIND]: expected prepare command")
-						forward("backWait", "backWait" ,"butlermind" ) 
-						}
-					}
-					 transition(edgeName="t022",targetState="notifyPrepareMaitre",cond=whenDispatch("prepareCompleted"))
-					transition(edgeName="t023",targetState="waitingPrepare",cond=whenDispatch("backWait"))
-				}	 
-				state("notifyPrepareMaitre") { //this:State
-					action { //it:State
-						forward("notifyPrepare","notifyPrepare","maitre")
-					}
-					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
-				}	 
-				state("waitingAC") { //this:State
-					action { //it:State
-						println("[BUTLER_MIND]: waiting for an AC command...")
-					}
-					 transition(edgeName="t024",targetState="startAC",cond=whenEvent("taskChanged"))
-				}	 
-				state("startAC") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						isCorrect = false
-						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(TARGET,add_food,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("startAddFood", "startAddFood(${payloadArg(2)},${payloadArg(3)})" ,"addfoodhandler" ) 
-								task = "add_food"
-								forward("taskAssigned", "taskAssigned" ,"butlermind" ) 
-								isCorrect = true
-						}
-						if( checkMsgContent( Term.createTerm("taskChanged(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChanged(TARGET,clear,FC,QNT)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("startClear", "startClear" ,"clearhandler" ) 
-								task = "clear"
-								forward("taskAssigned", "taskAssigned" ,"butlermind" ) 
-								isCorrect = true
-						}
-						if(!isCorrect) { println("[BUTLER_MIND]: expected AC command")
-						forward("backWait", "backWait" ,"butlermind" ) 
-						}
-					}
-					 transition(edgeName="t025",targetState="startAddFood",cond=whenDispatchGuarded("taskAssigned",{task == "add_food"}))
-					transition(edgeName="t026",targetState="startClear",cond=whenDispatchGuarded("taskAssigned",{task == "clear"}))
-					transition(edgeName="t027",targetState="waitingAC",cond=whenDispatch("backWait"))
-				}	 
-				state("startAddFood") { //this:State
+				state("endCalibration") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 					}
-					 transition(edgeName="t028",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
-				}	 
-				state("notifyAddFoodMaitre") { //this:State
-					action { //it:State
-						forward("notifyAddFood","notifyAddFood","maitre")
-					}
-					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
-				}	 
-				state("startClear") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-					}
-					 transition(edgeName="t029",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
-				}	 
-				state("notifyClearMaitre") { //this:State
-					action { //it:State
-						forward("notifyClear","notifyClear","maitre")
-					}
-					 transition( edgeName="goto",targetState="waitingPrepare", cond=doswitch() )
 				}	 
 			}
 		}
