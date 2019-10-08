@@ -1,0 +1,117 @@
+div#controlPanel{
+  height: 25%;
+}
+
+input[type="button"]{
+  height: 75%;
+  width: 150px;
+}
+
+input:disabled{
+  /*background-color: rgb(90,90,90);*/
+  opacity:0.65;
+}
+
+div#input{
+  height: 10%;
+}
+
+div#container{
+  min-height: 100%;
+  height: 100%;
+/*  background-image: url("/images/cateringImage2.jpg");
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  background-attachment:fixed*/
+}
+
+div#controlPanel{
+  padding:1%;
+  margin:1%;
+  background-color: rgb(100,123,100);
+}
+
+div#pantrySection{
+  height:45%;
+  background-color: rgb(233,100,100);
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+}
+
+div#dishwasherSection{
+  height:45%;
+  background-color: rgb(77,100,100);
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+}
+
+div#fridgeSection{
+  height:45%;
+  background-color: rgb(128,100,100);
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+}
+
+div#tableSection{
+  height:45%;
+  background-color: rgb(188,100,100);
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+}
+
+div#title{
+  height:25%;
+}
+
+h1{
+  padding-bottom: 25px;
+  padding-top: 25px;
+  border: 2px solid black;
+  /*background-color: rgb(100,100,100)*/
+}
+
+p,h3{
+  color:black
+}
+
+/*input[type="button"], input[type="button"]:disabled, input[type="button"]:hover {
+    margin-bottom: 20px;
+    text-decoration: none;
+    border:1px solid #25729a;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    font-family:arial, helvetica, sans-serif;
+    padding: 10px 10px 10px 10px;
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
+    text-align: center;
+    color: #FFFFFF;
+    background-color: rgb(80,80,80);
+
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #3093c7), color-stop(100%, #1c5a85));
+    background-image: -webkit-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -moz-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -ms-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -o-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: linear-gradient(top, #3093c7, #1c5a85);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#3093c7, endColorstr=#1c5a85);
+
+}
+
+input[type="button"]:hover{
+    border:1px solid #1c5675;
+    background-color: #26759e;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#26759e), color-stop(100%, #133d5b));
+    background-image: -webkit-linear-gradient(top, #26759e, #133d5b);
+    background-image: -moz-linear-gradient(top, #26759e, #133d5b);
+    background-image: -ms-linear-gradient(top, #26759e, #133d5b);
+    background-image: -o-linear-gradient(top, #26759e, #133d5b);
+    background-image: linear-gradient(top, #26759e, #133d5b);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#26759e, endColorstr=#133d5b);
+}*/
