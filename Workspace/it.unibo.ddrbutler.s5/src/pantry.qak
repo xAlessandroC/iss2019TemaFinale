@@ -80,6 +80,9 @@ QActor resourcemodelpantry context ctxPantry{
 		onMsg(modelUpdatePantry : modelUpdatePantry(NAME, OP, QNT) ){
 			run itunibo.pantry.resourceModelSupport.updatePantryModel(myself,payloadArg(1),payloadArg(2))
 		}
+		
+		/*for testing purpose */
+		//delay 500
 	}
 	Goto waitCmd
 } 

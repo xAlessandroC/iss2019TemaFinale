@@ -136,10 +136,10 @@ QActor obstacledetector context ctxButler{
 			
 			[" val D = Integer.parseInt( payloadArg(0) )"]
 			["if(D<=distance){"]
-				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), obstacle)
 				emit obstacle : obstacle
 			["}else{"]
-				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), clear)
 			["}"]
 		}
 	}
@@ -292,6 +292,7 @@ QActor movementhandler context ctxButler{
 	Goto waitCmd
 	
 	State waitCmd{
+		printCurrentMessage
 		onMsg(obstacle : obstacle){
 			["endF = System.currentTimeMillis()"]
 			["replyToCaller(\"moveFailed\",\"moveFailed\")"]
@@ -349,7 +350,7 @@ QActor movementhandler context ctxButler{
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
 		
-		delay 1000
+		//delay 1000
 	}
 	Goto waitCmd
 	
@@ -367,7 +368,7 @@ QActor movementhandler context ctxButler{
 		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
 		
 		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
-		delay 1000
+		//delay 1000
 	}
 	Goto waitCmd
 	
@@ -424,7 +425,7 @@ QActor butlermind context ctxButler {
 			
 	State s0 initial {
 		println("[BUTLERMIND]: Started...")
-		
+		println("S5")
 		delay 5000
 	}
 	Goto calibration

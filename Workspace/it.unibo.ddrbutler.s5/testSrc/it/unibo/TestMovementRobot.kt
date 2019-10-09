@@ -23,9 +23,9 @@ class TestMovementRobot {
  			    println(" %%%%%%% TestMovementRobot starts robot mind ")
 				it.unibo.ctxButler.main()
  			}
-			delay(5000)		//give the time to start
+			delay(10000)		//give the time to start
 			resource = sysUtil.getActor("resourcemodelbutler")
-		    mind = sysUtil.getActor("robotmind")	
+		    mind = sysUtil.getActor("movementhandler")	
 		    println(" %%%%%%% TestMovementRobot getActors resource=${resource}")
  	}
  
@@ -41,44 +41,58 @@ class TestMovementRobot {
  		rotateLeft(500)
  		moveForward(700)	
  		moveBackward(700)
- 		stoprobot(100)
  	}
 
-	fun stoprobot(time:Long) {
-		println(" %%%%%%% TestMovementRobot  stoprobot usung robot %%%")
-		moveRobot( mind!!, "h", time)			
-		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )
-	}
 	fun moveForward( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  moveForward using resource%%%")
-		moveRobot( mind!!, "w", time)			
+		moveRobot( mind!!, "w", 200)			
 		solveCheckGoal( resource!!,  "state( robot, state(movingForward) )" )
+		delay(time)
+		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )
  	}
 	
 	fun moveBackward( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  moveBackward %%%")
-		moveRobot( mind!!, "s", time)			
+		simulateObstacle(mind!!,"",10)
+		moveRobot( mind!!, "s", 50)			
 		solveCheckGoal( resource!!,  "state( robot, state(movingBackward) )" )
+		delay(700)
+		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )
  	}
 	 
 	fun rotateLeft( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  rotateLeft %%%")
-		moveRobot( mind!!, "a", time)			
+		moveRobot( mind!!, "a", 100)			
 		solveCheckGoal( resource!!,  "state( robot, state(rotateLeft) )" )
+		delay(time)
+		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )
 	}
 	 
 	fun rotateRight( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  rotateRight %%%")
-		moveRobot( mind!!, "d", time)			
+		moveRobot( mind!!, "d", 100)			
 		solveCheckGoal( resource!!,  "state( robot, state(rotateRight) )" )
+		delay(time)
+		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )
 	}	
 
 //----------------------------------------
 	
 	fun moveRobot( actor : ActorBasic, move : String, time : Long ){
 		actor.scope.launch{
-			println("--- moveRobot mindCmd($move)")
-  			MsgUtil.sendMsg("mindCmd","mindCmd($move)",actor)
+			println("--- moveRobot movementCmd($move)")
+  			MsgUtil.sendMsg("movementCmd","movementCmd($move)",actor)
+ 		}
+		delay(time) //give time to do the move
+  	}
+	
+	fun simulateObstacle( actor : ActorBasic, move : String, time : Long ){
+		actor.scope.launch{
+  			MsgUtil.sendMsg("movementCmd","movementCmd(w)",actor)
+ 		}
+		delay(300)
+		actor.scope.launch{
+			MsgUtil.sendMsg("obstacle","obstacle",actor)
  		}
 		delay(time) //give time to do the move
   	}

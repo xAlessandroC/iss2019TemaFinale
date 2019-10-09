@@ -13,56 +13,49 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 
-class TestLogicPantry {
+class TestPositionRobot {
  	var resource : ActorBasic? = null
-	var pantry : ActorBasic? = null
+	var actor : ActorBasic? = null
 	
 	@Before
 	fun systemSetUp() {
   	 		GlobalScope.launch{
- 			    println(" %%%%%%% TestLogicButler starts robot mind ")
+ 			    println(" %%%%%%% TestPositionRobot starts")
 				it.unibo.ctxButler.main()
  			}
-			delay(5000)		//give the time to start
+			delay(8000)		//give the time to start
 			resource = sysUtil.getActor("resourcemodelbutler")
-		    pantry = sysUtil.getActor("pantry")
+		    actor = sysUtil.getActor("calibration")
 		    println(" %%%%%%% TestLogicButler getActors resource=${resource}")
  	}
  
 	@After
 	fun terminate() {
-		println(" %%%%%%% TestLogicButler terminate ")
+		println(" %%%%%%% TestPositionRobot terminate ")
 	}
  
+	/*Per avere un test più veloce testiamo solo se il cambiamento di posizione
+ 	 *avviene in maniera coerente col modelo
+ 	*/
 	@Test
-	fun moveTest() {
-		println(" %%%%%%% TestLogicButler  logic test ")
+	fun positionTest() {
+		println(" %%%%%%% TestPositionRobot  logic test ")
 		delay(100)
-		checkIdle(0)
-		checkPut(1000)
-		checkTake(1000)
+		checkInit(0)
+		checkRH(1000)
  	}
 	
-	fun checkIdle(time:Long ){
-		solveCheckGoal( resource!!,  "state( pantry, idle)" )
+	fun checkInit(time:Long ){
+		solveCheckGoal( resource!!,  "position( robot,0,0 )" )
 	}
 	
-	fun checkPut(time:Long ){
+	fun checkRH(time:Long ){
 		GlobalScope.launch{
-			pantry!!.forward("putDish","putDish(10)","pantry")
+			itunibo.planner.plannerUtil.initAI()
+			itunibo.planner.moveUtils.doPlannedMove(actor!!,"w")
 		}
-		solveCheckGoal( resource!!,  "state( pantry, put )" )
 		delay(time)
-		checkIdle(0)
-	}
-	
-	fun checkTake(time:Long ){
-		GlobalScope.launch{
-			pantry!!.forward("takeDish","takeDish(10)","pantry")
-		}
-		solveCheckGoal( resource!!,  "state( pantry, take )" )
-		delay(time)
-		checkIdle(0)
+		solveCheckGoal( resource!!,  "position( robot, 0,1 )" )
 	}
 
 //----------------------------------------

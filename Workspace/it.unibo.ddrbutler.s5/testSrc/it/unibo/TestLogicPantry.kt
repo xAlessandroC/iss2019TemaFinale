@@ -13,60 +13,63 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 
-class TestLogicButler {
+class TestLogicPantry {
  	var resource : ActorBasic? = null
-	var mind : ActorBasic? = null
+	var pantry : ActorBasic? = null
 	
 	@Before
 	fun systemSetUp() {
   	 		GlobalScope.launch{
  			    println(" %%%%%%% TestLogicButler starts robot mind ")
-				it.unibo.ctxButler.main()
+				it.unibo.ctxPantry.main()
  			}
 			delay(5000)		//give the time to start
-			resource = sysUtil.getActor("resourcemodelbutler")
-		    mind = sysUtil.getActor("butlermind")
-		    println(" %%%%%%% TestLogicButler getActors resource=${resource}")
+			resource = sysUtil.getActor("resourcemodelpantry")
+		    pantry = sysUtil.getActor("pantry")
+		    println("%%%%%%% TestLogicPantry getActors resource=${resource}")
  	}
- 
+
 	@After
 	fun terminate() {
-		println(" %%%%%%% TestLogicButler terminate ")
+		println("%%%%%%% TestLogicPantry terminate ")
 	}
- 
+	
+	/*
+ 	 *NOTA: Bisogna rallentare l'esecuzione della pantry per testare correttamente
+ 	*/
 	@Test
-	fun moveTest() {
-		println(" %%%%%%% TestLogicButler  logic test ")
+	fun pantryTest() {
+		println("%%%%%%% TestLogicPantry logic test")
 		delay(100)
-		checkCalibration(1000)
-		checkPrepare(1000)
-		checkAddFood(1000)
-		checkClear(1000)
+		checkIdle(0)
+		checkPut(500)
+		checkTake(500)
  	}
 	
-	fun checkCalibration(time:Long ){
-		solveCheckGoal( resource!!,  "state( butler, calibration )" )
+	fun checkIdle(time:Long ){
+		solveCheckGoal( resource!!,  "state( pantry, idle, null)" )
 	}
 	
-	fun checkPrepare(time:Long ){
+	fun checkPut(time:Long ){
 		GlobalScope.launch{
-			mind!!.forward("prepare","prepare","butlermind")
+			pantry!!.forward("putDishPantry","putDishPantry(10)","pantry")
+			
 		}
-		solveCheckGoal( resource!!,  "state( butler, prepare )" )
+		delay(200)
+		solveCheckGoal( resource!!,  "state( pantry, put, 10 )" )
+		delay(time)
+		checkIdle(0)
+		
 	}
 	
-	fun checkAddFood(time:Long ){
+	fun checkTake(time:Long ){
 		GlobalScope.launch{
-			mind!!.forward("addFood","addFood(cibo1,qnt1)","butlermind")
+			pantry!!.forward("takeDishPantry","takeDishPantry(10)","pantry")
 		}
-		solveCheckGoal( resource!!,  "state( butler, addFood )" )
-	}
-	
-	fun checkClear(time:Long ){
-		GlobalScope.launch{
-			mind!!.forward("clear","clear","butlermind")
-		}
-		solveCheckGoal( resource!!,  "state( butler, clear )" )
+		delay(500)
+		solveCheckGoal( resource!!,  "state( pantry, take, 10 )" )
+		delay(time)
+		checkIdle(0)
 	}
 
 //----------------------------------------

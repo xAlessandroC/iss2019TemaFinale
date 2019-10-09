@@ -64,6 +64,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("obstacle"), Term.createTerm("obstacle"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								endF = System.currentTimeMillis()
@@ -120,7 +121,6 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
 						replyToCaller("moveCompleted","moveCompleted")
-						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -138,7 +138,6 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
 						replyToCaller("moveCompleted","moveCompleted")
-						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

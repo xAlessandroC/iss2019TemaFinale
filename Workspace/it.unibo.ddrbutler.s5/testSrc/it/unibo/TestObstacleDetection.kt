@@ -20,10 +20,10 @@ class TestObstacleDetection {
 	@Before
 	fun systemSetUp() {
   	 		GlobalScope.launch{
- 			    println(" %%%%%%% TestObstacleDetection starts robot mind ")
+ 			    println(" %%%%%%% TestObstacleDetection starts")
 				it.unibo.ctxButler.main()
  			}
-			delay(5000)		//give the time to start
+			delay(10000)		//give the time to start
 			resource = sysUtil.getActor("resourcemodelbutler")
 		    obstacledetector = sysUtil.getActor("obstacledetector")	
 		    println(" %%%%%%% TestObstacleDetection getActors resource=${resource}")
@@ -35,7 +35,7 @@ class TestObstacleDetection {
 	}
  
 	@Test
-	fun moveTest() {
+	fun obstacleTest() {
 		println(" %%%%%%% TestObstacleDetection  obstacleTest ")
 		generateSonarDataOverTarget(300)
 		generateSonarDataBelowTarget(300)
@@ -43,19 +43,19 @@ class TestObstacleDetection {
 
 	fun generateSonarDataBelowTarget( time:Long ) {
 		println(" %%%%%%% TestObstacleDetection  belowTarget %%%")
-		moveRobot( obstacledetector!!, "5", time)			
+		generateMessage( obstacledetector!!, "5", time)			
 		solveCheckGoal( resource!!,  "state( sonar, 5, obstacle )" )
 	}
 	
 	fun generateSonarDataOverTarget( time:Long ) {
 		println(" %%%%%%% TestObstacleDetection  overTarget %%%")
-		moveRobot( obstacledetector!!, "200", time)			
+		generateMessage( obstacledetector!!, "200", time)			
 		solveCheckGoal( resource!!,  "state( sonar, 200, clear )" )
 	}	
 
 //----------------------------------------
 	
-	fun moveRobot( actor : ActorBasic, value : String, time : Long ){
+	fun generateMessage( actor : ActorBasic, value : String, time : Long ){
 		actor.scope.launch{
 			println("--- emit sonarData($value)")
   			MsgUtil.sendMsg("sonarRobot","sonar($value)",actor)
