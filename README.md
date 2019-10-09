@@ -22,10 +22,12 @@ gradle build eclipse
 Esistono due tipi di configurazioni a seconda che si voglia eseguire il butler su un DDR in remoto oppure sull'ambiente web virtuale
 
 #### Configurazione DDR
-IMPORTANTE: In questo caso occorre che il server mqtt si trovi sull'indirizzo "192.168.43.145" port 1883!!! In caso si voglia usare un indirizzo diverso occorre manualmente cambiarlo all'interno del file Rasp.qak e ribuildare utilizzando il comando 
+IMPORTANTE: 
+Lo zip che si trova già nel progetto ha come IP di riferimento per MQTT e COAP "192.168.43.145", occorre assicurarsi che effettivamente sia questo l'ip su cui girano i due servizi. In caso si vogliano usare degli indirizzi diversi occorre manualmente cambiarli all'interno dei file Rasp.qak(MQTT) e resources/itunibo.robot.fridgeInteraction.kt(COAP) e ribuildare utilizzando il comando 
 ```
 gradle -b build_ctxRasp.gradle distZip
 ```
+in maniera da rigenerare lo zip con le modifiche effettuate.
 
 Per la configurazione di un DDR sul raspberry occorre
 - copiare sul raspberry lo zip posto nella cartella it.unibo.ddrbutler.s5\build\distributions\it.unibo.ddrbutler.s5-1.0.zip  
@@ -38,7 +40,7 @@ Per la configurazione di un DDR sul raspberry occorre
 - Assicurasi che nel file movimentConfig.pl siano decommentate le TEMPISTICHE NANO (eventualmente inserendo dei parametri personali)
 
 #### Configurazione Virtuale
-Per avviare il robot virtuale è possibile lavorare direttamente sul progetto, qui occorre:
+Il progetto presente dovrebbe già essere predisposto per il corretto funzionamento del robot virtuale, tuttavia è bene:
 - nel file Rasp.qak assicurarsi che sia presente la riga 'mqttBroker "localhost" : 1883'
 - Assicurarsi che nel file basicRobotConfig.pl sia commentato tutto tranne la riga relativa al ROBOT VIRTUAL
 - Assicurasi che nel file movimentConfig.pl siano decommentate le TEMPISTICHE VIRTUAL (eventualmente inserendo dei parametri personali)
