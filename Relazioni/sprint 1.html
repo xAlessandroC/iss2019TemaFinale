@@ -62,12 +62,19 @@
 
           <h2>Analisi del problema</h2>
           <div>
-            <p>Il movimento è possibile tramite l'utilizzo di un supporto fisico (<tt>robot nano</tt>) o virtuale (<tt>Soffritti</tt>).</p>
+            <ul>
+              <li>
+                Per rendere portabile per diversi tipi di robot è opportuno utilizzare il componente già presente
+                  <em>robotSupport.kt</em> che permette la compatibilità sia con un robot fisico che virtuale (<tt>Soffritti</tt>).
+              </li>
+              <li>Al fine di evitare gli ostacoli è necessario che il device sia dotato di un sensore di rilevamento ostacoli,
+                Il supporto sopracitato fornisce anche la gestione di un sonar HC-SR04 che è possibile utilizzare.
+                In questa fase non è importante distinguere tra ostacolo mobile, tavolo e o muri della stanza.
+                Una volta rilevato l'impedimento, il <em>RBR</em> si ferma ed esegue una politica arbitraria per poi attendere
+                altri comandi.
+              </li>
+            </ul>
 
-            <p>Il supporto sopracitato è dotato di un sonar (<tt>SONAR CODICE</tt>) il quale permette al <em>RBR</em> di comprondere che davanti a sè
-              vi è un ostacolo. In questa fase non è importante distinguere tra ostacolo mobile, tavolo e o muri della stanza.
-              Una volta rilevato l'impedimento, il <em>RBR</em> si ferma e attende altri comandi.
-            </p>
 
             <p>L'architettura logica del sistema è la seguente:
               <div class="img" style="width:60%">
@@ -79,12 +86,7 @@
 
             <p>In questo primo sprint, il modello <em>ResourceModel</em> è utilizzato esclusivamente ai fini di testare il sistema:
             si occupa di aggiungere o modificare fatti all'interno della base di conoscenza del sistema, il <i>RobotState.pl</i></p>
-            <p><i>roborSupport</i> determina se il supporto utilizzato è il robot fisico o quello virtuale.</p>
 
-          </div>
-
-          <h2>Progettazione</h2>
-          <div>
             <h3>Comportamento del RobotMind</h3>
             </br>
             <div class="img" style="width:60%">
@@ -109,12 +111,20 @@
               <center><img src="./images/sprint1/ResourceModelBehaviour.png" alt="resBehav" width="78%" height="50%"/></center>
             </div></br>
 
-          </div>
+          </div><!-- analisi dei requisiti -->
 
-          <h2>Test plans</h2>
+          <h2>Progettazione</h2>
           <div>
+            <ul>
+              <li>
+                Creazione del modello <em>robotState.pl</em>
+              </li>
           </div>
 
+          <h2>Deployment</h2>
+          <div>
+          </p>Il sistema è stato costruito su un unico contesto, da eseguire sul PC o da caricare sul raspberry.</p>
+          </div>
 
           <br/><br/>
         </div> <!-- body -->

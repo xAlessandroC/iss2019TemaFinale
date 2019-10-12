@@ -89,18 +89,43 @@
             <p>Il supporto al <em>RBR</em> si muove di una distanza pari alla sua lunghezza:
               si è reso indispensabile dividere la stanza in celle, ognuna della dimensione del robot stesso.</p>
 
-            <p>Per quanto riguarda l'individuazione del <em>table</em>, si parte da due assunzioni fondamentali:
+            <p>L'individuazione del <em>table</em> pone un problema non banale a causa sia delle dimensioni del tavolo che della forma.
+              Si rende quindi necessario fare delle assunzioni</p>
               <ul>
                 <li>il tavolo non è sui bordi</li>
                 <li>il tavolo ha un forma rettangolare</li>
               </ul>
               Da ciò deriva che è sufficiente esplorare esclusivamente due lati del tavolo e di conseguenza derivare gli altri due.
-              La strategia utilizzata è:
+
+              Diverse strategie di esplorazione:
+            </p>
+            <div class="img" style="width:100%">
+              <img src="./images/sprint2/FirstStrategy.png" alt="1strategy" width="30%" height="50%" style="float:left"/>
+              <img src="./images/sprint2/SecondStrategy.png" alt="2strategy" width="30%" height="50%"style="float:left"/>
+              <img src="./images/sprint2/ThirdStrategy.png" alt="3strategy" width="30%" height="50%" />
+            </div>
+
+            <p>
+              La seconda permette un giusto compromesso tra velocità ed efficienza perchè permette di ripassare su un numero
+              relativamente basso di celle già esplorate.
+              Una strategia per il tavolo:
             </p>
             <div class="img" style="width:60%">
               <center><img src="./images/sprint2/TableInfo2.png" alt="strategy" width="50%" height="50%"/></center>
             </div>
 
+            <div>
+              Il requisito <tt>REACH</tt> permette di poter utilizzare il componente <em>it.unibo.planner</em> già presente
+              nella software house.
+              Il funzionamento del modulo fa si che si debba popolare una mappa interna in maniera tale da delinearne le dimensioni
+              ed eventuali ostacoli nel mezzo. Da questo si può derivare che la fase di calibrazione ha proprio il compito
+              di popolare tale mappa.
+              Tra le altre funzionalità il componente planner ha dei metodi di utilities per aggiornare la posizione del robot nella mappa
+            </div>
+
+            <div>
+                Il requisito <tt>STATE_ROOM</tt>
+            </div>
             <p>L'architettura logica del sistema è la seguente:
               <div class="img" style="width:60%">
                 <center><img src="./images/sprint2/sprint2Architecture.png" alt="logicArch" width="110%" height="60%"/></center>
@@ -121,43 +146,54 @@
               </ul>
             </p>
 
+            <h3>Comportamento del ButlerMind</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/ButlerMindBehaviour.png" alt="mindBehav" width="100%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del MovementHandler</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/MovementHandlerBehaviour.png" alt="movHanBehav" width="100%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del Calibration</h3>
+            </br>
+              <div class="img" style="width:70%">
+                <center><img src="./images/sprint2/CalibrationBehaviour.png" alt="calBehav" width="110%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del Planner</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/PlannerBehaviour.png" alt="planBehav" width="100%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del Maitre</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/MaitreBehaviour.png" alt="maitreBehav" width="150%" height="70%"/></center>
+              </div></br>
+
           </div>
 
           <h2>Progettazione</h2>
             <div>
-              <h3>Comportamento del ButlerMind</h3>
-              </br>
-                <div class="img" style="width:60%">
-                  <center><img src="./images/sprint2/ButlerMindBehaviour.png" alt="mindBehav" width="100%" height="50%"/></center>
-                </div></br>
-
-              <h3>Comportamento del MovementHandler</h3>
-              </br>
-                <div class="img" style="width:60%">
-                  <center><img src="./images/sprint2/MovementHandlerBehaviour.png" alt="movHanBehav" width="100%" height="50%"/></center>
-                </div></br>
-
-              <h3>Comportamento del Calibration</h3>
-              </br>
-                <div class="img" style="width:60%">
-                  <center><img src="./images/sprint2/CalibrationBehaviour.png" alt="calBehav" width="110%" height="50%"/></center>
-                </div></br>
-
-              <h3>Comportamento del Planner</h3>
-              </br>
-                <div class="img" style="width:60%">
-                  <center><img src="./images/sprint2/PlannerBehaviour.png" alt="planBehav" width="100%" height="50%"/></center>
-                </div></br>
-
-              <h3>Comportamento del Maitre</h3>
-              </br>
-                <div class="img" style="width:60%">
-                  <center><img src="./images/sprint2/MaitreBehaviour.png" alt="maitreBehav" width="150%" height="70%"/></center>
-                </div></br>
+              <p>In questa fase:
+                <ul>
+                  <li>sono stati creati il <i>modello</i> per il <em>Maitre</em>, <em>maitreModel.pl</em>, ed i file contenenti la posizione della RH (<em>RHLocation.pl</em>)
+                  </li>
+                  <li>sono stati implentati i file di supporto al <em>Maitre</em>, <em>maitreGUI.kt</em> e <em>resourceModelSupport.kt</em></li>
+                </ul>
+              </p>
             </div> <!-- Progettazione -->
 
-          <h2>Test plans</h2>
+          <h2>Deployment</h2>
           <div>
+            <p> Il deployment è avvenuto tramite la divisione nei due contesti: Butler e Maitre.</br>
+              Per il primo è stato creato uno zip contentente l'eseguibile ed inserito sul raspberry, il secondo è stato eseguito
+              direttamente su PC come primo test.</p>
           </div>
 
 
