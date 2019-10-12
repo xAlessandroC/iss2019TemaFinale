@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    <link rel="stylesheet" type="text/css" href="./css/issStyle1.css">
+    <script type="text/javascript" src="../css/issStyle.js"></script>
+
+    <head>
+      <title>Sprint 3</title>
+    </head>
+
+    <body>
+      <div id="main">
+
+        <div id="top">
+            <h1>SPRINT 1<font size="5"></font> </h1>
+        </div>
+
+        <div class="body">
+          <h2>Requisiti</h2>
+          <div class="req">
+            <p>
+              Lo <em>SPRINT 3</em> ha lo scopo di realizzare la parte di esecuzione dei tre task principali
+              del RBR e il supporto ai device pantry, table e dishwasher.
+              Prendendo come riferimento il backlog i requisiti presi in questo sprint sono:
+              <ul>
+                  <li>
+                    Parte 1
+                  </li>
+                  <ul>
+                    <li>Come RBR devo poter accettare i comandi preapare, clear, add_food dal maitre(<tt>ACCEPT</tt>)</li>
+                    <li>Come sistema devo memorizzare la lista degli oggetti da mettere sul tavolo(<tt>INITIAL_SET</tt>)</li>
+                    <li>Come RBR devo poter notificare il completamento di un'attività(<tt>NOTIFY</tt>)</li>
+                  </ul>
+                  <li>
+                    Parte 2
+                  </li>
+                  <ul>
+                    <li>Come RBR devo poter inserire un elemento sul table(<tt>PUT_T</tt>)</li>
+                    <li>Come RBR devo poter prendere un elemento dal table(<tt>TAKE_T</tt>)</li>
+                    <li>Come RBR devo poter inserire un piatto nella dishwasher(<tt>PUT_D</tt>)</li>
+                    <li>Come RBR devo poter prendere un piatto dalla pantry(<tt>TAKE_P</tt>)</li>
+                    <li>Come sistema devo poter notificare al maitre i cambiamenti dei vari device(<tt>UPDATE</tt>)</li>
+                  </ul>
+              </ul>
+            </p>
+          </div> <!-- req -->
+
+          <h2>Analisi dei requisiti</h2>
+          <div>
+            <ul>
+              <li>
+                Tenendo conto dei requisiti iniziali oltre che di quelli attuali dello sprint, pantry, dishwasher e table non sono
+                dispositivi smart.
+              </li>
+              <li>
+                I tre task devono essere eseguiti nel giusto ordine: una prepare, N add_food, una clear.
+              </li>
+            </ul>
+
+          <h3>Test plan</h3>
+          <div>
+            <ul>
+              <li>
+                Dopo aver ricevuto una prepare, l'RBR non può riceverne un'altra; analogo per la clear.
+                Dopo aver ricevuto una add_food, l'RBR può riceverne un numero indefinito.
+              </li>
+              <li>
+                Dopo aver inserito o tolto qualcosa dalla pantry, table o dishwasher, il numero di elementi all'interno
+                deve essere effettivamente cambiato in base alla quantità espressa
+              </li>
+              <li>
+                Se viene richiesta una quantità di elementi superiore a quella presente, il device deve concederne fino al limite
+              </li>
+            </ul>
+          </div>
+          </div>
+          <h2>Analisi del problema</h2>
+          <div>
+            <ul>
+              <li>
+                La nostra software house non possiede alcun supporto che possa permettere l'implementazione di table, pantry
+                e dishwasher. Ne consegue che occorrerà crearli da zero
+              </li>
+              <li>
+                Dai requisiti non è chiaro come debba essere rappresentata la conoscenza iniziale di ciò che deve essere messo
+                sul piatto, nè da chi debba essere eventualmente settata. Si evince che sarà una scelta di progetto
+              </li>
+              <li>
+                Il fatto che i device non siano smart porta un problema per quanto riguarda l'update del contenuto. Infatti
+                questi non potranno notificare le modifiche direttamente al maitre, la parte di progetto dovrà tenere conto di questo.
+              </li>
+            </ul>
+          </div>
+          <p>L'architettura logica del sistema è la seguente:</p>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/sprint3Architecture_2.png" alt="logicArch" width="150%" height="50%"/></center>
+          </div></br>
+
+          <h3>Architettura Butler</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/ButlerArchitecture.png" alt="ButlerArchitecture" width="150%" height="50%"/></center>
+          </div></br>
+          <p>
+            La parte nuova introdotta qui riguarda l'aggiunta di tre nuovi attori, ognugno dei quali gestisce un task diverso.
+            La mindButler (modificata rispetto al precedente sprint) nell'ottica dei microservizi semplicemente chiederà ai
+            vari handler di eseguire il task disinteressandosi dei dettagli tecnici
+          </p>
+
+          <h3>Comportamento prepareHandler</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/prepareHandlerBehaviour.png" alt="prepareHandlerBehaviour" width="120%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento addFoodHandler</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/addFoodBehaviour.png" alt="addFoodHandlerBehaviour" width="120%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento clearHandler</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/clearHandlerBehaviour.png" alt="clearHandlerBehaviour" width="120%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento ContentOnTable</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/ContentOnTableBehaviour.png" alt="ContentOnTableBehaviour" width="60%" height="50%"/></center>
+          </div></br>
+
+          <h3>Architettura Pantry</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/PantryArchitecture.png" alt="PantryArchitecture" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento Pantry</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/PantryBehaviour.png" alt="PantryBehaviour" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h3>Architettura Dishwasher</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/DishwasherArchitecture.png" alt="DishwasherArchitecture" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento Dishwasher</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/DishwasherBehaviour.png" alt="DishwasherBehaviour" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h3>Architettura Table</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/TableArchitecture.png" alt="TableArchitecture" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento Table</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint3/TableBehaviour.png" alt="TableBehaviour" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h2>Progetto</h2>
+          In questa fase c'è stata:
+          <ul>
+            <li>
+              Realizzazione dei supporti <em>Pantry.java</em>,<em>Dishwasher.java</em>,<em>Table.java</em> per modellare
+              le entità e dei supporti per interagirvi <em>PantrySupport.kt</em>,<em>DishwasherSupport.kt</em>,<em>TableSupport.kt</em>
+            </li>
+            <li>
+              Creazione dei tre modelli <em>PantryModel.pl</em>,<em>DishwasherModel.pl</em>,<em>TableModel.pl</em>
+            </li>
+          </ul>
+
+          <h2>Deployment</h2>
+          <div>
+            Il deployment è avvenuto tramite la divisione nei due contesti: Butler e Maitre.</br>
+            Per il primo è stato creato uno zip contentente l'eseguibile ed inserito sul raspberry, il secondo è stato eseguito
+            direttamente su PC come primo test.
+          </div>
+        </div> <!-- body -->
+
+      </br>
+        <div style="background-color:rgba(86, 56, 253, 0.9); width:61%;text-align:left;font-size:small;color:white">
+          By Alessandro Calvio, email: alessandro.calvio@studio.unibo.it
+          </br>
+          By Lorenzo Mustich, email: lorenzo.mustich@studio.unibo.it
+          <!--<img src="./img/emiglio.png" alt="mbot" width="8%" height="8%">-->
+        </div>
+
+      </div> <!-- main -->
+    </body>
+
+</html>

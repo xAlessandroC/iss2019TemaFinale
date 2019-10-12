@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    <link rel="stylesheet" type="text/css" href="./css/issStyle1.css">
+    <script type="text/javascript" src="../css/issStyle.js"></script>
+
+    <head>
+      <title>Sprint 2</title>
+    </head>
+
+    <body>
+      <div id="main">
+
+        <div id="top">
+            <h1>SPRINT 2<font size="5"></font> </h1>
+        </div>
+
+        <div class="body">
+          <h2>Requisiti</h2>
+          <div class="req">
+            <p>Lo <em>SPRINT 2</em> si divide in due parti:
+              <ul>
+                <li>relativa al <em>RBR</em>:</li>
+                  <ul>
+                    <li><i>calibrare</i> la stanza di lavoro</li>
+                    <li>riuscire a raggiungere un <i>punto specifico</i> della stanza</li>
+                  </ul>
+                <li>relativa al <em>Maitre</em>:</li>
+                  <ul>
+                    <li>implementare il <i>supporto</i> software</em></li>
+                    <li>permettere la ricezione dei comandi di <i>prepare</i>, <i>add food</i>, <i>clear</i></li>
+                    <li>implementare la possibilità di <i>stoppare</i> e <i>riattivare</i> un task</li>
+                    <li>permette l'accesso allo <i>stato aggiornato</i> della stanza</li>
+                  </ul>
+              </ul>
+            </p>
+
+            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <em>RBR</em>:
+              <ul>
+                <li>deve essere in grado di calcolare le dimensioni della stanza (<tt>CALIBRATE</tt>)</li>
+                <li>deve poter raggiungere una posizione specifica della stanza (<tt>REACH</tt>)</li>
+              </ul>
+              Il <em>Maitre</em>:
+              <ul>
+                <li>deve poter inviare i comandi <i>prepare</i>, <i>add food</i>, <i>clear</i> (<tt>SEND</tt>)</li>
+                <li>deve poter inviare il comando di <i>stop</i> (<tt>STOP</tt>)</li>
+                <li>deve poter inviare il comando di <i>reactivate</i> (<tt>REACTIVATE</tt>)</li>
+                <li>deve poter conoscere, in ogni momento, lo stato della stanza (<tt>STATE_ROOM</tt>)</li>
+              </ul>
+            </p>
+
+          </div> <!-- req -->
+
+          <h2>Analisi dei requisiti</h2>
+          <div>
+            <p>Obiettivi
+              <ul>
+                <li><em>RBR</em>:</li>
+                  <ol>
+                    <li>realizzare il supporto alla calibrazione della stanza</li>
+                    <li>rendere possibile il raggiungimento di un punto specifico della stanza</li>
+                  </ol>
+                <li><em>Maitre</em>:</li>
+                <ol>
+                  <li>realizzare il supporto;</li>
+                  <li>permettere l'invio dei comandi <i>prepare</i>, <i>add food</i>, <i>clear</i></li>
+                  <li>permettere l'invio del comando <i>stop</i></li>
+                  <li>permettere l'invio del comando <i>reactivate</i></li>
+                  <li>permette la consultazione in tempo reale dello stato della stanza</li>
+                </ol>
+              </ul>
+            </p>
+
+            <h3>Test plans</h3>
+            <div>
+              <ul>
+                <li>Ricevuto un comando, il <em>RBR</em> deve porsi nella posizione desiderata</li>
+                <li>Inviato un comando, il <em>Maitre</em> deve passare da uno stato di <tt>sending prepare</tt> ad uno di <tt>sending add food or clear</tt></li>
+                <li>Avvenuto un cambiamento nella stanza, il <em>Maitre</em> deve poter essere a conoscenza di tale cambiamento</li>
+              </ul>
+            </div>
+          </div> <!-- analisi dei requisiti -->
+
+        <h2>Analisi del problema</h2>
+          <div>
+            <p>Dall'analisi dei requisiti è emerso come sia conveniente per il <em>RBR</em> avere a disposizione una rappresentazione interna della stanza
+            in cui opera. In questa fase di esplorazione, il <em>RBR</em> avrà anche il compito di individuare la posizione e la dimensione del <em>table</em>.</p>
+
+            <p>Il supporto al <em>RBR</em> si muove di una distanza pari alla sua lunghezza:
+              si è reso indispensabile dividere la stanza in celle, ognuna della dimensione del robot stesso.</p>
+
+            <p>Per quanto riguarda l'individuazione del <em>table</em>, si parte da due assunzioni fondamentali:
+              <ul>
+                <li>il tavolo non è sui bordi</li>
+                <li>il tavolo ha un forma rettangolare</li>
+              </ul>
+              Da ciò deriva che è sufficiente esplorare esclusivamente due lati del tavolo e di conseguenza derivare gli altri due.
+              La strategia utilizzata è:
+            </p>
+            <div class="img" style="width:60%">
+              <center><img src="./images/sprint2/TableInfo2.png" alt="strategy" width="50%" height="50%"/></center>
+            </div>
+
+            <p>L'architettura logica del sistema è la seguente:
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/sprint2Architecture.png" alt="logicArch" width="110%" height="60%"/></center>
+              </div></br>
+              In questo sprint, il <em>ResourceModelButler</em> funge da modello vero e proprio e non è più utilizzato a soli fini di test come nello sprint
+              precedente. Sono stati introdotti dei nuovi attori lato <em>RBR</em>:
+              <ul>
+                <li><em>ButlerMind</em>: si occupa di gestire, a livello logico, i vari task e di calibrare la stanza durante la fase iniziale</li>
+                <li><em>Calibration</em>: si occupa di esplorare la stanza e, successivamente, di capire dove il <em>table</em> è stato posto</li>
+                <li><em>Planner</em>: si occupa di calcolare, di volta in volta, l'insieme di passi da fare per raggiungere un determinato punto della stanza</li>
+                <li><em>MovementHandler</em>: al contrario del <em>RobotMind</em> che processava un solo comando di movimento alla volta, si occupa di
+                gestire insiemi di passi</li>
+              </ul>
+              Lato <em>Maitre</em> sono stati introdotti:
+              <ul>
+                <li><em>Maitre</em>: frontend per l'invio dei comandi e la consultazione dello stato della stanza</li>
+                <li><em>ResourceModelMaitre</em>: introdotto ai fini di test</li>
+              </ul>
+            </p>
+
+          </div>
+
+          <h2>Progettazione</h2>
+            <div>
+              <h3>Comportamento del ButlerMind</h3>
+              </br>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/sprint2/ButlerMindBehaviour.png" alt="mindBehav" width="100%" height="50%"/></center>
+                </div></br>
+
+              <h3>Comportamento del MovementHandler</h3>
+              </br>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/sprint2/MovementHandlerBehaviour.png" alt="movHanBehav" width="100%" height="50%"/></center>
+                </div></br>
+
+              <h3>Comportamento del Calibration</h3>
+              </br>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/sprint2/CalibrationBehaviour.png" alt="calBehav" width="110%" height="50%"/></center>
+                </div></br>
+
+              <h3>Comportamento del Planner</h3>
+              </br>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/sprint2/PlannerBehaviour.png" alt="planBehav" width="100%" height="50%"/></center>
+                </div></br>
+
+              <h3>Comportamento del Maitre</h3>
+              </br>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/sprint2/MaitreBehaviour.png" alt="maitreBehav" width="150%" height="70%"/></center>
+                </div></br>
+            </div> <!-- Progettazione -->
+
+          <h2>Test plans</h2>
+          <div>
+          </div>
+
+
+          <br/><br/>
+        </div> <!-- body -->
+
+        <div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;font-size:small;color:white">
+          By Alessandro Calvio, email: alessandro.calvio@studio.unibo.it
+          </br>
+          By Lorenzo Mustich, email: lorenzo.mustich@studio.unibo.it
+          <!--<img src="./img/emiglio.png" alt="mbot" width="8%" height="8%">-->
+        </div>
+
+      </div> <!-- main -->
+    </body>
+
+</html>
