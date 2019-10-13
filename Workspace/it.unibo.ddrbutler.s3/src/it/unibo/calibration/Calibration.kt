@@ -41,7 +41,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 								forward("calibrationCompleted", "calibrationCompleted" ,"butlermind" ) 
 						}
 					}
-					 transition(edgeName="t020",targetState="initAi",cond=whenDispatch("startCalibration"))
+					 transition(edgeName="t030",targetState="initAi",cond=whenDispatch("startCalibration"))
 				}	 
 				state("initAi") { //this:State
 					action { //it:State
@@ -70,9 +70,9 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						}
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t021",targetState="confirmForwardStep",cond=whenDispatch("moveCompleted"))
-					transition(edgeName="t022",targetState="backtracking",cond=whenDispatch("moveFailed"))
-					transition(edgeName="t023",targetState="terminazioneboundary",cond=whenDispatch("endBoundary"))
+					 transition(edgeName="t031",targetState="confirmForwardStep",cond=whenDispatch("moveCompleted"))
+					transition(edgeName="t032",targetState="backtracking",cond=whenDispatch("moveFailed"))
+					transition(edgeName="t033",targetState="terminazioneboundary",cond=whenDispatch("endBoundary"))
 				}	 
 				state("confirmForwardStep") { //this:State
 					action { //it:State
@@ -86,13 +86,13 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						itunibo.planner.plannerUtil.wallFound(  )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t024",targetState="turnLeft",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t034",targetState="turnLeft",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("turnLeft") { //this:State
 					action { //it:State
 						itunibo.planner.moveUtils.rotateLeft90tuning(myself)
 					}
-					 transition(edgeName="t025",targetState="forwardStep",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t035",targetState="forwardStep",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("terminazioneboundary") { //this:State
 					action { //it:State
@@ -129,8 +129,8 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						println("NEXT DIR: ${nextDir.toUpperCase()}")
 					}
-					 transition(edgeName="t026",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
-					transition(edgeName="t027",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
+					 transition(edgeName="t036",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
+					transition(edgeName="t037",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
 				}	 
 				state("snakeTurnLeft") { //this:State
 					action { //it:State
@@ -145,8 +145,8 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						println("NEXT DIR: ${nextDir.toUpperCase()}")
 					}
-					 transition(edgeName="t028",targetState="snakeForwardStep",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("forward")}))
-					transition(edgeName="t029",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("goAhead")}))
+					 transition(edgeName="t038",targetState="snakeForwardStep",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("forward")}))
+					transition(edgeName="t039",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("goAhead")}))
 				}	 
 				state("snakeTurnRight") { //this:State
 					action { //it:State
@@ -161,8 +161,8 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						println("NEXT DIR: ${nextDir.toUpperCase()}")
 					}
-					 transition(edgeName="t030",targetState="snakeForwardStep",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("forward")}))
-					transition(edgeName="t031",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("goAhead")}))
+					 transition(edgeName="t040",targetState="snakeForwardStep",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("forward")}))
+					transition(edgeName="t041",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("goAhead")}))
 				}	 
 				state("snakeGoAhead") { //this:State
 					action { //it:State
@@ -192,11 +192,11 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						println("NEXT DIR: ${nextDir.toUpperCase()}")
 					}
-					 transition(edgeName="t032",targetState="endExploration",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("completed")}))
-					transition(edgeName="t033",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
-					transition(edgeName="t034",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
-					transition(edgeName="t035",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("straight")}))
-					transition(edgeName="t036",targetState="findTable",cond=whenDispatch("moveFailed"))
+					 transition(edgeName="t042",targetState="endExploration",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("completed")}))
+					transition(edgeName="t043",targetState="snakeTurnLeft",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("left")}))
+					transition(edgeName="t044",targetState="snakeTurnRight",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("right")}))
+					transition(edgeName="t045",targetState="snakeGoAhead",cond=whenDispatchGuarded("moveCompleted",{nextDir.equals("straight")}))
+					transition(edgeName="t046",targetState="findTable",cond=whenDispatch("moveFailed"))
 				}	 
 				state("findTable") { //this:State
 					action { //it:State
@@ -217,7 +217,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 								}
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t037",targetState="goSouthFT",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t047",targetState="goSouthFT",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("goSouthFT") { //this:State
 					action { //it:State
@@ -243,7 +243,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						}
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t038",targetState="forwardStepFT",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t048",targetState="forwardStepFT",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("forwardStepFT") { //this:State
 					action { //it:State
@@ -251,7 +251,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						itunibo.planner.moveUtils.moveAhead(myself)
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t039",targetState="goIntern",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t049",targetState="goIntern",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("goIntern") { //this:State
 					action { //it:State
@@ -264,22 +264,22 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 						}
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition(edgeName="t040",targetState="checkTable",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t050",targetState="checkTable",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("checkTable") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("movementCmd", "movementCmd(w)" ,"movementhandler" ) 
 					}
-					 transition(edgeName="t041",targetState="confirmForwardStepFT",cond=whenDispatch("moveCompleted"))
-					transition(edgeName="t042",targetState="backtrackingFT",cond=whenDispatch("moveFailed"))
+					 transition(edgeName="t051",targetState="confirmForwardStepFT",cond=whenDispatch("moveCompleted"))
+					transition(edgeName="t052",targetState="backtrackingFT",cond=whenDispatch("moveFailed"))
 				}	 
 				state("backtrackingFT") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						itunibo.planner.moveUtils.backToCompensate(myself)
 					}
-					 transition(edgeName="t043",targetState="goSouthFT",cond=whenDispatch("moveCompleted"))
+					 transition(edgeName="t053",targetState="goSouthFT",cond=whenDispatch("moveCompleted"))
 				}	 
 				state("confirmForwardStepFT") { //this:State
 					action { //it:State
@@ -340,7 +340,7 @@ class Calibration ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name,
 					action { //it:State
 						forward("goto", "goto(rh)" ,"planner" ) 
 					}
-					 transition(edgeName="t044",targetState="waitCmd",cond=whenDispatch("planningCompleted"))
+					 transition(edgeName="t054",targetState="waitCmd",cond=whenDispatch("planningCompleted"))
 				}	 
 			}
 		}

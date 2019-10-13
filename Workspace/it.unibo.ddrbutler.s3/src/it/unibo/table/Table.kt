@@ -30,8 +30,8 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					action { //it:State
 						forward("modelUpdateTable", "modelUpdateTable(table,null,idle,null,null)" ,"resourcemodeltable" ) 
 					}
-					 transition(edgeName="t00",targetState="putElement",cond=whenDispatch("putElementTable"))
-					transition(edgeName="t01",targetState="takeElement",cond=whenDispatch("takeElementTable"))
+					 transition(edgeName="t086",targetState="putElement",cond=whenDispatch("putElementTable"))
+					transition(edgeName="t087",targetState="takeElement",cond=whenDispatch("takeElementTable"))
 				}	 
 				state("putElement") { //this:State
 					action { //it:State
