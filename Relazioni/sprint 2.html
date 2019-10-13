@@ -20,27 +20,27 @@
           <div class="req">
             <p>Lo <em>SPRINT 2</em> si divide in due parti:
               <ul>
-                <li>relativa al <em>RBR</em>:</li>
+                <li>relativa al <bc>RBR</bc>:</li>
                   <ul>
                     <li><i>calibrare</i> la stanza di lavoro</li>
                     <li>riuscire a raggiungere un <i>punto specifico</i> della stanza</li>
                   </ul>
-                <li>relativa al <em>Maitre</em>:</li>
+                <li>relativa al <bc>Maitre</bc>:</li>
                   <ul>
                     <li>implementare il <i>supporto</i> software</em></li>
                     <li>permettere la ricezione dei comandi di <i>prepare</i>, <i>add food</i>, <i>clear</i></li>
-                    <li>implementare la possibilità di <i>stoppare</i> e <i>riattivare</i> un task</li>
+                    <li>implementare la possibilità di <i>interrompere</i> e <i>riattivare</i> un task</li>
                     <li>permette l'accesso allo <i>stato aggiornato</i> della stanza</li>
                   </ul>
               </ul>
             </p>
 
-            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <em>RBR</em>:
+            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <bc>RBR</bc>:
               <ul>
                 <li>deve essere in grado di calcolare le dimensioni della stanza (<tt>CALIBRATE</tt>)</li>
                 <li>deve poter raggiungere una posizione specifica della stanza (<tt>REACH</tt>)</li>
               </ul>
-              Il <em>Maitre</em>:
+              Il <bc>Maitre</bc>:
               <ul>
                 <li>deve poter inviare i comandi <i>prepare</i>, <i>add food</i>, <i>clear</i> (<tt>SEND</tt>)</li>
                 <li>deve poter inviare il comando di <i>stop</i> (<tt>STOP</tt>)</li>
@@ -53,29 +53,33 @@
 
           <h2>Analisi dei requisiti</h2>
           <div>
-            <p>Obiettivi
+            <p>
+              Tenendo sempre conto anche dell'analisi iniziale dei requisiti:
               <ul>
-                <li><em>RBR</em>:</li>
-                  <ol>
-                    <li>realizzare il supporto alla calibrazione della stanza</li>
-                    <li>rendere possibile il raggiungimento di un punto specifico della stanza</li>
-                  </ol>
-                <li><em>Maitre</em>:</li>
-                <ol>
-                  <li>realizzare il supporto;</li>
-                  <li>permettere l'invio dei comandi <i>prepare</i>, <i>add food</i>, <i>clear</i></li>
-                  <li>permettere l'invio del comando <i>stop</i></li>
-                  <li>permettere l'invio del comando <i>reactivate</i></li>
-                  <li>permette la consultazione in tempo reale dello stato della stanza</li>
-                </ol>
+                <li>
+                  Il <bc>robot</bc> deve essere in grado di calibrare la stanza, ossia calcolarne le misure e determinare la disposizione
+                  del tavolo.
+                </li>
+                <li>
+                  Il <bc>robot</bc> deve poter raggiungere un punto specifico della stanza.
+                </li>
+                <li>
+                  Il <bc>Maitre</bc> deve poter mandare i comandi <i>prepare</i>, <i>add food</i>, <i>clear</i> nell'ordine determinato dai requisiti
+                </li>
+                <li>
+                  Il <bc>Maitre</bc> deve poter mandare i comandi di <i>stop</i> e <i>reactivate</i> solo quando il robot sta eseguendo un task
+                </li>
+                <li>
+                  Il <bc>Maitre</bc> deve essere in grado di aggiornare il contenuto dei vari device della stanza in ogni momento
+                </li>
               </ul>
             </p>
+
 
             <h3>Test plans</h3>
             <div>
               <ul>
-                <li>Ricevuto un comando, il <em>RBR</em> deve porsi nella posizione desiderata</li>
-                <li>Inviato un comando, il <em>Maitre</em> deve passare da uno stato di <tt>sending prepare</tt> ad uno di <tt>sending add food or clear</tt></li>
+                <li>Ricevuto un comando di <i>planning</i>, il <em>RBR</em> deve porsi nella posizione desiderata</li>
                 <li>Avvenuto un cambiamento nella stanza, il <em>Maitre</em> deve poter essere a conoscenza di tale cambiamento</li>
               </ul>
             </div>
@@ -83,11 +87,17 @@
 
         <h2>Analisi del problema</h2>
           <div>
-            <p>Dall'analisi dei requisiti è emerso come sia conveniente per il <em>RBR</em> avere a disposizione una rappresentazione interna della stanza
-            in cui opera. In questa fase di esplorazione, il <em>RBR</em> avrà anche il compito di individuare la posizione e la dimensione del <em>table</em>.</p>
+            <p>
+              Il requisito di calibrazione della stanza implica (come già emerso in fase di analisi del problema iniziale) che il robot
+              debba avere una qualche rappresentazione interna della stanza e, quindi, che questa venga opportunamente discretizzata.
+              Al fine di poter calcolare quali sono le effettive misure della stanza si è scelto di utilizzare come unità di misura la lunghezza
+              del robot stesso portando, quindi, ad una divisione della stanza in celle quadrate.
+            </p>
 
-            <p>Il supporto al <em>RBR</em> si muove di una distanza pari alla sua lunghezza:
-              si è reso indispensabile dividere la stanza in celle, ognuna della dimensione del robot stesso.</p>
+            <p>
+              Il modello creato nel precedente sprint non basta per implementare un tipo di movimento "cell-based" in quanto esso è capace solo di
+              eseguire comandi elementari.
+            </p>
 
             <p>L'individuazione del <em>table</em> pone un problema non banale a causa sia delle dimensioni del tavolo che della forma.
               Si rende quindi necessario fare delle assunzioni</p>
@@ -120,15 +130,20 @@
               Il funzionamento del modulo fa si che si debba popolare una mappa interna in maniera tale da delinearne le dimensioni
               ed eventuali ostacoli nel mezzo. Da questo si può derivare che la fase di calibrazione ha proprio il compito
               di popolare tale mappa.
-              Tra le altre funzionalità il componente planner ha dei metodi di utilities per aggiornare la posizione del robot nella mappa
+              Tra le altre funzionalità il componente planner ha dei metodi di utilities per aggiornare la posizione del robot nella mappa.
+            </div>
+            <p>
+
+            </p>
+            <div>
+              Il requisito di planning porta a dover specificare le posizioni dei vari device all'interno della stanza (o in generale una posizione qualsiasi)
+               in maniera da
+              poter impostare la route correttamente.
             </div>
 
-            <div>
-                Il requisito <tt>STATE_ROOM</tt>
-            </div>
             <p>L'architettura logica del sistema è la seguente:
               <div class="img" style="width:60%">
-                <center><img src="./images/sprint2/sprint2Architecture.png" alt="logicArch" width="110%" height="60%"/></center>
+                <center><img src="./images/sprint2/sprint2Architecture.png" alt="logicArch" width="140%" height="60%"/></center>
               </div></br>
               In questo sprint, il <em>ResourceModelButler</em> funge da modello vero e proprio e non è più utilizzato a soli fini di test come nello sprint
               precedente. Sono stati introdotti dei nuovi attori lato <em>RBR</em>:

@@ -20,29 +20,29 @@
           <div class="req">
             <p>
               Lo <em>SPRINT 4</em> ha lo scopo di realizzare la parte di interruzione dei task, evasione
-              degli ostacoli dell'RBR e il supporto per il fridge.
+              degli ostacoli dell'<bc>RBR</bc> e il supporto per il <bc>fridge</bc>.
               Prendendo come riferimento il backlog i requisiti presi in questo sprint sono:
               <ul>
                   <li>
                     Parte 1
                   </li>
                   <ul>
-                    <li>Come RBR devo poter notificare con un allarme la mancanza del cibo richiesto(<tt>ALERT</tt>)</li>
-                    <li>Come RBR devo poter richiedere informazioni sul contenuto del fridge(<tt>REQUEST_F</tt>)</li>
-                    <li>Come RBR devo essere in grado di interrompere un'attività(<tt>STOP_R</tt>)</li>
-                    <li>Come RBR devo essere in grado di riprendere un'attività interrotta(<tt>REACTIVATE_R</tt>)</li>
-                    <li>Come RBR devo poter riconoscere ed evitare gli ostacoli(<tt>AVOID</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter notificare con un allarme la mancanza del cibo richiesto(<tt>ALERT</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter richiedere informazioni sul contenuto del fridge(<tt>REQUEST_F</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo essere in grado di interrompere un'attività(<tt>STOP_R</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo essere in grado di riprendere un'attività interrotta(<tt>REACTIVATE_R</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter riconoscere ed evitare gli ostacoli(<tt>AVOID</tt>)</li>
                   </ul>
                   <li>
                     Parte 2
                   </li>
                   <ul>
-                    <li>Come Fridge devo permettere l'inserimento di nuovo cibo(<tt>PUT_F</tt>)</li>
-                    <li>Come Fridge devo permettere la rimozione di un cibo(<tt>TAKE_F</tt>)</li>
-                    <li>Come Fridge devo poter esporre il contenuto(<tt>EXHIBIT</tt>)</li>
-                    <li>Come Fridge devo poter rispondere a domande sul contenuto(<tt>ANSWER</tt>)</li>
-                    <li>Come Fridge devo esporre un'interfaccia CoAP(<tt>COAP</tt>)</li>
-                    <li>Come Fridge devo rendere noti eventuali cambiamenti del contenuto(<tt>UPDATE_F</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo permettere l'inserimento di nuovo cibo(<tt>PUT_F</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo permettere la rimozione di un cibo(<tt>TAKE_F</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo poter esporre il contenuto(<tt>EXHIBIT</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo poter rispondere a domande sul contenuto(<tt>ANSWER</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo esporre un'interfaccia CoAP(<tt>COAP</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo rendere noti eventuali cambiamenti del contenuto(<tt>UPDATE_F</tt>)</li>
                   </ul>
               </ul>
             </p>
@@ -52,10 +52,10 @@
           <div>
             <ul>
               <li>
-                Il fridge è un dispositivo smart che espone un interfaccia COAP
+                Il <bc>Fridge</bc> è un dispositivo smart che espone un interfaccia COAP
               </li>
               <li>
-                Per quanto riguarda le richieste di natura informativa, l'interazione con il fridge deve essere del tipo
+                Per quanto riguarda le richieste di natura informativa, l'interazione con il <bc>Fridge</bc> deve essere del tipo
                 request-response
               </li>
             </ul>
@@ -64,19 +64,19 @@
           <div>
             <ul>
               <li>
-                Se l'RBR si trova di fronte un ostacolo il suo stato deve essere di <em>stop</em>, analogamente se riceve
+                Se l'<bc>RBR</bc> si trova di fronte un ostacolo il suo stato deve essere di <em>stop</em>, analogamente se riceve
                 un comando di stop
               </li>
               <li>
-                Se l'RBR riceve un comando di reactivate il suo stato deve diventare lo stesso di quello precedente
+                Se l'<bc>RBR</bc> riceve un comando di reactivate il suo stato deve diventare lo stesso di quello precedente
                 alla ricezione del comando
               </li>
               <li>
-                Dopo aver inserito o tolto qualcosa dalfridge, il numero di elementi all'interno
+                Dopo aver inserito o tolto qualcosa dal <bc>Fridge</bc>, il numero di elementi all'interno
                 deve essere effettivamente cambiato in base alla quantità espressa
               </li>
               <li>
-                Se viene richiesta una quantità di elementi superiore a quella presente, il fridge deve concederne fino al limite
+                Se viene richiesta una quantità di elementi superiore a quella presente, il <bc>Fridge</bc> deve concederne fino al limite
               </li>
             </ul>
           </div>
@@ -89,8 +89,8 @@
                 Ne consegue che occorrerà crearli da zero
               </li>
               <li>
-                Dal requisito REQUEST_F si deduce che bisogna creare un supporto per l'interazione con il protocollo COAP
-                che al momento RBR non ha
+                Dal requisito <tt>REQUEST_F</tt> si deduce che bisogna creare un supporto per l'interazione con il protocollo COAP
+                che al momento <bc>RBR</bc> non ha
               </li>
               <li>
                 L'utilizzo dell'infrastruttura QAK fa si che messaggi consecutivi vengano messi in coda. Bisogna evitare
@@ -145,10 +145,10 @@
               Creazione del modello <em>FridgeModel.pl</em>
             </li>
             <li>
-              Creazione del supporto per l'interazione del RBR con il fridge <em>fridgeInteraction.kt</em>
+              Creazione del supporto per l'interazione del <bc>RBR</bc> con il <bc>Fridge</bc> <em>fridgeInteraction.kt</em>
             </li>
             <li>
-              Creazione del supporto per l'interazione del maitre con il fridge <em>fridgeInteraction.kt</em>
+              Creazione del supporto per l'interazione del <bc>Maitre</bc> con il <bc>Fridge</bc> <em>fridgeInteraction.kt</em>
             </li>
 
             <li>

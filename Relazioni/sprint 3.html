@@ -20,29 +20,29 @@
           <div class="req">
             <p>
               Lo <em>SPRINT 3</em> ha lo scopo di realizzare la parte di esecuzione dei tre task principali
-              del RBR e il supporto ai device pantry, table e dishwasher.
+              del <bc>RBR</bc> e il supporto ai device <bc>Pantry</bc>, <bc>Table</bc> e <bc>Dishwasher</bc>.
               Prendendo come riferimento il backlog i requisiti presi in questo sprint sono:
               <ul>
                   <li>
                     Parte 1
                   </li>
                   <ul>
-                    <li>Come RBR devo poter accettare i comandi preapare, clear, add_food dal maitre(<tt>ACCEPT</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter accettare i comandi preapare, clear, add_food dal <bc>Maitre</bc>(<tt>ACCEPT</tt>)</li>
                     <li>Come sistema devo memorizzare la lista degli oggetti da mettere sul tavolo(<tt>INITIAL_SET</tt>)</li>
-                    <li>Come RBR devo poter notificare il completamento di un'attività(<tt>NOTIFY</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter notificare il completamento di un'attività(<tt>NOTIFY</tt>)</li>
                   </ul>
                   <li>
                     Parte 2
                   </li>
                   <ul>
 
-                    <li>Come Pantry devo permettere l'inserimento di piatti(<tt>PUT_P</tt>)</li>
-                    <li>Come Pantry devo permettere la rimozione di piatti(<tt>TAKE_P</tt>)</li>
-                    <li>Come Dishwasher devo permettere l'inserimento di piatti(<tt>PUT_D</tt>)</li>
-                    <li>Come Dishwasher devo permettere la rimozione di piatti(<tt>TAKE_D</tt>)</li>
-                    <li>Come Table devo permettere l'inserimento di piatti/cibo(<tt>PUT_T</tt>)</li>
-                    <li>Come Table devo permettere la rimozione di piatti/cibo(<tt>TAKE_T</tt>)</li>
-                    <li>Come sistema devo poter notificare al maitre i cambiamenti dei vari device(<tt>UPDATE</tt>)</li>
+                    <li>Come <bc>Pantry</bc> devo permettere l'inserimento di piatti(<tt>PUT_P</tt>)</li>
+                    <li>Come <bc>Pantry</bc> devo permettere la rimozione di piatti(<tt>TAKE_P</tt>)</li>
+                    <li>Come <bc>Dishwasher</bc> devo permettere l'inserimento di piatti(<tt>PUT_D</tt>)</li>
+                    <li>Come <bc>Dishwasher</bc> devo permettere la rimozione di piatti(<tt>TAKE_D</tt>)</li>
+                    <li>Come <bc>Table</bc> devo permettere l'inserimento di piatti/cibo(<tt>PUT_T</tt>)</li>
+                    <li>Come <bc>Table</bc> devo permettere la rimozione di piatti/cibo(<tt>TAKE_T</tt>)</li>
+                    <li>Come sistema devo poter notificare al <bc>Maitre</bc> i cambiamenti dei vari device(<tt>UPDATE</tt>)</li>
 
                   </ul>
               </ul>
@@ -53,7 +53,7 @@
           <div>
             <ul>
               <li>
-                Tenendo conto dei requisiti iniziali oltre che di quelli attuali dello sprint, pantry, dishwasher e table non sono
+                Tenendo conto dei requisiti iniziali oltre che di quelli attuali dello sprint, <bc>Pantry</bc>, <bc>Dishwasher</bc> e <bc>Table</bc> non sono
                 dispositivi smart.
               </li>
               <li>
@@ -65,15 +65,19 @@
           <div>
             <ul>
               <li>
-                Dopo aver ricevuto una prepare, l'RBR non può riceverne un'altra; analogo per la clear.
-                Dopo aver ricevuto una add_food, l'RBR può riceverne un numero indefinito.
+                Dopo aver ricevuto una prepare, l'<bc>RBR</bc> non può riceverne un'altra; analogo per la clear.
+                Dopo aver ricevuto una add_food, l'<bc>RBR</bc> può riceverne un numero indefinito.
               </li>
               <li>
-                Dopo aver inserito o tolto qualcosa dalla pantry, table o dishwasher, il numero di elementi all'interno
+                Dopo aver inserito o tolto qualcosa dalla <bc>Pantry</bc>, <bc>Table</bc> o <bc>Dishwasher</bc>, il numero di elementi all'interno
                 deve essere effettivamente cambiato in base alla quantità espressa
               </li>
               <li>
-                Se viene richiesta una quantità di elementi superiore a quella presente, il device deve concederne fino al limite
+                Dopo aver inserito o tolto qualcosa dalla <bc>Pantry</bc>, <bc>Table</bc> o <bc>Dishwasher</bc>, il <bc>Maitre</bc> deve aver aggiornato le informazioni
+                a sua disposizione relative alla modifica effettuata.
+              </li>
+              <li>
+                Se viene richiesta una quantità di elementi superiore a quella presente, il device ne concede fino al limite
               </li>
             </ul>
           </div>
@@ -82,8 +86,8 @@
           <div>
             <ul>
               <li>
-                La nostra software house non possiede alcun supporto che possa permettere l'implementazione di table, pantry
-                e dishwasher. Ne consegue che occorrerà crearli da zero
+                La nostra software house non possiede alcun supporto che possa permettere l'implementazione di <bc>Table</bc>, <bc>Pantry</bc>
+                e <bc>Dishwasher</bc>. Ne consegue che occorrerà crearli da zero
               </li>
               <li>
                 Dai requisiti non è chiaro come debba essere rappresentata la conoscenza iniziale di ciò che deve essere messo
@@ -91,7 +95,7 @@
               </li>
               <li>
                 Il fatto che i device non siano smart porta un problema per quanto riguarda l'update del contenuto. Infatti
-                questi non potranno notificare le modifiche direttamente al maitre, la parte di progetto dovrà tenere conto di questo.
+                questi non potranno notificare le modifiche direttamente al <bc>Maitre</bc>, la parte di progetto dovrà tenere conto di questo.
               </li>
             </ul>
           </div>
@@ -129,43 +133,43 @@
             <center><img src="./images/sprint3/clearHandlerBehaviour.png" alt="clearHandlerBehaviour" width="120%" height="50%"/></center>
           </div></br>
 
-          <h3>Comportamento ContentOnTable</h3>
+          <h3>Comportamento ContentOn<bc>Table</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/ContentOnTableBehaviour.png" alt="ContentOnTableBehaviour" width="60%" height="50%"/></center>
           </div></br>
 
-          <h3>Architettura Pantry</h3>
+          <h3>Architettura <bc>Pantry</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/PantryArchitecture.png" alt="PantryArchitecture" width="80%" height="50%"/></center>
           </div></br>
 
-          <h3>Comportamento Pantry</h3>
+          <h3>Comportamento <bc>Pantry</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/PantryBehaviour.png" alt="PantryBehaviour" width="80%" height="50%"/></center>
           </div></br>
 
-          <h3>Architettura Dishwasher</h3>
+          <h3>Architettura <bc>Dishwasher</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/DishwasherArchitecture.png" alt="DishwasherArchitecture" width="80%" height="50%"/></center>
           </div></br>
 
-          <h3>Comportamento Dishwasher</h3>
+          <h3>Comportamento <bc>Dishwasher</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/DishwasherBehaviour.png" alt="DishwasherBehaviour" width="80%" height="50%"/></center>
           </div></br>
 
-          <h3>Architettura Table</h3>
+          <h3>Architettura <bc>Table</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/TableArchitecture.png" alt="TableArchitecture" width="80%" height="50%"/></center>
           </div></br>
 
-          <h3>Comportamento Table</h3>
+          <h3>Comportamento <bc>Table</bc></h3>
           </br>
           <div class="img" style="width:60%">
             <center><img src="./images/sprint3/TableBehaviour.png" alt="TableBehaviour" width="80%" height="50%"/></center>
@@ -181,11 +185,14 @@
             <li>
               Creazione dei tre modelli <em>PantryModel.pl</em>,<em>DishwasherModel.pl</em>,<em>TableModel.pl</em>
             </li>
+            <li>
+              Creazione e modellazione del set iniziale di cibo con un file <em>initialFood.pl</em>
+            </li>
           </ul>
 
           <h2>Deployment</h2>
           <div>
-            Il deployment è avvenuto tramite la divisione nei due contesti: Butler e Maitre.</br>
+            Il deployment è avvenuto tramite la divisione nei due contesti: Butler e <bc>Maitre</bc>.</br>
             Per il primo è stato creato uno zip contentente l'eseguibile ed inserito sul raspberry, il secondo è stato eseguito
             direttamente su PC come primo test.
           </div>

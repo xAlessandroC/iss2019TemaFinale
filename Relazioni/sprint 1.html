@@ -18,9 +18,9 @@
         <div class="body">
           <h2>Requisiti</h2>
           <div class="req">
-            <p>Lo <em>SPRINT 1</em> si occupa di analizzare e progettare il movimento base del <em>RBR</em>
+            <p>Lo <em>SPRINT 1</em> si occupa di analizzare e progettare il movimento base del <bc>RBR</bc>
               e la capacità di rilevare ed evitare gli ostacoli presenti.</p>
-            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <em>RBR</em>:
+            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <bc>RBR</bc>:
               <ul>
                 <li>deve essere in grado di poter ricevere i messaggi di movimento (<tt>MOVE</tt>)</li>
                 <li>deve poter identificare ed evitare gli ostacoli (<tt>AVOID</tt>)</li>
@@ -39,7 +39,7 @@
               </ol>
             </p>
 
-            <p>Il <em>RBR</em> può ricevere dei comandi di movimento:
+            <p>Il <bc>RBR</bc> può ricevere dei comandi molto semplici di movimento:
               <ul>
                 <li><i>"w"</i> per andare in avanti;</li>
                 <li><i>"a"</i> per la rotazione a sinistra;</li>
@@ -53,9 +53,9 @@
             <h3>Test plans</h3>
             <div>
               <ul>
-                <li>Ricevuto un comando, il <em>RBR</em> deve muoversi nella direzione data</li>
-                <li>Ricevuto un comando, il <em>RBR</em> deve passare da uno stato di <tt>wait command</tt> ad uno di <tt>handle command</tt></li>
-                <li>Rilevato un ostacolo, il <em>RBR</em> deve fermarsi</li>
+                <li>Ricevuto un comando, il <bc>RBR</bc> deve muoversi nella direzione data</li>
+                <li>Ricevuto un comando, il <bc>RBR</bc> deve passare da uno stato di <tt>wait command</tt> ad uno di <tt>handle command</tt></li>
+                <li>Rilevato un ostacolo, il <bc>RBR</bc> deve applicare la strategia scelta e fermarsi</li>
               </ul>
             </div>
           </div> <!-- analisi dei requisiti -->
@@ -64,14 +64,22 @@
           <div>
             <ul>
               <li>
+                Il primo requisito implica che il software prodotto in questo sprint debba operare con il supporto del <bc>RBR</bc>
+              </li>
+              <li>
                 Per rendere portabile per diversi tipi di robot è opportuno utilizzare il componente già presente
                   <em>robotSupport.kt</em> che permette la compatibilità sia con un robot fisico che virtuale (<tt>Soffritti</tt>).
               </li>
-              <li>Al fine di evitare gli ostacoli è necessario che il device sia dotato di un sensore di rilevamento ostacoli,
+              <li>Il secondo requisito rende necessario che il device sia dotato di un sensore di rilevamento ostacoli,
                 Il supporto sopracitato fornisce anche la gestione di un sonar HC-SR04 che è possibile utilizzare.
                 In questa fase non è importante distinguere tra ostacolo mobile, tavolo e o muri della stanza.
-                Una volta rilevato l'impedimento, il <em>RBR</em> si ferma ed esegue una politica arbitraria per poi attendere
+                Una volta rilevato l'impedimento, il <bc>RBR</bc> si ferma ed esegue una politica arbitraria per poi attendere
                 altri comandi.
+              </li>
+              <li>
+                Il <bc>RBR</bc> deve lavorare in maniera <em>reattiva/proattiva</em> (eseguire i comandi stando attento agli ostacoli), per
+                questo potrebbe essere una buona scelta quella di introddure un attore nuovo che si occupi della gestione della rilevazione
+                degli ostacoli, dividendo in questo modo le responsabilità.
               </li>
             </ul>
 
