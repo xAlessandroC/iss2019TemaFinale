@@ -15,4 +15,3 @@ context(ctxbutler, "localhost",  "MQTT", "0" ).
   qactor( addfoodhandler, ctxbutler, "it.unibo.addfoodhandler.Addfoodhandler").
   qactor( clearhandler, ctxbutler, "it.unibo.clearhandler.Clearhandler").
   qactor( contentontable, ctxbutler, "it.unibo.contentontable.Contentontable").
-  qactor( console, ctxbutler, "it.unibo.console.Console").

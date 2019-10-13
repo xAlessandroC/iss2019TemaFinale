@@ -22,6 +22,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						println("[BUTLERMIND]: Started...")
+						println("S4")
 						delay(5000) 
 					}
 					 transition( edgeName="goto",targetState="calibration", cond=doswitch() )

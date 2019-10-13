@@ -136,10 +136,10 @@ QActor obstacledetector context ctxButler{
 			
 			[" val D = Integer.parseInt( payloadArg(0) )"]
 			["if(D<=distance){"]
-				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), obstacle)
 				emit obstacle : obstacle
 			["}else{"]
-				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), clear)
 			["}"]
 		}
 	}
@@ -424,7 +424,7 @@ QActor butlermind context ctxButler {
 			
 	State s0 initial {
 		println("[BUTLERMIND]: Started...")
-		
+		println("S4")
 		delay 5000
 	}
 	Goto calibration
@@ -1495,11 +1495,11 @@ QActor contentontable context ctxButler {
 	
 }
 
-QActor console context ctxButler{
+/*QActor console context ctxButler{
 	State s0 initial{
 		println("[CONSOLE]: Started...")
 		
 		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
 		
 	}
-}
+}*/
