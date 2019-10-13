@@ -90,10 +90,10 @@ QActor obstacledetector context ctxButler{
 			printCurrentMessage
 			[" val D = Integer.parseInt( payloadArg(0) )"]
 			["if(D<=distance){"]
-				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), obstacle)
 				emit obstacle : obstacle
 			["}else{"]
-				forward resourcemodelbutler -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), clear)
 			["}"]
 		}
 	}
