@@ -29,8 +29,8 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						forward("modelUpdatePantry", "modelUpdatePantry(pantry,idle,null)" ,"resourcemodelpantry" ) 
 					}
-					 transition(edgeName="t00",targetState="putDish",cond=whenDispatch("putDishPantry"))
-					transition(edgeName="t01",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
+					 transition(edgeName="t099",targetState="putDish",cond=whenDispatch("putDishPantry"))
+					transition(edgeName="t0100",targetState="takeDish",cond=whenDispatch("takeDishPantry"))
 				}	 
 				state("putDish") { //this:State
 					action { //it:State
