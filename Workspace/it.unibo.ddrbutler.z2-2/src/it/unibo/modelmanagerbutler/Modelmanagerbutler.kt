@@ -26,15 +26,14 @@ class Modelmanagerbutler ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 					action { //it:State
 						println("[MODELMANAGER BUTLER]: Sono in waitCmd")
 					}
-					 transition(edgeName="t057",targetState="handleCommand",cond=whenDispatch("stateChanged"))
-					transition(edgeName="t058",targetState="handleCommand",cond=whenDispatch("taskChanged"))
-					transition(edgeName="t059",targetState="handleCommand",cond=whenDispatch("actionChange"))
-					transition(edgeName="t060",targetState="handleCommand",cond=whenDispatch("fillBuffer"))
-					transition(edgeName="t061",targetState="handleCommand",cond=whenDispatch("emptyBuffer"))
-					transition(edgeName="t062",targetState="handleCommand",cond=whenDispatch("boardDishChanged"))
-					transition(edgeName="t063",targetState="handleCommand",cond=whenDispatch("boardFoodChanged"))
-					transition(edgeName="t064",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
-					transition(edgeName="t065",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
+					 transition(edgeName="t039",targetState="handleCommand",cond=whenDispatch("stateChanged"))
+					transition(edgeName="t040",targetState="handleCommand",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t041",targetState="handleCommand",cond=whenDispatch("actionChange"))
+					transition(edgeName="t042",targetState="handleCommand",cond=whenDispatch("positionUpdate"))
+					transition(edgeName="t043",targetState="handleCommand",cond=whenDispatch("boardDishChanged"))
+					transition(edgeName="t044",targetState="handleCommand",cond=whenDispatch("boardFoodChanged"))
+					transition(edgeName="t045",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
+					transition(edgeName="t046",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State
@@ -66,10 +65,7 @@ class Modelmanagerbutler ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 						if( checkMsgContent( Term.createTerm("taskChanged(DEVICE,TASK)"), Term.createTerm("taskChanged(butler,TASK)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
-						if( checkMsgContent( Term.createTerm("fillBuffer(DEVICE,ACTION)"), Term.createTerm("fillBuffer(butler,ACTION)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-						}
-						if( checkMsgContent( Term.createTerm("emptyBuffer"), Term.createTerm("emptyBuffer"), 
+						if( checkMsgContent( Term.createTerm("positionUpdate(DEVICE,NAME)"), Term.createTerm("positionUpdate(butler,NAME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 						if( checkMsgContent( Term.createTerm("boardDishChanged(DEVICE,QNT)"), Term.createTerm("boardDishChanged(butler,QNT)"), 

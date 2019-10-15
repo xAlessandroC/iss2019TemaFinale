@@ -20,19 +20,14 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[PANTRY]: Started...")
 					}
-					 transition( edgeName="goto",targetState="initialize", cond=doswitch() )
-				}	 
-				state("initialize") { //this:State
-					action { //it:State
-					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
 						println("[PANTRY]: Sono in waitCmd")
 					}
-					 transition(edgeName="t029",targetState="puttingDish",cond=whenDispatch("pantryPutDish"))
-					transition(edgeName="t030",targetState="takingDish",cond=whenDispatch("pantryTakeDish"))
+					 transition(edgeName="t019",targetState="puttingDish",cond=whenDispatch("pantryPutDish"))
+					transition(edgeName="t020",targetState="takingDish",cond=whenDispatch("pantryTakeDish"))
 				}	 
 				state("puttingDish") { //this:State
 					action { //it:State

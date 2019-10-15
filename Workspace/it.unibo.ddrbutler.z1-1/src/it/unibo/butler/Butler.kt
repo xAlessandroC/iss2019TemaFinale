@@ -15,27 +15,13 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var numeroOstacoli=0; var positive=false; var DishCarrello=0
+		var positive=false; var DishCarrello=0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[BUTLER]: Started...")
 					}
-					 transition( edgeName="goto",targetState="forwardStep", cond=doswitch() )
-				}	 
-				state("forwardStep") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in forwardStep")
-					}
-					 transition( edgeName="goto",targetState="turnLeft", cond=doswitch() )
-				}	 
-				state("turnLeft") { //this:State
-					action { //it:State
-						println("[BUTLER]: Sono in turnLeft")
-						numeroOstacoli++
-					}
-					 transition( edgeName="goto",targetState="waitPrepare", cond=doswitchGuarded({(numeroOstacoli==4)}) )
-					transition( edgeName="goto",targetState="forwardStep", cond=doswitchGuarded({! (numeroOstacoli==4)}) )
+					 transition( edgeName="goto",targetState="waitPrepare", cond=doswitch() )
 				}	 
 				state("waitPrepare") { //this:State
 					action { //it:State

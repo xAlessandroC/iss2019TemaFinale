@@ -20,20 +20,22 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("[FRIDGE]: Started...")
 					}
-					 transition( edgeName="goto",targetState="initialize", cond=doswitch() )
-				}	 
-				state("initialize") { //this:State
-					action { //it:State
-					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
 						println("[FRIDGE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t048",targetState="answering",cond=whenDispatch("query"))
-					transition(edgeName="t049",targetState="puttingFood",cond=whenDispatch("putFood"))
-					transition(edgeName="t050",targetState="takingFood",cond=whenDispatch("takeFood"))
+					 transition(edgeName="t028",targetState="answering",cond=whenDispatch("query"))
+					transition(edgeName="t029",targetState="puttingFood",cond=whenDispatch("putFood"))
+					transition(edgeName="t030",targetState="takingFood",cond=whenDispatch("takeFood"))
+					transition(edgeName="t031",targetState="gettingContent",cond=whenDispatch("get"))
+				}	 
+				state("gettingContent") { //this:State
+					action { //it:State
+						println("[FRIDGE]: Sono in gettingContent")
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("answering") { //this:State
 					action { //it:State

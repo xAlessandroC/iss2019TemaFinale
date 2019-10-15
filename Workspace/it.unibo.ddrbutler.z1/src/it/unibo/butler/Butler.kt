@@ -15,30 +15,178 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		var positive=false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("[BUTLER]: Started...")
 					}
-					 transition( edgeName="goto",targetState="westWall", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waitPrepare", cond=doswitch() )
 				}	 
-				state("westWall") { //this:State
+				state("waitPrepare") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in westWall")
+						println("[BUTLER]: Sono in waitPrepare")
 					}
-					 transition(edgeName="t02",targetState="turnLeft1",cond=whenEvent("obstacle"))
-					transition(edgeName="t03",targetState="westWall",cond=whenDispatch("westWallCompleted"))
+					 transition(edgeName="t02",targetState="preparingA1",cond=whenDispatch("prepare"))
 				}	 
-				state("turnLeft1") { //this:State
+				state("preparingA1") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in turnLeft1")
+						println("[BUTLER]: Sono in preparingA1")
+						delay(1000) 
+						forward("preparingCompletedA1", "preparingCompletedA1" ,"butler" ) 
 					}
-					 transition( edgeName="goto",targetState="southWall", cond=doswitch() )
+					 transition(edgeName="t03",targetState="suspendedA1",cond=whenDispatch("stop"))
+					transition(edgeName="t04",targetState="preparingA2",cond=whenDispatch("preparingCompletedA1"))
 				}	 
-				state("southWall") { //this:State
+				state("suspendedA1") { //this:State
 					action { //it:State
-						println("[BUTLER]: Sono in southWall")
+						println("[BUTLER]: Sono in suspendedA1")
 					}
+					 transition(edgeName="t05",targetState="suspendedA1",cond=whenDispatch("stop"))
+					transition(edgeName="t06",targetState="preparingA1",cond=whenDispatch("reactivate"))
+				}	 
+				state("preparingA2") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in preparingA2")
+						delay(1000) 
+						forward("preparingCompletedA2", "preparingCompletedA2" ,"butler" ) 
+					}
+					 transition(edgeName="t07",targetState="suspendedA2",cond=whenDispatch("stop"))
+					transition(edgeName="t08",targetState="preparingReturnRH",cond=whenDispatch("preparingCompletedA2"))
+				}	 
+				state("suspendedA2") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedA2")
+					}
+					 transition(edgeName="t09",targetState="suspendedA2",cond=whenDispatch("stop"))
+					transition(edgeName="t010",targetState="preparingA2",cond=whenDispatch("reactivate"))
+				}	 
+				state("preparingReturnRH") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in preparingReturnRH")
+						delay(1000) 
+						forward("preparingCompletedReturnRH", "preparingCompletedReturnRH" ,"butler" ) 
+						forward("prepareCompleted", "prepareCompleted" ,"maitre" ) 
+					}
+					 transition(edgeName="t011",targetState="suspendedReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t012",targetState="waitAC",cond=whenDispatch("preparingCompletedReturnRH"))
+				}	 
+				state("suspendedReturnRH") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedReturnRH")
+					}
+					 transition(edgeName="t013",targetState="suspendedReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t014",targetState="preparingReturnRH",cond=whenDispatch("reactivate"))
+				}	 
+				state("waitAC") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in waitAC")
+					}
+					 transition(edgeName="t015",targetState="addingA6",cond=whenDispatch("addFood"))
+					transition(edgeName="t016",targetState="clearingA4",cond=whenDispatch("clear"))
+				}	 
+				state("addingA6") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in addingA6")
+						if( checkMsgContent( Term.createTerm("addFood(FOODCODE,QNT)"), Term.createTerm("addFood(FOODCODE,QNT)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("query", "query(${payloadArg(0)},${payloadArg(1)})" ,"fridge" ) 
+						}
+					}
+					 transition(edgeName="t017",targetState="checkAnswer",cond=whenDispatch("answer"))
+				}	 
+				state("checkAnswer") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in checkAnswer")
+						if( checkMsgContent( Term.createTerm("answer(FOODCODE,ANS)"), Term.createTerm("answer(FOODCODE,ANS)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								positive=payloadArg(1).equals("yes")
+						}
+					}
+					 transition( edgeName="goto",targetState="addingA7", cond=doswitchGuarded({positive}) )
+					transition( edgeName="goto",targetState="addingReturnRH", cond=doswitchGuarded({! positive}) )
+				}	 
+				state("addingA7") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in addingA7")
+						delay(1000) 
+						forward("addingCompletedA7", "addingCompletedA7" ,"butler" ) 
+					}
+					 transition(edgeName="t018",targetState="suspendedA7",cond=whenDispatch("stop"))
+					transition(edgeName="t019",targetState="addingReturnRH",cond=whenDispatch("addingCompletedA7"))
+				}	 
+				state("suspendedA7") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedA7")
+					}
+					 transition(edgeName="t020",targetState="suspendedA7",cond=whenDispatch("stop"))
+					transition(edgeName="t021",targetState="addingA7",cond=whenDispatch("reactivate"))
+				}	 
+				state("addingReturnRH") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in addingReturnRH")
+						delay(1000) 
+						forward("addingCompletedReturnRH", "addingCompletedReturnRH" ,"butler" ) 
+						forward("addFoodCompleted", "addFoodCompleted" ,"maitre" ) 
+					}
+					 transition(edgeName="t022",targetState="suspendedAddingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t023",targetState="waitAC",cond=whenDispatch("addingCompletedReturnRH"))
+				}	 
+				state("suspendedAddingReturnRH") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedAddingReturnRH")
+					}
+					 transition(edgeName="t024",targetState="suspendedAddingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t025",targetState="addingReturnRH",cond=whenDispatch("reactivate"))
+				}	 
+				state("clearingA4") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in clearingA4")
+						delay(1000) 
+						forward("clearingCompletedA4", "clearingCompletedA4" ,"butler" ) 
+					}
+					 transition(edgeName="t026",targetState="suspendedA4",cond=whenDispatch("stop"))
+					transition(edgeName="t027",targetState="clearingA5",cond=whenDispatch("clearingCompletedA4"))
+				}	 
+				state("suspendedA4") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedA4")
+					}
+					 transition(edgeName="t028",targetState="suspendedA4",cond=whenDispatch("stop"))
+					transition(edgeName="t029",targetState="clearingA4",cond=whenDispatch("reactivate"))
+				}	 
+				state("clearingA5") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in clearingA5")
+						delay(1000) 
+						forward("clearingCompletedA5", "clearingCompletedA5" ,"butler" ) 
+					}
+					 transition(edgeName="t030",targetState="suspendedA5",cond=whenDispatch("stop"))
+					transition(edgeName="t031",targetState="clearingReturnRH",cond=whenDispatch("clearingCompletedA5"))
+				}	 
+				state("suspendedA5") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedA5")
+					}
+					 transition(edgeName="t032",targetState="suspendedA5",cond=whenDispatch("stop"))
+					transition(edgeName="t033",targetState="clearingA5",cond=whenDispatch("reactivate"))
+				}	 
+				state("clearingReturnRH") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in clearingReturnRH")
+						delay(1000) 
+						forward("clearingCompletedReturnRH", "clearingCompletedReturnRH" ,"butler" ) 
+						forward("clearCompleted", "clearCompleted" ,"maitre" ) 
+					}
+					 transition(edgeName="t034",targetState="suspendedClearingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t035",targetState="waitPrepare",cond=whenDispatch("clearingCompletedReturnRH"))
+				}	 
+				state("suspendedClearingReturnRH") { //this:State
+					action { //it:State
+						println("[BUTLER]: Sono in suspendedClearingReturnRH")
+					}
+					 transition(edgeName="t036",targetState="suspendedClearingReturnRH",cond=whenDispatch("stop"))
+					transition(edgeName="t037",targetState="clearingReturnRH",cond=whenDispatch("reactivate"))
 				}	 
 			}
 		}

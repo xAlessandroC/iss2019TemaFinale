@@ -26,7 +26,7 @@ class Execroute ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						println("[EXEC-ROUTE]: Sono in waitStart")
 					}
-					 transition(edgeName="t024",targetState="scheduling",cond=whenDispatch("startPlanning"))
+					 transition(edgeName="t019",targetState="scheduling",cond=whenDispatch("startPlanning"))
 				}	 
 				state("scheduling") { //this:State
 					action { //it:State
@@ -34,37 +34,24 @@ class Execroute ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						forward("routeCompleted", "routeCompleted" ,"butler" ) 
 						forward("routeCompleted", "routeCompleted" ,"execroute" ) 
 					}
-					 transition(edgeName="t025",targetState="executing",cond=whenDispatch("move"))
-					transition(edgeName="t026",targetState="suspendedScheduling",cond=whenDispatch("stop"))
-					transition(edgeName="t027",targetState="waitStart",cond=whenDispatch("routeCompleted"))
+					 transition(edgeName="t020",targetState="executing",cond=whenDispatch("move"))
+					transition(edgeName="t021",targetState="suspendedScheduling",cond=whenDispatch("stop"))
+					transition(edgeName="t022",targetState="waitStart",cond=whenDispatch("routeCompleted"))
 				}	 
 				state("executing") { //this:State
 					action { //it:State
 						println("[EXEC-ROUTE]: Sono in executing")
 						if( checkMsgContent( Term.createTerm("move(X)"), Term.createTerm("move(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("exec", "exec(execroute,${payloadArg(0)})" ,"movementmind" ) 
+								forward("robotCmd", "robotCmd(${payloadArg(0)})" ,"basicrobot" ) 
 						}
 					}
-					 transition(edgeName="t028",targetState="handleObstacle",cond=whenEvent("obstacle"))
-					transition(edgeName="t029",targetState="scheduling",cond=whenDispatch("movementCompleted"))
+					 transition(edgeName="t023",targetState="handleObstacle",cond=whenEvent("obstacle"))
+					transition(edgeName="t024",targetState="scheduling",cond=whenDispatch("movementCompleted"))
 				}	 
 				state("handleObstacle") { //this:State
 					action { //it:State
 						println("[EXEC-ROUTE]: Sono in handleObstacle")
-					}
-					 transition( edgeName="goto",targetState="backtracking", cond=doswitch() )
-				}	 
-				state("backtracking") { //this:State
-					action { //it:State
-						println("[EXEC-ROUTE]: Sono in backtracking")
-						forward("exec", "exec(execroute,s)" ,"movementmind" ) 
-					}
-					 transition(edgeName="t030",targetState="waitObstacleMoving",cond=whenDispatch("movementCompleted"))
-				}	 
-				state("waitObstacleMoving") { //this:State
-					action { //it:State
-						println("[EXEC-ROUTE]: Sono in waitObstacleMoving")
 						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="scheduling", cond=doswitch() )
@@ -73,8 +60,8 @@ class Execroute ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						println("[EXEC-ROUTE]: Sono in suspendedScheduling")
 					}
-					 transition(edgeName="t031",targetState="suspendedScheduling",cond=whenDispatch("stop"))
-					transition(edgeName="t032",targetState="scheduling",cond=whenDispatch("reactivate"))
+					 transition(edgeName="t025",targetState="suspendedScheduling",cond=whenDispatch("stop"))
+					transition(edgeName="t026",targetState="scheduling",cond=whenDispatch("reactivate"))
 				}	 
 			}
 		}

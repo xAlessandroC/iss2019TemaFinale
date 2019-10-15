@@ -20,30 +20,30 @@ class TestPositionRobot {
 	@Before
 	fun systemSetUp() {
   	 		GlobalScope.launch{
- 			    println(" %%%%%%% TestLogicButler starts robot mind ")
+ 			    println(" %%%%%%% TestPositionRobot starts")
 				it.unibo.ctxButler.main()
  			}
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("resourcemodelbutler")
 		    mind = sysUtil.getActor("butlermind")
-		    println(" %%%%%%% TestLogicButler getActors resource=${resource}")
+		    println(" %%%%%%% TestPositionRobot getActors resource=${resource}")
  	}
  
 	@After
 	fun terminate() {
-		println(" %%%%%%% TestLogicButler terminate ")
+		println(" %%%%%%% TestPositionRobot terminate ")
 	}
  
 	@Test
-	fun moveTest() {
-		println(" %%%%%%% TestLogicButler  logic test ")
+	fun positionTest() {
+		println(" %%%%%%% TestPositionRobot  logic test ")
 		delay(100)
 		checkInit(0)
 		checkRH(1000)
  	}
 	
 	fun checkInit(time:Long ){
-		solveCheckGoal( resource!!,  "position( butler, [0,0] )" )
+		solveCheckGoal( resource!!,  "position( butler, rh )" )
 	}
 	
 	fun checkRH(time:Long ){
@@ -51,21 +51,7 @@ class TestPositionRobot {
 			mind!!.forward("prepare","prepare","butlermind")
 		}
 		delay(time)
-		solveCheckGoal( resource!!,  "position( butler, [0,0] )" )
-	}
-	
-	fun checkAddFood(time:Long ){
-		GlobalScope.launch{
-			mind!!.forward("addFood","addFood(cibo1,qnt1)","butlermind")
-		}
-		solveCheckGoal( resource!!,  "state( butler, addFood )" )
-	}
-	
-	fun checkClear(time:Long ){
-		GlobalScope.launch{
-			mind!!.forward("clear","clear","butlermind")
-		}
-		solveCheckGoal( resource!!,  "state( butler, clear )" )
+		solveCheckGoal( resource!!,  "position( butler, rh )" )
 	}
 
 //----------------------------------------

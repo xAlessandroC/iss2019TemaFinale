@@ -26,17 +26,13 @@ class Modelmanagerfridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm
 					action { //it:State
 						println("[MODELMANAGER FRIDGE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t068",targetState="handleCommand",cond=whenDispatch("stateChanged"))
-					transition(edgeName="t069",targetState="handleCommand",cond=whenDispatch("dishUpdate"))
-					transition(edgeName="t070",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
+					 transition(edgeName="t047",targetState="handleCommand",cond=whenDispatch("stateChanged"))
+					transition(edgeName="t048",targetState="handleCommand",cond=whenDispatch("foodUpdate"))
 				}	 
 				state("handleCommand") { //this:State
 					action { //it:State
 						println("[MODELMANAGER FRIDGE]: Sono in handleCommand")
 						if( checkMsgContent( Term.createTerm("stateChanged(DEVICE,STATE)"), Term.createTerm("stateChanged(fridge,STATE)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-						}
-						if( checkMsgContent( Term.createTerm("dishUpdate(DEVICE,QNT)"), Term.createTerm("dishUpdate(fridge,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 						if( checkMsgContent( Term.createTerm("foodUpdate(DEVICE,FOODCODE,QNT)"), Term.createTerm("foodUpdate(fridge,FOODCODE,QNT)"), 

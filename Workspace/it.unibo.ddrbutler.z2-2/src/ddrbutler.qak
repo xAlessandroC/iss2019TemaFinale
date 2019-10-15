@@ -22,9 +22,6 @@ Dispatch startPlanning : startPlanning
 Dispatch move : move (X)
 Dispatch routeCompleted : routeCompleted
 
-//movementmind
-Dispatch exec : exec(MITTENTE, X)
-
 //basicrobot
 Dispatch robotCmd : robotCmd(X)
 Dispatch movementCompleted : movementCompleted
@@ -40,6 +37,9 @@ Dispatch answer : answer(FOODCODE, ANS)
 
 Dispatch putFood : putFood( FOODCODE, QNT )
 Dispatch takeFood : takeFood( FOODCODE, QNT )
+
+Dispatch get : get
+Dispatch content : content(CONTENT)
 
 //pantry
 Dispatch pantryPutDish : putDish( QNT )
@@ -62,8 +62,7 @@ Dispatch taskChanged : taskChanged(DEVICE, TASK)
 Dispatch dishUpdate : dishUpdate(DEVICE, QNT)
 Dispatch foodUpdate : foodUpdate(DEVICE, FOODCODE, QNT)
 Dispatch actionChange : actionChange(ACTION)
-Dispatch fillBuffer: fillBuffer(DEVICE, ACTION)
-Dispatch emptyBuffer : emptyBuffer
+Dispatch positionUpdate : positionUpdate(DEVICE, NAME)
 Dispatch boardDishChanged : boardDishChanged(DEVICE, QNT)
 Dispatch boardFoodChanged : boardFoodChanged(DEVICE, FOODCODE, QNT)
 
@@ -123,39 +122,13 @@ QActor obstacledetector context ctxButler{
 }
 
 QActor butler context ctxButler{
-	["var numeroOstacoli=0; var positive=false; var DishCarrello=0"]
+	["var positive=false; var DishCarrello=0"]
 	
 	State s0 initial{
 		println("[BUTLER]: Started...")
 		
 	}
-	Goto forwardStep
-	
-	State forwardStep{
-		println("[BUTLER]: Sono in forwardStep")
-		
-		forward movementmind -m exec : exec(butler,w)
-		
-	}
-	Transition t0 whenEvent obstacle -> backtracking
-				  whenMsg movementCompleted -> forwardStep
-	
-	State backtracking{
-		println("[BUTLER]: Sono in backtracking ---------------")
-		
-		forward movementmind -m exec : exec(butler,s)
-	}
-	Transition t0 whenMsg movementCompleted -> turnLeft
-	
-	State turnLeft{
-		println("[BUTLER]: Sono in turnLeft")
-		
-		["numeroOstacoli++"]
-		
-		forward movementmind -m exec : exec(butler,a)
-	}
-	Transition t0 whenMsg movementCompleted and "(numeroOstacoli==4)" -> waitPrepare
-				  whenMsg movementCompleted and "(numeroOstacoli!=4)" -> forwardStep
+	Goto waitPrepare
 	
 	State waitPrepare{
 		println("[BUTLER]: Sono in waitPrepare")
@@ -506,7 +479,7 @@ QActor execroute context ctxButler{
 		println("[EXEC-ROUTE]: Sono in executing")
 	
 		onMsg(move : move(X)){
-			forward movementmind -m exec : exec(execroute, $payloadArg(0))
+			forward modelmanagerbutler -m actionChange : actionChange($payloadArg(0))
 		}
 	}
 	Transition t0 whenEvent obstacle -> handleObstacle
@@ -523,7 +496,7 @@ QActor execroute context ctxButler{
 	State backtracking{
 		println("[EXEC-ROUTE]: Sono in backtracking")
 		
-		forward movementmind -m exec : exec(execroute, s)
+		forward modelmanagerbutler -m actionChange : actionChange(s)
 		
 	}
 	Transition t0 whenMsg movementCompleted -> waitObstacleMoving
@@ -547,49 +520,6 @@ QActor execroute context ctxButler{
 	
 }
 
-QActor movementmind context ctxButler{
-	["var mittente=\"\""]
-	State s0 initial{
-		println("[MOVEMENT-MIND]: Started...")
-	}
-	Goto waitCmd
-	
-	State waitCmd{
-		println("[MOVEMENT-MIND]: Sono in waitCmd")
-		
-	}
-	Transition t0 whenMsg exec -> handleCommand
-	
-	State handleCommand{
-		println("[MOVEMENT-MIND]: Sono in handleCommand")
-		
-		onMsg( exec : exec(MITTENTE, X)){
-			["mittente=payloadArg(0)"]
-			//simulo movimento
-			forward modelmanagerbutler -m actionChange : actionChange($payloadArg(1))
-			
-		}
-	}
-	Transition t0 whenTime 350 -> answer
-				  whenEvent obstacle -> waitCmd
-	
-	State answer{
-		println("[MOVEMENT-MIND]: Sono in answer")
-		
-		//inoltro risposta
-		["if(mittente.equals(\"execroute\")){"]
-		
-		forward execroute -m movementCompleted : movementCompleted
-		
-		["}else{"]
-		
-		forward butler -m movementCompleted : movementCompleted
-		
-		["}"]
-	}
-	Transition t0 whenMsg exec -> handleCommand
-}
-
 QActor basicrobot context ctxButler{
 	State s0 initial{
 		println("[BASICROBOT]: Started...")
@@ -608,6 +538,8 @@ QActor basicrobot context ctxButler{
 		onMsg ( robotCmd : robotCmd(X)){
 			//simulo movimento
 			
+			//secondo una logica interna posso mandare movement Completed
+			forward execroute -m movementCompleted : movementCompleted			
 		}	
 	}
 	Goto waitCmd 
@@ -616,112 +548,17 @@ QActor basicrobot context ctxButler{
 QActor maitre context ctxButler{
 	State s0 initial{
 		println("[MAITRE]: Started...")
-	}
-	Goto sendingPrepare
-	
-	State sendingPrepare{
-		println("[MAITRE]: Sono in sendingPrepare")
 		
-		delay 6000
+		delay 4000
 		
 		//simulo
 		forward butler -m prepare : prepare
-		forward maitre -m prepareSended : prepareSended
-		
 	}
-	Transition t0 whenMsg prepareSended -> waitingPrepCompletion
-				  
-	
-	State waitingPrepCompletion{
-		println("[MAITRE]: Sono in waitingPrepCompletion")
-		
-		/*forward butler -m stopPrepare : stopPrepare
-		
-		delay 1000
-		
-		forward butler -m stopPrepare : stopPrepare
-		forward butler -m stopPrepare : stopPrepare
-		
-		delay 2000
-		
-		forward butler -m reactivatePrepare : reactivatePrepare
-		*/
-	}
-	Transition t0 whenMsg prepareCompleted -> sendingAC
-				  whenEvent updateContent -> updateP
-	
-	State sendingAC{
-		println("[MAITRE]: Sono in sendingAC")
-		
-		/*forward butler -m addFood : addFood(aaaa,10)
-		forward maitre -m addFoodSended : addFoodSended*/
-		
-		forward butler -m clear : clear
-		forward maitre -m clearSended : clearSended
-	}
-	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompletion
-				  whenMsg clearSended -> waitingClearCompletion
-				  
-	State waitingAddFoodCompletion{
-		println("[MAITRE]: Sono in waitingAddFoodCompletion")
-		
-	}
-	Transition t0 whenMsg addFoodCompleted -> sendingAC
-				  whenMsg warning -> handleWarning
-				  whenEvent updateContent -> updateA
-
-	State handleWarning{
-		println("[MAITRE]: Sono in handleWarning")
-		
-	}
-	Goto waitingAddFoodCompletion
-	
-	State waitingClearCompletion{
-		println("[MAITRE]: Sono in waitingClearCompletion")
-		
-	}
-	Transition t0 whenMsg clearCompleted -> sendingPrepare
-				  whenEvent updateContent -> updateC
-				  
-	State updateP{
-		println("[MAITRE]: Sono in updateP")
-		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			
-		}
-		
-	}
-	Goto waitingPrepCompletion
-	
-	State updateA{
-		println("[MAITRE]: Sono in updateA")
-		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			
-		}
-		
-	}
-	Goto waitingAddFoodCompletion
-	
-	State updateC{
-		println("[MAITRE]: Sono in updateC")
-		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			
-		}
-		
-	}
-	Goto waitingClearCompletion
 }
 
 QActor fridge context ctxButler{
 	State s0 initial{
 		println("[FRIDGE]: Started...")
-	}
-	Goto initialize
-	
-	State initialize{
-		//invio contenuto iniziale tramite eventi
 	}
 	Goto waitCmd
 	
@@ -732,6 +569,13 @@ QActor fridge context ctxButler{
 	Transition t0 whenMsg query -> answering
 				  whenMsg putFood -> puttingFood
 				  whenMsg takeFood -> takingFood
+				   whenMsg get -> gettingContent
+				  
+	State gettingContent{
+		println("[FRIDGE]: Sono in gettingContent")
+		
+	}
+	Goto waitCmd
 				  
 	State answering{
 		println("[FRIDGE]: Sono in answering")
@@ -768,11 +612,6 @@ QActor fridge context ctxButler{
 QActor pantry context ctxButler{
 	State s0 initial{
 		println("[PANTRY]: Started...")
-	}
-	Goto initialize
-	
-	State initialize{
-		//invio contenuto iniziale tramite eventi
 	}
 	Goto waitCmd
 	
@@ -888,8 +727,7 @@ QActor modelmanagerbutler context ctxButler{
 	Transition t0 whenMsg stateChanged -> handleCommand
 				  whenMsg taskChanged -> handleCommand
 				  whenMsg actionChange -> handleCommand
-				  whenMsg fillBuffer -> handleCommand
-				  whenMsg emptyBuffer -> handleCommand
+				  whenMsg positionUpdate -> handleCommand
 				  whenMsg boardDishChanged -> handleCommand
 				  whenMsg boardFoodChanged -> handleCommand
 				  whenMsg dishUpdate -> handleCommand
@@ -938,11 +776,7 @@ QActor modelmanagerbutler context ctxButler{
 			
 		}
 		
-		onMsg ( fillBuffer : fillBuffer(butler, ACTION)){
-			
-		}
-		
-		onMsg ( emptyBuffer : emptyBuffer){
+		onMsg ( positionUpdate : positionUpdate(butler, NAME)){
 			
 		}
 		
@@ -963,34 +797,6 @@ QActor modelmanagerbutler context ctxButler{
 
 }
 
-QActor modelmanagermaitre context ctxButler{
-	State s0 initial{
-		println("[MODELMANAGER MAITRE]: Started...")
-	}
-	Goto waitCmd
-	
-	State waitCmd{
-		println("[MODELMANAGER MAITRE]: Sono in waitCmd")
-		
-	}
-	Transition t0 whenMsg stateChanged -> handleCommand
-				  whenMsg taskChanged -> handleCommand
-				  
-	State handleCommand{
-		println("[MODELMANAGER MAITRE]: Sono in handleCommand")
-		
-		onMsg ( stateChanged : stateChanged(maitre, STATE)){
-			
-		}
-		
-		onMsg ( taskChanged : taskChanged(maitre, TASK)){
-			
-		}
-	}
-	Goto waitCmd
-	
-}
-
 QActor modelmanagerfridge context ctxButler{
 	State s0 initial{
 		println("[MODELMANAGER FRIDGE]: Started...")
@@ -1002,7 +808,6 @@ QActor modelmanagerfridge context ctxButler{
 		
 	}
 	Transition t0 whenMsg stateChanged -> handleCommand
-				  whenMsg dishUpdate -> handleCommand
 				  whenMsg foodUpdate -> handleCommand
 				  
 	State handleCommand{
@@ -1012,9 +817,6 @@ QActor modelmanagerfridge context ctxButler{
 			
 		}
 		
-		onMsg ( dishUpdate : dishUpdate(fridge, QNT)){
-			
-		}
 		
 		onMsg ( foodUpdate : foodUpdate(fridge, FOODCODE, QNT)){
 			

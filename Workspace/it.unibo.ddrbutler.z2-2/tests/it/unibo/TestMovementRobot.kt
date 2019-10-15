@@ -15,7 +15,7 @@ import kotlinx.coroutines.delay
 
 class TestMovementRobot {
  	var resource : ActorBasic? = null
-	var mind : ActorBasic? = null
+	//var mind : ActorBasic? = null
 	
 	@Before
 	fun systemSetUp() {
@@ -25,7 +25,7 @@ class TestMovementRobot {
  			}
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("resourcemodelbutler")
-		    mind = sysUtil.getActor("robotmind")	
+		    //mind = sysUtil.getActor("basicrobot")	
 		    println(" %%%%%%% TestMovementRobot getActors resource=${resource}")
  	}
  
@@ -46,30 +46,30 @@ class TestMovementRobot {
 
 	fun stoprobot(time:Long) {
 		println(" %%%%%%% TestMovementRobot  stoprobot usung robot %%%")
-		moveRobot( mind!!, "h", time)			
+		moveRobot( resource!!, "h", time)			
 		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )
 	}
 	fun moveForward( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  moveForward using resource%%%")
-		moveRobot( mind!!, "w", time)			
+		moveRobot( resource!!, "w", time)			
 		solveCheckGoal( resource!!,  "state( robot, state(movingForward) )" )
  	}
 	
 	fun moveBackward( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  moveBackward %%%")
-		moveRobot( mind!!, "s", time)			
+		moveRobot( resource!!, "s", time)			
 		solveCheckGoal( resource!!,  "state( robot, state(movingBackward) )" )
  	}
 	 
 	fun rotateLeft( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  rotateLeft %%%")
-		moveRobot( mind!!, "a", time)			
+		moveRobot( resource!!, "a", time)			
 		solveCheckGoal( resource!!,  "state( robot, state(rotateLeft) )" )
 	}
 	 
 	fun rotateRight( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  rotateRight %%%")
-		moveRobot( mind!!, "d", time)			
+		moveRobot( resource!!, "d", time)			
 		solveCheckGoal( resource!!,  "state( robot, state(rotateRight) )" )
 	}	
 

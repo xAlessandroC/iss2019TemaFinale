@@ -42,6 +42,9 @@ Dispatch answer : answer(FOODCODE, ANS)
 Dispatch putFood : putFood( FOODCODE, QNT )
 Dispatch takeFood : takeFood( FOODCODE, QNT )
 
+Dispatch get : get
+Dispatch content : content(CONTENT)
+
 //pantry
 Dispatch pantryPutDish : putDish( QNT )
 Dispatch pantryTakeDish : takeDish( QNT )
@@ -112,26 +115,13 @@ QActor obstacledetector context ctxButler{
 }
 
 QActor butler context ctxButler{
-	["var numeroOstacoli=0; var positive=false"]
+	["var positive=false"]
 	
 	State s0 initial{
 		println("[BUTLER]: Started...")
 		
 	}
-	Goto forwardStep
-	
-	State forwardStep{
-		println("[BUTLER]: Sono in forwardStep")
-		
-	}
-	Goto turnLeft
-	
-	State turnLeft{
-		println("[BUTLER]: Sono in turnLeft")
-		
-		["numeroOstacoli++"]
-	}
-	Goto waitPrepare if "(numeroOstacoli==4)" else forwardStep
+	Goto waitPrepare
 	
 	State waitPrepare{
 		println("[BUTLER]: Sono in waitPrepare")
@@ -324,109 +314,17 @@ QActor butler context ctxButler{
 QActor maitre context ctxButler{
 	State s0 initial{
 		println("[MAITRE]: Started...")
-	}
-	Goto sendingPrepare
-	
-	State sendingPrepare{
-		println("[MAITRE]: Sono in sendingPrepare")
 		
 		delay 4000
 		
 		//simulo
 		forward butler -m prepare : prepare
-		forward maitre -m prepareSended : prepareSended
-		
 	}
-	Transition t0 whenMsg prepareSended -> waitingPrepCompletion
-				  
-	
-	State waitingPrepCompletion{
-		println("[MAITRE]: Sono in waitingPrepCompletion")
-		
-		/*forward butler -m stopPrepare : stopPrepare
-		
-		delay 1000
-		
-		forward butler -m stopPrepare : stopPrepare
-		forward butler -m stopPrepare : stopPrepare
-		
-		delay 2000
-		
-		forward butler -m reactivatePrepare : reactivatePrepare
-		*/
-	}
-	Transition t0 whenMsg prepareCompleted -> sendingAC
-				  whenEvent updateContent -> updateP
-	
-	State sendingAC{
-		println("[MAITRE]: Sono in sendingAC")
-		
-		forward butler -m addFood : addFood(aaaa,10)
-		forward maitre -m addFoodSended : addFoodSended
-	}
-	Transition t0 whenMsg addFoodSended -> waitingAddFoodCompletion
-				  whenMsg clearSended -> waitingClearCompletion
-				  
-	State waitingAddFoodCompletion{
-		println("[MAITRE]: Sono in waitingAddFoodCompletion")
-		
-	}
-	Transition t0 whenMsg addFoodCompleted -> sendingAC
-				  whenMsg warning -> handleWarning
-				  whenEvent updateContent -> updateA
-
-	State handleWarning{
-		println("[MAITRE]: Sono in handleWarning")
-		
-	}
-	Goto waitingAddFoodCompletion
-	
-	State waitingClearCompletion{
-		println("[MAITRE]: Sono in waitingClearCompletion")
-		
-	}
-	Transition t0 whenMsg clearCompleted -> sendingPrepare
-				  whenEvent updateContent -> updateC
-				  
-	State updateP{
-		println("[MAITRE]: Sono in updateP")
-		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			
-		}
-		
-	}
-	Goto waitingPrepCompletion
-	
-	State updateA{
-		println("[MAITRE]: Sono in updateA")
-		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			
-		}
-		
-	}
-	Goto waitingAddFoodCompletion
-	
-	State updateC{
-		println("[MAITRE]: Sono in updateC")
-		
-		onMsg(updateContent : updateContent(DEVICE, CODE, QNT)){
-			
-		}
-		
-	}
-	Goto waitingClearCompletion
 }
 
 QActor fridge context ctxButler{
 	State s0 initial{
 		println("[FRIDGE]: Started...")
-	}
-	Goto initialize
-	
-	State initialize{
-		//invio contenuto iniziale tramite eventi
 	}
 	Goto waitCmd
 	
@@ -437,6 +335,13 @@ QActor fridge context ctxButler{
 	Transition t0 whenMsg query -> answering
 				  whenMsg putFood -> puttingFood
 				  whenMsg takeFood -> takingFood
+				  whenMsg get -> gettingContent
+				  
+	State gettingContent{
+		println("[FRIDGE]: Sono in gettingContent")
+		
+	}
+	Goto waitCmd
 				  
 	State answering{
 		println("[FRIDGE]: Sono in answering")
@@ -473,11 +378,6 @@ QActor fridge context ctxButler{
 QActor pantry context ctxButler{
 	State s0 initial{
 		println("[PANTRY]: Started...")
-	}
-	Goto initialize
-	
-	State initialize{
-		//invio contenuto iniziale tramite eventi
 	}
 	Goto waitCmd
 	

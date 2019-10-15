@@ -20,23 +20,23 @@ class TestLogicPantry {
 	@Before
 	fun systemSetUp() {
   	 		GlobalScope.launch{
- 			    println(" %%%%%%% TestLogicButler starts robot mind ")
+ 			    println(" %%%%%%% TestLogicPantry starts robot mind ")
 				it.unibo.ctxButler.main()
  			}
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("resourcemodelbutler")
 		    pantry = sysUtil.getActor("pantry")
-		    println(" %%%%%%% TestLogicButler getActors resource=${resource}")
+		    println(" %%%%%%% TestLogicPantry getActors resource=${resource}")
  	}
  
 	@After
 	fun terminate() {
-		println(" %%%%%%% TestLogicButler terminate ")
+		println(" %%%%%%% TestLogicPantry terminate ")
 	}
  
 	@Test
-	fun moveTest() {
-		println(" %%%%%%% TestLogicButler  logic test ")
+	fun pantryTest() {
+		println(" %%%%%%% TestLogicPantry  logic test ")
 		delay(100)
 		checkIdle(0)
 		checkPut(1000)
@@ -49,7 +49,7 @@ class TestLogicPantry {
 	
 	fun checkPut(time:Long ){
 		GlobalScope.launch{
-			pantry!!.forward("putDish","putDish(10)","pantry")
+			pantry!!.forward("pantryPutDish","putDish(10)","pantry")
 		}
 		solveCheckGoal( resource!!,  "state( pantry, put )" )
 		delay(time)
@@ -58,7 +58,7 @@ class TestLogicPantry {
 	
 	fun checkTake(time:Long ){
 		GlobalScope.launch{
-			pantry!!.forward("takeDish","takeDish(10)","pantry")
+			pantry!!.forward("pantryTakeDish","takeDish(10)","pantry")
 		}
 		solveCheckGoal( resource!!,  "state( pantry, take )" )
 		delay(time)

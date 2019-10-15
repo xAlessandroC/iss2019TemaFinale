@@ -20,7 +20,7 @@ class TestObstacleDetection {
 	@Before
 	fun systemSetUp() {
   	 		GlobalScope.launch{
- 			    println(" %%%%%%% TestObstacleDetection starts robot mind ")
+ 			    println(" %%%%%%% TestObstacleDetection starts ")
 				it.unibo.ctxButler.main()
  			}
 			delay(5000)		//give the time to start
