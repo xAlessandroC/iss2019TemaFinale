@@ -23,5 +23,5 @@
 time(forw4rd,460).
 time(turnLeft,200).
 time(turnRight,200).
-time(tuning,50).
+time(tuning,20).
 time(differenceLimit,0).

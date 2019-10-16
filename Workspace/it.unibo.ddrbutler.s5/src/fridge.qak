@@ -1,5 +1,5 @@
 System fridge
-
+ 
 mqttBroker "localhost" : 1883 
 
 Dispatch modelChangeFridge : modelChangeFridge(NAME, TASK, FOODCODE, QNT)

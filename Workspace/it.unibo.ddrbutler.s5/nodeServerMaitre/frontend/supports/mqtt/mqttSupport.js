@@ -60,3 +60,5 @@ exports.publish = function( msg, topic ){
 	console.log('mqtt publish ' + msg + 'on ' + topic);
 	client.publish(topic, msg);
 }
+
+exports.io=io;

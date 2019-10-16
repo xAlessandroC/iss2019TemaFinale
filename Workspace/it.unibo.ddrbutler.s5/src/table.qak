@@ -5,7 +5,7 @@ mqttBroker "localhost" : 1883
 Dispatch putElementTable : putElementTable(TYPE,FC,QNT)
 Dispatch takeElementTable : takeElementTable(TYPE,FC,QNT)
 Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
-
+ 
 //Context ctxButler ip [host="localhost" port=3030] -mqtt
 Context ctxTable ip [host="localhost" port=3034] -mqtt
 

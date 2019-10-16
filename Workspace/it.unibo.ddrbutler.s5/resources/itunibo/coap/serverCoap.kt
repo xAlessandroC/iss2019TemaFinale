@@ -16,6 +16,7 @@ object serverCoap{
 			//var takeResourceCoap = fridgeTakeResource("take")
 			server.add( contentResourceCoap );
 			server.add( availableResourceCoap );
+			itunibo.fridge.fridgeSupport.setResource(contentResourceCoap);
 			println("[COAP]: Server Started at coap://localhost:$port");	
 			server.start();
  		}

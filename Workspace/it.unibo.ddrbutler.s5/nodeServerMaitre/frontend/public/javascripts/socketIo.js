@@ -28,8 +28,13 @@ socket.on('message',function(v){
     break;
   case v.includes('updateContent'):
     var field=v.replace("updateContent(","").replace(")","").split(",")
-    console.log(field)
+    console.log("UPDATE---",field)
     updateData(field)
+    break;
+  case v.includes('coapUpdate'):
+    var fields=v.replace("coapUpdate(","").replace(";)","").split(";")
+    console.log(fields)
+    updateFridgeContent(fields)
     break;
   case v.includes('alert'):
     document.getElementById('alertDiv').innerHTML="Il cibo richiesto non è disponibile!"

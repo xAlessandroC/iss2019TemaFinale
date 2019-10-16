@@ -15,7 +15,7 @@ const dic = {
 /* GET home page. */
 router.get('/', function(req, res, next) {
   var fic = Object()
-  
+
   //get content on fridge
   if(!test){
     coapSupport.getContent().then(response => {

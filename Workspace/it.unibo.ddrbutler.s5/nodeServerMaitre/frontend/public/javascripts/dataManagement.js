@@ -36,6 +36,30 @@ function updateData(field){
   }
 }
 
+function updateFridgeContent(fields){
+  fields.forEach((v)=>{
+    var nome=v.split(",")[0]
+    var qnt=v.split(",")[1]
+
+    var trovato=false;
+    var section=document.getElementById("fridgeContent")
+    section.childNodes.forEach((e)=>{
+      if(e.id==nome){
+        trovato=true
+        e.innerHTML=`${nome} ${qnt}`
+      }
+    })
+
+    if(!trovato){
+      //lo aggiungo
+      var node = document.createElement("P");
+      var textnode=document.createTextNode(`${nome} ${qnt}`);
+      node.appendChild(textnode);
+      section.appendChild(node);
+    }
+  })
+}
+
 function loadInitParam(a,b,c,d){
     loadPantryData(a)
     loadFridgeData(b)

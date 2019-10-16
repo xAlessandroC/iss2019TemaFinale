@@ -8,6 +8,7 @@ var app = require('./app');
 var debug = require('debug')('frontend:server');
 var http = require('http');
 var mqtt = require('./supports/mqtt/mqttSupport')
+var coap = require('./supports/coap/coapSupport')
 
 /**
  * Get port from environment and store in Express.
@@ -23,6 +24,8 @@ app.set('port', port);
 var server = http.createServer(app);
 var io = require('socket.io').listen(server)
 mqtt.setIoSocket(io)
+coap.setIoSocket(io)
+coap.enableObserving()
 /**
  * Listen on provided port, on all network interfaces.
  */

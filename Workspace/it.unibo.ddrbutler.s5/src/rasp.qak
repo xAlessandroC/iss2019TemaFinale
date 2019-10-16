@@ -1,5 +1,5 @@
 System rasp
-
+ 
 //mqttBroker "192.168.43.145" : 1883
 mqttBroker "localhost" : 1883 
 
@@ -659,7 +659,7 @@ QActor calibration context ctxRasp{
 	State confirmForwardStep{
 		
 		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
-	
+		delay 1000
 	}Goto forwardStep
 	
 	State backtracking{
@@ -1155,7 +1155,7 @@ QActor preparehandler context ctxRasp {
 				delay 500
 				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 				
-				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+				//emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
 		}
 		else {
@@ -1256,7 +1256,7 @@ QActor addfoodhandler context ctxRasp {
 		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
 		["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 		
-		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+		//emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
 	Goto planT
 	
@@ -1375,7 +1375,7 @@ QActor clearhandler context ctxRasp {
 			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
 			["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,put,$K,$V)\",\"resourcemodelfridge\")"]
 			
-			emit updateContent : updateContent(fridge, food, $K, $V, put)
+			//emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]
 	}
 	Goto planT

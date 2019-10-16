@@ -22,7 +22,6 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						println("[BUTLERMIND]: Started...")
-						println("S5")
 						delay(5000) 
 					}
 					 transition( edgeName="goto",targetState="calibration", cond=doswitch() )
@@ -33,13 +32,13 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						forward("taskUpdate", "taskUpdate(butler,calibration,null,null)" ,"resourcemodelbutler" ) 
 						forward("startCalibration", "startCalibration" ,"calibration" ) 
 					}
-					 transition(edgeName="t021",targetState="waitingPrepare",cond=whenDispatch("calibrationCompleted"))
+					 transition(edgeName="t020",targetState="waitingPrepare",cond=whenDispatch("calibrationCompleted"))
 				}	 
 				state("waitingPrepare") { //this:State
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for a prepare command...")
 					}
-					 transition(edgeName="t022",targetState="startPrepare",cond=whenEvent("taskChanged"))
+					 transition(edgeName="t021",targetState="startPrepare",cond=whenDispatch("taskChanged"))
 				}	 
 				state("startPrepare") { //this:State
 					action { //it:State
@@ -63,9 +62,9 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("stopTask", "stopTask" ,"planner" ) 
 						}
 					}
-					 transition(edgeName="t023",targetState="notifyPrepareMaitre",cond=whenDispatch("prepareCompleted"))
-					transition(edgeName="t024",targetState="waitingPrepCompleted",cond=whenEvent("taskChanged"))
-					transition(edgeName="t025",targetState="suspendedPrepare",cond=whenDispatch("stopTask"))
+					 transition(edgeName="t022",targetState="notifyPrepareMaitre",cond=whenDispatch("prepareCompleted"))
+					transition(edgeName="t023",targetState="waitingPrepCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t024",targetState="suspendedPrepare",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedPrepare") { //this:State
 					action { //it:State
@@ -76,8 +75,8 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("reactivateTask", "reactivateTask" ,"planner" ) 
 						}
 					}
-					 transition(edgeName="t026",targetState="waitingPrepCompleted",cond=whenEvent("reactivateTask"))
-					transition(edgeName="t027",targetState="suspendedPrepare",cond=whenEvent("taskChanged"))
+					 transition(edgeName="t025",targetState="waitingPrepCompleted",cond=whenEvent("reactivateTask"))
+					transition(edgeName="t026",targetState="suspendedPrepare",cond=whenDispatch("taskChanged"))
 				}	 
 				state("notifyPrepareMaitre") { //this:State
 					action { //it:State
@@ -90,7 +89,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for an AC command...")
 					}
-					 transition(edgeName="t028",targetState="startAC",cond=whenEvent("taskChanged"))
+					 transition(edgeName="t027",targetState="startAC",cond=whenDispatch("taskChanged"))
 				}	 
 				state("startAC") { //this:State
 					action { //it:State
@@ -109,9 +108,9 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						}
 						forward("taskAssigned", "taskAssigned" ,"butlermind" ) 
 					}
-					 transition(edgeName="t029",targetState="waitingAddFoodCompleted",cond=whenDispatchGuarded("taskAssigned",{task == "add_food"}))
-					transition(edgeName="t030",targetState="waitingClearCompleted",cond=whenDispatchGuarded("taskAssigned",{task == "clear"}))
-					transition(edgeName="t031",targetState="waitingAC",cond=whenDispatchGuarded("taskAssigned",{task == ""}))
+					 transition(edgeName="t028",targetState="waitingAddFoodCompleted",cond=whenDispatchGuarded("taskAssigned",{task == "add_food"}))
+					transition(edgeName="t029",targetState="waitingClearCompleted",cond=whenDispatchGuarded("taskAssigned",{task == "clear"}))
+					transition(edgeName="t030",targetState="waitingAC",cond=whenDispatchGuarded("taskAssigned",{task == ""}))
 				}	 
 				state("waitingAddFoodCompleted") { //this:State
 					action { //it:State
@@ -122,9 +121,9 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("stopTask", "stopTask" ,"planner" ) 
 						}
 					}
-					 transition(edgeName="t032",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
-					transition(edgeName="t033",targetState="waitingAddFoodCompleted",cond=whenEvent("taskChanged"))
-					transition(edgeName="t034",targetState="suspendedAddFood",cond=whenDispatch("stopTask"))
+					 transition(edgeName="t031",targetState="notifyAddFoodMaitre",cond=whenDispatch("addFoodCompleted"))
+					transition(edgeName="t032",targetState="waitingAddFoodCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t033",targetState="suspendedAddFood",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedAddFood") { //this:State
 					action { //it:State
@@ -135,8 +134,8 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("reactivateTask", "reactivateTask" ,"planner" ) 
 						}
 					}
-					 transition(edgeName="t035",targetState="waitingAddFoodCompleted",cond=whenEvent("reactivateTask"))
-					transition(edgeName="t036",targetState="suspendedAddFood",cond=whenEvent("taskChanged"))
+					 transition(edgeName="t034",targetState="waitingAddFoodCompleted",cond=whenEvent("reactivateTask"))
+					transition(edgeName="t035",targetState="suspendedAddFood",cond=whenDispatch("taskChanged"))
 				}	 
 				state("notifyAddFoodMaitre") { //this:State
 					action { //it:State
@@ -153,9 +152,9 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("stopTask", "stopTask" ,"planner" ) 
 						}
 					}
-					 transition(edgeName="t037",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
-					transition(edgeName="t038",targetState="waitingClearCompleted",cond=whenEvent("taskChanged"))
-					transition(edgeName="t039",targetState="suspendedClear",cond=whenDispatch("stopTask"))
+					 transition(edgeName="t036",targetState="notifyClearMaitre",cond=whenDispatch("clearCompleted"))
+					transition(edgeName="t037",targetState="waitingClearCompleted",cond=whenDispatch("taskChanged"))
+					transition(edgeName="t038",targetState="suspendedClear",cond=whenDispatch("stopTask"))
 				}	 
 				state("suspendedClear") { //this:State
 					action { //it:State
@@ -166,8 +165,8 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								forward("reactivateTask", "reactivateTask" ,"planner" ) 
 						}
 					}
-					 transition(edgeName="t040",targetState="waitingClearCompleted",cond=whenEvent("reactivateTask"))
-					transition(edgeName="t041",targetState="suspendedClear",cond=whenEvent("taskChanged"))
+					 transition(edgeName="t039",targetState="waitingClearCompleted",cond=whenEvent("reactivateTask"))
+					transition(edgeName="t040",targetState="suspendedClear",cond=whenDispatch("taskChanged"))
 				}	 
 				state("notifyClearMaitre") { //this:State
 					action { //it:State

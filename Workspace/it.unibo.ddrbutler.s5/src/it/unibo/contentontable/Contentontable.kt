@@ -28,8 +28,8 @@ class Contentontable ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("[contentontable]: I'm waiting for a command...")
 					}
-					 transition(edgeName="t095",targetState="gettingContent",cond=whenDispatch("getContent"))
-					transition(edgeName="t096",targetState="settingContent",cond=whenEvent("updateContent"))
+					 transition(edgeName="t094",targetState="gettingContent",cond=whenDispatch("getContent"))
+					transition(edgeName="t095",targetState="settingContent",cond=whenEvent("updateContent"))
 				}	 
 				state("gettingContent") { //this:State
 					action { //it:State
@@ -67,18 +67,18 @@ class Contentontable ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								}else{
 								solve("replaceRule(ontable(${payloadArg(1)},${payloadArg(2)},_),ontable(${payloadArg(1)},${payloadArg(2)},$New))","") //set resVar	
 								}
-								if(currentSolution.isSuccess()) { println("[stuffontable]: I've replaced a line")
+								if(currentSolution.isSuccess()) { println("[contentontable]: I've replaced a line")
 								 }
 								else
-								{ println("[stuffontable]: error in replacing the new line")
+								{ println("[contentontable]: error in replacing the new line")
 								 }
 								 }
 								else
 								{ solve("assert(ontable(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
-								if(currentSolution.isSuccess()) { println("[stuffontable]: I've added a new line")
+								if(currentSolution.isSuccess()) { println("[contentontable]: I've added a new line")
 								 }
 								else
-								{ println("[stuffontable]: error in adding a new line")
+								{ println("[contentontable]: error in adding a new line")
 								 }
 								 }
 						}

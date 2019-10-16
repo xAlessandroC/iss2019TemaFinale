@@ -1149,7 +1149,7 @@ QActor preparehandler context ctxButler {
 				delay 500
 				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 				
-				emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+				//emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 			["}"]
 		}
 		else {
@@ -1250,7 +1250,7 @@ QActor addfoodhandler context ctxButler {
 		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
 		["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
 		
-		emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+		//emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
 	}
 	Goto planT
 	
@@ -1369,7 +1369,7 @@ QActor clearhandler context ctxButler {
 			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
 			["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,put,$K,$V)\",\"resourcemodelfridge\")"]
 			
-			emit updateContent : updateContent(fridge, food, $K, $V, put)
+			//emit updateContent : updateContent(fridge, food, $K, $V, put)
 		["}"]
 	}
 	Goto planT

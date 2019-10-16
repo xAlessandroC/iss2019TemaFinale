@@ -64,14 +64,13 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("obstacle"), Term.createTerm("obstacle"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								endF = System.currentTimeMillis()
 								replyToCaller("moveFailed","moveFailed")
 						}
 					}
-					 transition(edgeName="t010",targetState="handleCmd",cond=whenDispatch("movementCmd"))
+					 transition(edgeName="t09",targetState="handleCmd",cond=whenDispatch("movementCmd"))
 				}	 
 				state("handleCmd") { //this:State
 					action { //it:State
@@ -83,10 +82,10 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 								forward("moveReceived", "moveReceived" ,"movementhandler" ) 
 						}
 					}
-					 transition(edgeName="to11",targetState="startForward",cond=whenDispatchGuarded("moveReceived",{input.equals("w")}))
-					transition(edgeName="to12",targetState="startBacktracking",cond=whenDispatchGuarded("moveReceived",{input.equals("s")}))
-					transition(edgeName="to13",targetState="startTurnLeft",cond=whenDispatchGuarded("moveReceived",{input.equals("a")}))
-					transition(edgeName="to14",targetState="startTurnRight",cond=whenDispatchGuarded("moveReceived",{input.equals("d")}))
+					 transition(edgeName="to10",targetState="startForward",cond=whenDispatchGuarded("moveReceived",{input.equals("w")}))
+					transition(edgeName="to11",targetState="startBacktracking",cond=whenDispatchGuarded("moveReceived",{input.equals("s")}))
+					transition(edgeName="to12",targetState="startTurnLeft",cond=whenDispatchGuarded("moveReceived",{input.equals("a")}))
+					transition(edgeName="to13",targetState="startTurnRight",cond=whenDispatchGuarded("moveReceived",{input.equals("d")}))
 				}	 
 				state("startForward") { //this:State
 					action { //it:State
@@ -96,8 +95,8 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						stateTimer = TimerActor("timer_startForward", 
 							scope, context!!, "local_tout_movementhandler_startForward", ForwardTime )
 					}
-					 transition(edgeName="t015",targetState="stopForward",cond=whenTimeout("local_tout_movementhandler_startForward"))   
-					transition(edgeName="t016",targetState="waitCmd",cond=whenEvent("obstacle"))
+					 transition(edgeName="t014",targetState="stopForward",cond=whenTimeout("local_tout_movementhandler_startForward"))   
+					transition(edgeName="t015",targetState="waitCmd",cond=whenEvent("obstacle"))
 				}	 
 				state("stopForward") { //this:State
 					action { //it:State
@@ -114,13 +113,14 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						stateTimer = TimerActor("timer_startTurnLeft", 
 							scope, context!!, "local_tout_movementhandler_startTurnLeft", TurnLeftTime )
 					}
-					 transition(edgeName="t017",targetState="stopTurnLeft",cond=whenTimeout("local_tout_movementhandler_startTurnLeft"))   
+					 transition(edgeName="t016",targetState="stopTurnLeft",cond=whenTimeout("local_tout_movementhandler_startTurnLeft"))   
 				}	 
 				state("stopTurnLeft") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
 						replyToCaller("moveCompleted","moveCompleted")
+						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -131,13 +131,14 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						stateTimer = TimerActor("timer_startTurnRight", 
 							scope, context!!, "local_tout_movementhandler_startTurnRight", TurnRightTime )
 					}
-					 transition(edgeName="t018",targetState="stopTurnRight",cond=whenTimeout("local_tout_movementhandler_startTurnRight"))   
+					 transition(edgeName="t017",targetState="stopTurnRight",cond=whenTimeout("local_tout_movementhandler_startTurnRight"))   
 				}	 
 				state("stopTurnRight") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("robotChange", "robotChange(robot,h)" ,"resourcemodelbutler" ) 
 						replyToCaller("moveCompleted","moveCompleted")
+						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -153,7 +154,7 @@ class Movementhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( n
 						stateTimer = TimerActor("timer_startBacktracking", 
 							scope, context!!, "local_tout_movementhandler_startBacktracking", TimeToWait )
 					}
-					 transition(edgeName="t019",targetState="stopBacktracking",cond=whenTimeout("local_tout_movementhandler_startBacktracking"))   
+					 transition(edgeName="t018",targetState="stopBacktracking",cond=whenTimeout("local_tout_movementhandler_startBacktracking"))   
 				}	 
 				state("stopBacktracking") { //this:State
 					action { //it:State
