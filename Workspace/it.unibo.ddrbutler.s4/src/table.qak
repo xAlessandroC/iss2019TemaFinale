@@ -8,7 +8,7 @@ Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
 
 //Context ctxButler ip [host="localhost" port=3030] -mqtt
 Context ctxTable ip [host="localhost" port=3034] -mqtt
-
+ 
 QActor table context ctxTable{
 	["
 		var num = -1

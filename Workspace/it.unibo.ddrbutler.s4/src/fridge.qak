@@ -95,4 +95,4 @@ QActor resourcemodelfridge context ctxFridge{
 		}
 	}
 	Goto waitCmd
-} 
+}

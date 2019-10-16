@@ -33,19 +33,14 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 					transition(edgeName="t06",targetState="handleUpdate",cond=whenDispatch("robotUpdate"))
 					transition(edgeName="t07",targetState="handleUpdate",cond=whenDispatch("sonarUpdate"))
 					transition(edgeName="t08",targetState="handleUpdate",cond=whenDispatch("taskUpdate"))
-					transition(edgeName="t09",targetState="handleUpdate",cond=whenDispatch("positionUpdate"))
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("robotChange(TARGET,VALUE)"), Term.createTerm("robotChange(robot,X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("action(robot,move(${payloadArg(1)}))","") //set resVar	
-								if(currentSolution.isSuccess()) { emit("robotChanged", "robotChanged(robot,${payloadArg(1)})" ) 
-								 }
-								else
-								{ println("Cambiamento non accettato")
-								 }
+								forward("robotChanged", "robotChanged(robot,${payloadArg(1)})" ,"robotmind" ) 
+								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
 						}
 						if( checkMsgContent( Term.createTerm("sonarChange(TARGET,VALUE,OBSTACLE)"), Term.createTerm("sonarChange(sonar,VALUE,OBSTACLE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -54,17 +49,8 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						if( checkMsgContent( Term.createTerm("taskChange(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChange(butler,TASK,FC,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("action(butler,${payloadArg(1)})","") //set resVar	
-								if(currentSolution.isSuccess()) { emit("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ) 
-								 }
-								else
-								{ println("Cambiamento non accettato")
-								 }
-								solve("state(butler,X,Y)","") //set resVar	
-								
-												var a1=getCurSol("X")
-												var a2=getCurSol("Y")
-								println("STATE ROBOT: butler $a1 $a2")
+								forward("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butlermind" ) 
+								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -85,11 +71,6 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
-						}
-						if( checkMsgContent( Term.createTerm("positionUpdate(TARGET,X,Y)"), Term.createTerm("positionUpdate(robot,X,Y)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								itunibo.robot.resourceModelSupport.updatePositionRobotModel(myself ,payloadArg(1), payloadArg(2) )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

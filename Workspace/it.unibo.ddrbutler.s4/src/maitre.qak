@@ -1,5 +1,5 @@
 System maitre
-
+ 
 mqttBroker "localhost" : 1883 
 
 /* BUTLER MESSAGES */
@@ -51,6 +51,7 @@ QActor maitre context ctxMaitre {
 		solve(assert(content(pantry, dish, null, 20)))
 		solve(assert(content(dishwasher, dish, null, 0)))
 		
+		run itunibo.maitre.fridgeInteraction.enableObserving(myself)
 		run itunibo.maitre.fridgeInteraction.getContent(myself)
 	}
 	Goto initStateRoom
@@ -211,4 +212,12 @@ QActor maitremodel context ctxMaitre {
 	}
 	Goto waitingCmd					
 }
-	
+
+/*QActor console context ctxMaitre{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/

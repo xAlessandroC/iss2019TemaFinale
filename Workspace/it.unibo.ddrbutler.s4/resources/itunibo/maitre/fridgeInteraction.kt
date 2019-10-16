@@ -4,8 +4,23 @@ import org.eclipse.californium.core.CoapClient
 import it.unibo.kactor.ActorBasic
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.eclipse.californium.core.CoapHandler
+import org.eclipse.californium.core.CoapResponse
 
 object fridgeInteraction{
+	
+	fun enableObserving(a: ActorBasic){
+		val hostAddr = "localhost" // "192.168.43.67 3"
+		val port = 5863
+		val resourceName = "content"
+		var coapClient = CoapClient("coap://$hostAddr:" + port + "/" + resourceName)
+		
+		var handler = maitreHandler(a)
+		var relation =  coapClient.observe(handler);
+		
+		println("Observing enabled")
+		
+	}
 	
 	fun ask(a: ActorBasic, fc : String, qnt : Int ){
 		
