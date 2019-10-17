@@ -40,7 +40,7 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						if( checkMsgContent( Term.createTerm("robotChange(TARGET,VALUE)"), Term.createTerm("robotChange(robot,X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								forward("robotChanged", "robotChanged(robot,${payloadArg(1)})" ,"robotmind" ) 
+								emit("robotChanged", "robotChanged(robot,${payloadArg(1)})" ) 
 								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
 						}
 						if( checkMsgContent( Term.createTerm("sonarChange(TARGET,VALUE,OBSTACLE)"), Term.createTerm("sonarChange(sonar,VALUE,OBSTACLE)"), 
@@ -50,7 +50,7 @@ class Resourcemodelbutler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						if( checkMsgContent( Term.createTerm("taskChange(TARGET,TASK,FC,QNT)"), Term.createTerm("taskChange(butler,TASK,FC,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								forward("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butlermind" ) 
+								emit("taskChanged", "taskChanged(butler,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ) 
 								itunibo.robot.resourceModelSupport.updateButlerModel(myself ,payloadArg(1) )
 						}
 					}

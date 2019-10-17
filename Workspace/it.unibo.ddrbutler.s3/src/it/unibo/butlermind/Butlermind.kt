@@ -48,7 +48,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for a prepare command...")
 					}
-					 transition(edgeName="t021",targetState="startPrepare",cond=whenDispatch("taskChanged"))
+					 transition(edgeName="t021",targetState="startPrepare",cond=whenEvent("taskChanged"))
 				}	 
 				state("startPrepare") { //this:State
 					action { //it:State
@@ -68,7 +68,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("notifyPrepareMaitre") { //this:State
 					action { //it:State
-						forward("modelChangeMaitre","modelChangeMaitre(maitre, prepare)","maitremodel")
+						forward("notifyPrepare","notifyPrepare","maitre")
 					}
 					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
 				}	 
@@ -76,7 +76,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("[BUTLER_MIND]: waiting for an AC command...")
 					}
-					 transition(edgeName="t024",targetState="startAC",cond=whenDispatch("taskChanged"))
+					 transition(edgeName="t024",targetState="startAC",cond=whenEvent("taskChanged"))
 				}	 
 				state("startAC") { //this:State
 					action { //it:State
@@ -112,7 +112,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("notifyAddFoodMaitre") { //this:State
 					action { //it:State
-						forward("modelChangeMaitre","modelChangeMaitre(maitre, add_food)","maitremodel")
+						forward("notifyAddFood","notifyAddFood","maitre")
 					}
 					 transition( edgeName="goto",targetState="waitingAC", cond=doswitch() )
 				}	 
@@ -124,7 +124,7 @@ class Butlermind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("notifyClearMaitre") { //this:State
 					action { //it:State
-						forward("modelChangeMaitre","modelChangeMaitre(maitre, clear)","maitremodel")
+						forward("notifyClear","notifyClear","maitre")
 					}
 					 transition( edgeName="goto",targetState="waitingPrepare", cond=doswitch() )
 				}	 

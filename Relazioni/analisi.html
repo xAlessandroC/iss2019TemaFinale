@@ -16,7 +16,7 @@
             <h2>Introduzione</h2>
             <p>Una stanza per <kc>Servizio buffet</kc> è equipaggiata con una serie di risorse (smart e non), inclusi
             un <em>frigo</em><tt> (Fridge)</tt>, una <em>lavastoviglie</em><tt> (Dishwasher)</tt>, una <em>dispensa</em><tt> (Pantry)</tt>,
-            ed un ddr robot capace di lavorare come <em>Room Butler</em> (d'ora in poi chiamato <bc>RBR</bc> (<tt>Room Butter Robot</tt>)).</p>
+            ed un ddr robot capace di lavorare come <em>Room Butler</em> (d'ora in poi chiamato <bc>RBR</bc> (<tt>Room Butler Robot</tt>)).</p>
 
             <p>Il <em>frigo</em>, la <em>lavastoviglie</em> e la <em>dispensa</em> sono incassati nei muri della stanza;
             sono, quindi, da escludere eventuali altre protuberanze dei muri.</p>
@@ -149,29 +149,30 @@
                     Essa ci permette di astrarre dai dettagli comunicativi consentendo, quindi, di concentrarsi sulla business logic.
                     </li>
                     <li>
-                      La creazione di un frontend che giri su smart-phone potrebbe introdurre dei technology lock-in e portare all'introduzione di nuove tecnologie.
+                      La possibilità di essere sensibili agli ostacoli in qualsiasi momento implica che il robot debba disporre di un qualche strumento di rilevazione
+                      di tali ostacoli.
                     </li>
                     <li>
                     Il fatto che il robot debba poter operare su <bc>Pantry</bc>, <bc>Dishwasher</bc>, <bc>Table</bc> o <bc>Fridge</bc> porta a dire che si
                     debba creare una rappresentazione della stanza in cui lavorare nota al robot.
                     </li>
+                    <li>
+                      La necessità del maitre di avere uno stato aggiornato della stanza porta ad un problema di assegnamento di responsabilità per quanto
+                      riguarda chi debba trasmettere le varie notifiche di aggiornamento.
+                    </li>
                     <li>La capacità del <bc>RBR</bc> di poter evitare gli ostacoli implica che questo debba avere un
                     comportamento <em>proattivo</em> nei confronti dei comandi maitre e <em>reattivo</em> verso eventuali ostacoli che possono presentarsi.
                     </li>
                     <li>
-                      Il maitre deve essere <em>reattivo</em> a diverse informazioni contemporaneamente e nella gestione di queste rimanere
-                      vigile sulle altre.
-                    </li>
-                    <li>
                       I requisiti relativi al <bc>Fridge</bc> suggeriscono un tipo di interazione request-response che l'infrastruttura attualmente
-                      non supporta
+                      non supporta.
                     </li>
                     <li>
-                      L'esecuzione del task clear suggerisce che il <bc>RBR</bc> debba sapere cosa si trova in un certo istante sul tavolo
+                      L'esecuzione del task clear suggerisce che il <bc>RBR</bc> debba sapere cosa si trova in un certo istante sul tavolo.
                     </li>
                     <li>
                       L'utilizzo dell'infrastruttura QAK non permette di creare ASF in cui uno stato è sia reattivo ad un messaggio sia
-                      si porta in un nuovo stato tramite una transizione spontanea
+                      si porta in un nuovo stato tramite una transizione spontanea.
                     </li>
                 </ol>
 
@@ -179,32 +180,27 @@
 
                 <h3>Comportamento Butler</h3>
                 <div class="img" style="width:60%">
-                  <center><img src="./images/analisi/Z0_ButlerBehaviour.png" alt="Z0_ButlerBehaviour" width="150%" height="50%"/></center>
-                </div></br>
-
-                <h3>Comportamento Maitre</h3>
-                <div class="img" style="width:60%">
-                  <center><img src="./images/analisi/Z0_MaitreBehaviour.png" alt="Z0_ButlerBehaviour" width="150%" height="50%"/></center>
+                  <center><img src="./images/analisi/Z0_ButlerBehaviour.png" alt="Z0_ButlerBehaviour" width="110%" height="50%"/></center>
                 </div></br>
 
                 <h3>Comportamento Fridge</h3>
                 <div class="img" style="width:60%">
-                  <center><img src="./images/analisi/Z0_FridgeBehaviour.png" alt="Z0_ButlerBehaviour" width="90%" height="50%"/></center>
+                  <center><img src="./images/analisi/Z0_FridgeBehaviour.png" alt="Z0_FridgeBehaviour" width="80%" height="50%"/></center>
                 </div></br>
 
                 <h3>Comportamento Pantry</h3>
                 <div class="img" style="width:60%">
-                  <center><img src="./images/analisi/Z0_PantryBehaviour.png" alt="Z0_ButlerBehaviour" width="90%" height="50%"/></center>
+                  <center><img src="./images/analisi/Z0_PantryBehaviour.png" alt="Z0_PantryBehaviour" width="80%" height="50%"/></center>
                 </div></br>
 
                 <h3>Comportamento Dishwasher</h3>
                 <div class="img" style="width:60%">
-                  <center><img src="./images/analisi/Z0_DishwasherBehaviour.png" alt="Z0_ButlerBehaviour" width="90%" height="50%"/></center>
+                  <center><img src="./images/analisi/Z0_DishwasherBehaviour.png" alt="Z0_DishwasherBehaviour" width="80%" height="50%"/></center>
                 </div></br>
 
                 <h3>Comportamento Table</h3>
                 <div class="img" style="width:60%">
-                  <center><img src="./images/analisi/Z0_TableBehaviour.png" alt="Z0_ButlerBehaviour" width="90%" height="50%"/></center>
+                  <center><img src="./images/analisi/Z0_TableBehaviour.png" alt="Z0_TableBehaviour" width="80%" height="50%"/></center>
                 </div></br>
 
             </div>
@@ -234,13 +230,6 @@
 
               <table>
                 <tr>
-                  <td>
-                    <ul>
-                      <bc>MAITRE</bc>
-                      <li>state(maitre,X)</li>
-                      <li>task(maitre,X)</li>
-                    </ul>
-                  </td>
                   <td>
                     <ul>
                         <bc>PANTRY</bc>
@@ -293,9 +282,6 @@
             <div>
               Qui è stato principalmente strutturato il <em>refactoring MVC</em>. Ad ogni componente è stato associato un attore il cui compito
               è quello di gestire il modello relativo, l'interazione pensata è:
-              <div class="img" style="width:60%">
-                <center><img src="./images/analisi/maitreArchitecture.png" alt="maitreArchitecture" width="90%" height="50%"/></center>
-              </div></br>
 
               <div class="img" style="width:60%">
                 <center><img src="./images/analisi/fridgeArchitecture.png" alt="fridgeArchitecture" width="90%" height="50%"/></center>
