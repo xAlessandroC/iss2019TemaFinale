@@ -23,7 +23,7 @@ Esistono due tipi di configurazioni a seconda che si voglia eseguire il butler s
 
 #### Configurazione DDR
 IMPORTANTE: 
-Lo zip presente nel progetto ha come IP di riferimento per MQTT e COAP "192.168.43.145", occorre, quindi, assicurarsi che l'IP su cui girano i due servizi sia effettivamente questo. In caso si vogliano usare degli indirizzi diversi occorre manualmente cambiarli all'interno dei file Rasp.qak(MQTT) e resources/itunibo.robot.fridgeInteraction.kt(COAP) e rieseguire il build utilizzando il comando 
+Lo zip presente nel progetto ha come IP di riferimento per MQTT e COAP "192.168.43.145", occorre, quindi, assicurarsi che l'IP su cui girano i due servizi sia effettivamente questo. In caso si vogliano usare degli indirizzi diversi occorre manualmente cambiarli all'interno dei file Rasp.qak(MQTT) e resources/itunibo.robot/fridgeInteraction.kt(COAP) e rieseguire il build utilizzando il comando 
 ```
 gradle -b build_ctxRasp.gradle distZip
 ```
@@ -40,10 +40,12 @@ Per la configurazione di un DDR sul raspberry occorre
 - assicurasi che nel file movimentConfig.pl siano decommentate le TEMPISTICHE NANO (eventualmente inserendo dei parametri personali)
 
 #### Configurazione Virtuale
+Le istruzioni di seguito sono per l'esecuzione esclusivamente in locale.
 Il presente progetto dovrebbe già essere predisposto per il corretto funzionamento del robot virtuale, tuttavia è bene:
 - assicurarsi che nel file Rasp.qak sia presente la riga 'mqttBroker "localhost" : 1883'
 - assicurarsi che nel file basicRobotConfig.pl sia decommentata esclusivamente la riga relativa al ROBOT VIRTUAL
 - assicurasi che nel file movimentConfig.pl siano decommentate le TEMPISTICHE VIRTUAL (eventualmente inserendo dei parametri personali)
+- assicurarsi che nel file resources/itunibo.robot/fridgeInteraction.kt l'indirizzo di rete sia "localhost"
 
 ##### Avvio dell'ambiente virtuale
 Per avviare l'ambiente web del robot virtuale occorre essere nella cartella nodeServerVirtualRobot ed eseguire i seguenti passi
