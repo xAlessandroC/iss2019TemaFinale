@@ -1,0 +1,1505 @@
+System ddrbutler
+
+mqttBroker "localhost" : 1883 
+
+Event sonarRobot : sonar(DISTANCE)
+Event obstacle : obstacle
+
+Dispatch robotCmd : robotCmd(CMD)
+Dispatch moveReceived : moveReceived
+
+Dispatch robotChange : robotChange(TARGET, VALUE)
+Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
+Dispatch taskChange : taskChange(TARGET, TASK, FC, QNT)
+
+Dispatch robotUpdate : robotUpdate(TARGET, VALUE)
+Dispatch sonarUpdate : sonarUpdate(TARGET, VALUE, OBSTACLE)
+Dispatch taskUpdate : taskUpdate(TARGET, TASK, FC, QNT)
+Dispatch positionUpdate : positionUpdate(TARGET, X, Y)
+
+Event robotChanged : robotChanged(TARGET, VALUE)
+Event sonarChanged : sonarChanged(TARGET, VALUE, OBSTACLE)
+Event taskChanged : taskChanged(TARGET, TASK, FC, QNT)
+
+Dispatch movementCmd : movementCmd(CMD)
+
+Dispatch startCalibration : startCalibration
+Dispatch calibrationCompleted : calibrationCompleted
+Dispatch moveCompleted : moveCompleted
+Dispatch moveFailed : moveFailed
+Dispatch endBoundary : endBoundary
+
+Dispatch goto : goto(X)
+Dispatch schedulingCompleted : schedulingCompleted
+Dispatch planningCompleted : planningCompleted
+Dispatch setLocation : setLocation(NAME,X,Y)
+
+Dispatch startPrepare : startPrepare
+Dispatch startAddFood : startAddFood(FC, QNT)
+Dispatch startClear : startClear
+
+Dispatch prepareCompleted : prepareCompleted
+Dispatch addFoodCompleted : addFoodCompleted
+Dispatch clearCompleted : clearCompleted
+
+Dispatch modelChangeMaitre : modelChangeMaitre(DEVICE, TASK)
+
+Dispatch taskAssigned : taskAssigned
+
+Dispatch modelChangeMaitre : modelChangeMaitre(NAME, STATE)
+Dispatch modelChangedMaitre : modelChangedMaitre(NAME, TASK)
+Dispatch modelUpdateMaitre : modelUpdateMaitre(NAME, STATE)
+
+/* UPDATING STATE ROOM */
+Event updateContent : updateContent(DEVICE, TYPE, FOODCODE, QNT, OP_T)
+
+Event alert : alert
+
+Dispatch responseFood : responseFood(RESPONSE)
+
+Dispatch getContent : getContent
+Dispatch responseContent : responseContent(L)
+
+//dishwasher
+Dispatch modelChangedDishwasher : modelChangedDishwasher(NAME, OP, QNT)
+
+//pantry
+Dispatch modelChangedPantry : modelChangedPantry(NAME, OP, QNT)
+
+//table
+Dispatch modelChangeTable : modelChangeTable(NAME, TYPE, TASK, FOODCODE, QNT)
+
+//fridge
+Dispatch modelChangeFridge : modelChangeFridge(NAME, TASK, FOODCODE, QNT)
+
+//Event stopTask : stopTask
+//Event reactivateTask : reactivateTask
+
+Dispatch stopTask : stopTask
+Dispatch reactivateTask : reactivateTask
+
+Context ctxButler ip [host="localhost" port=3030] -mqtt
+  
+QActor basicrobot context ctxButler{
+	State s0 initial{
+		println("[BASICROBOT]: Started...")
+		
+		solve( consult("basicRobotConfig.pl") )   
+ 		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
+  		ifSolved{
+  			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  		} 
+  		else{
+  		 	println("no robot")
+  		 } 
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg robotCmd -> handleCmd
+	
+	State handleCmd{
+		
+		onMsg ( robotCmd : robotCmd(X)){
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+		}
+		
+	}
+	Goto waitCmd
+	
+}
+
+QActor obstacledetector context ctxButler{
+	["var distance=9999"]
+	State s0 initial{
+		println("[OBSTACLE-DETECTOR]: Started...")
+		
+		solve(consult("sonarConfig.pl"))
+		solve( detection(X) )
+		ifSolved{
+			println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
+		} 	
+  		else{
+  			 println("no distance")
+   		}
+   		
+   		["distance=Integer.parseInt(getCurSol(\"X\").toString())"]	
+	}
+	Transition t0 whenEvent sonarRobot -> handleSonarData
+	
+	State handleSonarData{
+		printCurrentMessage
+		onMsg(sonarRobot : sonar(DISTANCE)){
+			
+			[" val D = Integer.parseInt( payloadArg(0) )"]
+			["if(D<=distance){"]
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), obstacle)
+				emit obstacle : obstacle
+			["}else{"]
+				forward resourcemodelbutler -m sonarUpdate : sonarUpdate(sonar, $payloadArg(0), clear)
+			["}"]
+		}
+	}
+	Transition t0 whenEvent sonarRobot -> handleSonarData
+}
+
+QActor resourcemodelbutler context ctxButler{
+	State s0 initial{
+		println("[RESOURCE MODEL]: Started...")
+		
+		solve( consult("sysRules.pl")	 )
+		solve(consult("robotState.pl"))
+		
+	}
+	Goto waitCmd
+
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg robotChange -> handleChange
+				  whenMsg sonarChange -> handleChange
+				  whenMsg taskChange -> handleChange
+				  whenMsg robotUpdate -> handleUpdate
+				  whenMsg sonarUpdate -> handleUpdate
+				  whenMsg taskUpdate -> handleUpdate
+				  whenMsg positionUpdate -> handleUpdate
+	
+	State handleChange{
+		onMsg(robotChange : robotChange(robot, X)){
+			printCurrentMessage
+			
+			solve(  action(robot, move($payloadArg(1)) ) ) 
+			ifSolved{
+				emit robotChanged : robotChanged(robot, $payloadArg(1))
+			}else{
+				println("Cambiamento non accettato")
+			}
+			
+			//run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+		}
+		
+		onMsg(sonarChange : sonarChange(sonar, VALUE, OBSTACLE)){
+			printCurrentMessage
+		}
+		
+		onMsg(taskChange : taskChange(butler, TASK, FC, QNT)){
+			printCurrentMessage
+			
+			solve(  action(butler, $payloadArg(1)) ) 
+			ifSolved{
+				emit taskChanged : taskChanged(butler, $payloadArg(1), $payloadArg(2), $payloadArg(3))
+			}else{
+				println("Cambiamento non accettato")
+			}
+			
+			
+			solve(state(butler, X, Y))
+			["
+				var a1=getCurSol(\"X\")
+				var a2=getCurSol(\"Y\")
+			"]
+			println("STATE ROBOT: butler $a1 $a2")
+			//run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
+		}
+	}
+	Goto waitCmd
+	
+	State handleUpdate{
+		onMsg(robotUpdate : robotUpdate(robot, X)){
+			printCurrentMessage
+		}
+		
+		onMsg(sonarUpdate : sonarUpdate(sonar, VALUE, OBSTACLE)){
+			printCurrentMessage
+			["var obstacle=payloadArg(2).equals(\"obstacle\")"]
+			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1), obstacle )
+		}
+		
+		onMsg(taskUpdate : taskUpdate(butler, TASK, FC, QNT)){
+			printCurrentMessage
+			run itunibo.robot.resourceModelSupport.updateButlerModel( myself, payloadArg(1) )
+		}
+		
+		onMsg(positionUpdate : positionUpdate(robot, X, Y)){
+			printCurrentMessage
+			run itunibo.robot.resourceModelSupport.updatePositionRobotModel( myself, payloadArg(1), payloadArg(2) )
+		}
+	}
+	Goto waitCmd
+}
+
+QActor movementhandler context ctxButler{
+	["
+		var input=\"\"
+		var startF = 0L
+		var endF = 0L
+
+		var ForwardTime=-1L
+		var TurnLeftTime=-1L
+		var TurnRightTime=-1L
+		var TuningTime=-1L
+		var DifferenceLimitTime=-1L
+
+		var TimeToWait=-1L
+
+		var temp=\"\"
+	"]
+	
+	State s0 initial{
+		println("[MOVEMENT HANDLER]: Started...")
+		
+		solve(consult("movementConfig.pl"))
+		
+		solve(time(forw4rd,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["ForwardTime=temp.toLong()"]
+			
+			println("Settato forwardTime a $ForwardTime")
+		}
+		solve(time(turnLeft,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["TurnLeftTime=temp.toLong()"]
+			
+			println("Settato turnLeftTime a $TurnLeftTime")
+		}
+		solve(time(turnRight,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["TurnRightTime=temp.toLong()"]
+			
+			println("Settato turnRightTime a $TurnRightTime")
+		}
+		solve(time(tuning,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["TuningTime=temp.toLong()"]
+			
+			println("Settato tuningTime a $TuningTime")
+		}
+		solve(time(differenceLimit,X))
+		ifSolved{
+			["temp=getCurSol(\"X\").toString()"]
+			["DifferenceLimitTime=temp.toLong()"]
+			
+			println("Settato differenceLimitTime a $DifferenceLimitTime")
+		}
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		onMsg(obstacle : obstacle){
+			["endF = System.currentTimeMillis()"]
+			["replyToCaller(\"moveFailed\",\"moveFailed\")"]
+		}
+	}
+	Transition t0 whenMsg movementCmd -> handleCmd
+				  
+	State handleCmd {
+		
+		["storeCurrentMessageForReply()"]
+		onMsg(movementCmd : movementCmd(X)){
+			printCurrentMessage
+			
+			["input=payloadArg(0)"]
+			
+			forward movementhandler -m moveReceived : moveReceived
+		}
+	}
+	Transition to whenMsg moveReceived and "input.equals(\"w\")" -> startForward
+				  whenMsg moveReceived and "input.equals(\"s\")" -> startBacktracking
+				  whenMsg moveReceived and "input.equals(\"a\")" -> startTurnLeft
+				  whenMsg moveReceived and "input.equals(\"d\")" -> startTurnRight
+				  
+	State startForward{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, w)
+		["startF = System.currentTimeMillis()"]
+	}
+	Transition t0 whenTimeVar ForwardTime -> stopForward
+				  whenEvent obstacle -> waitCmd
+				  
+	State stopForward{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
+		
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
+	}
+	Goto waitCmd
+	
+	State startTurnLeft{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, a)
+		
+	}
+	Transition t0 whenTimeVar TurnLeftTime -> stopTurnLeft
+				 // whenEvent obstacle -> waitCmd
+				  
+	State stopTurnLeft{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
+		
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
+		
+		delay 1000
+	}
+	Goto waitCmd
+	
+	State startTurnRight{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, d)
+	}
+	Transition t0 whenTimeVar TurnRightTime -> stopTurnRight
+				  //whenEvent obstacle -> waitCmd
+				  
+	State stopTurnRight{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
+		
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
+		delay 1000
+	}
+	Goto waitCmd
+	
+	State startBacktracking{
+		printCurrentMessage
+		[" TimeToWait=((endF-startF)-TuningTime).toLong()"]
+		["
+			if(TimeToWait<DifferenceLimitTime)
+				TimeToWait=0L
+		"]
+		println("###BACK PER $TimeToWait millis")
+		forward resourcemodelbutler -m robotChange : robotChange(robot, s)
+	}
+	Transition t0 whenTimeVar TimeToWait -> stopBacktracking
+				  //whenEvent obstacle -> waitCmd
+		
+	State stopBacktracking{
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m robotChange : robotChange(robot, h)
+		
+		["replyToCaller(\"moveCompleted\",\"moveCompleted\")"]
+	}
+	Goto waitCmd
+}
+
+QActor robotmind context ctxButler{
+	State s0 initial{
+		println("[ROBOT MIND]: Started...")
+		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenEvent robotChanged -> handleChange
+				  
+	State handleChange {
+		
+		onMsg(robotChanged : robotChanged(robot, X)){
+			printCurrentMessage
+			forward basicrobot -m robotCmd : robotCmd($payloadArg(1))
+		}
+	}
+	Goto waitCmd
+}
+
+QActor butlermind context ctxButler {
+	["
+		var isCorrect = false
+		var task : String = \"\"
+	"]
+			
+	State s0 initial {
+		println("[BUTLERMIND]: Started...")
+		println("S4")
+		delay 5000
+	}
+	Goto calibration
+	//Goto notifyPrepareMaitre
+	
+	State calibration {
+		printCurrentMessage
+		
+		forward resourcemodelbutler -m taskUpdate : taskUpdate(butler, calibration, null, null)
+		forward calibration -m startCalibration : startCalibration
+	}
+	Transition t0 whenMsg calibrationCompleted -> waitingPrepare
+	
+	State waitingPrepare {
+		println("[BUTLER_MIND]: waiting for a prepare command...")
+	}
+	Transition t0 whenEvent taskChanged -> startPrepare
+	
+	State startPrepare {
+		printCurrentMessage
+		["isCorrect = false"]
+		
+		onMsg(taskChanged : taskChanged(butler, prepare, FC, QNT)) {
+			forward preparehandler -m startPrepare : startPrepare
+			["isCorrect = true"]
+		}
+		
+	}
+	Goto waitingPrepare if "!isCorrect" else waitingPrepCompleted
+	
+	State waitingPrepCompleted{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
+		}
+	}
+	Transition t0 whenMsg prepareCompleted -> notifyPrepareMaitre
+				  whenEvent taskChanged -> waitingPrepCompleted
+				  whenMsg stopTask -> suspendedPrepare
+				  
+	State suspendedPrepare{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask ->waitingPrepCompleted
+				  whenEvent taskChanged -> suspendedPrepare
+	
+	State notifyPrepareMaitre {
+		printCurrentMessage
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, prepare)
+		["forward(\"notifyPrepare\",\"notifyPrepare\",\"maitre\")"]
+	}
+	Goto waitingAC
+	
+	State waitingAC {
+		println("[BUTLER_MIND]: waiting for an AC command...")
+	}
+	Transition t0 whenEvent taskChanged -> startAC
+	
+	State startAC {
+		printCurrentMessage
+		["task = \"\""]
+		
+		onMsg(taskChanged : taskChanged(TARGET, add_food, FC, QNT)) {
+			forward addfoodhandler -m startAddFood : startAddFood($payloadArg(2), $payloadArg(3))
+			["task = \"add_food\""]
+			forward butlermind -m taskAssigned : taskAssigned	
+		}
+		
+		onMsg(taskChanged : taskChanged(TARGET, clear, FC, QNT)) {
+			forward clearhandler -m startClear : startClear
+			["task = \"clear\""]
+		}
+		
+		forward butlermind -m taskAssigned : taskAssigned		
+	}
+	Transition t0 whenMsg taskAssigned and "task == \"add_food\"" -> waitingAddFoodCompleted
+				  whenMsg taskAssigned and "task == \"clear\"" -> waitingClearCompleted
+				  whenMsg taskAssigned and "task == \"\""-> waitingAC
+	
+	State waitingAddFoodCompleted {
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
+		}
+	}
+	Transition t0 whenMsg addFoodCompleted -> notifyAddFoodMaitre
+				  whenEvent taskChanged -> waitingAddFoodCompleted
+				  whenMsg stopTask -> suspendedAddFood
+				  
+	State suspendedAddFood{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask ->waitingAddFoodCompleted
+				  whenEvent taskChanged -> suspendedAddFood
+	
+	State notifyAddFoodMaitre {
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, add_food)
+		["forward(\"notifyAddFood\",\"notifyAddFood\",\"maitre\")"] 
+	}
+	Goto waitingAC
+	
+	State waitingClearCompleted {
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, stop, FC, QNT)) {
+			//emit stopTask : stopTask
+			forward butlermind -m stopTask : stopTask
+			forward planner -m stopTask : stopTask
+		}
+	}
+	Transition t0 whenMsg clearCompleted -> notifyClearMaitre
+				  whenEvent taskChanged -> waitingClearCompleted
+				  whenMsg stopTask -> suspendedClear
+				  
+	State suspendedClear{
+		printCurrentMessage
+		
+		onMsg(taskChanged : taskChanged(butler, reactivate, FC, QNT)) {
+			//emit reactivateTask : reactivateTask
+			forward butlermind -m reactivateTask : reactivateTask
+			forward planner -m reactivateTask : reactivateTask
+		}
+	}
+	Transition t0 whenEvent reactivateTask ->waitingClearCompleted
+				  whenEvent taskChanged -> suspendedClear
+	
+	State notifyClearMaitre {
+		//forward maitremodel -m modelChangeMaitre : modelChangeMaitre(maitre, clear)
+		["forward(\"notifyClear\",\"notifyClear\",\"maitre\")"]
+	}
+	Goto waitingPrepare	
+}
+
+QActor calibration context ctxButler{
+	["
+		var terminato = false
+		var nextDir = \"\"
+		var findTableInitDir = \"\"
+		var startX = -1
+		var startY = -1
+		var endX = -1
+		var endY = -1
+		var lengthX = 0
+		var lengthY = 0
+		var angle = false
+		var finito = false;
+	"]
+		
+	State s0 initial{
+		println("[CALIBRATION]: Started...")
+		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+		onMsg(planningCompleted : planningCompleted){
+			forward butlermind -m calibrationCompleted : calibrationCompleted
+		}
+	}
+	Transition t0 whenMsg startCalibration -> initAi
+	
+	State initAi{
+		run itunibo.planner.plannerUtil.initAI()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Goto forwardStep
+	
+	State forwardStep{
+		
+		onMsg(moveCompleted: moveCompleted){
+			["
+			  	var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+			  	["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+			  	
+			  	["if(positionX==0 && positionY==0){
+					terminato=true
+			}"]
+			/*	
+				
+			["}else{"]
+				//run itunibo.planner.moveUtils.moveAhead(myself)
+				
+			["}"]
+			*/
+		}
+		
+		/*onMsg(startCalibration : startCalibration){
+			//run itunibo.planner.moveUtils.moveAhead(myself)
+			forward robotmind -m mindCmd : mindCmd(w)
+		}*/
+		
+		["if(terminato){"]
+			forward calibration -m endBoundary : endBoundary
+		["}else{"]
+			forward movementhandler -m movementCmd : movementCmd(w)
+		["}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> confirmForwardStep
+				  whenMsg moveFailed -> backtracking
+				  whenMsg endBoundary -> terminazioneboundary
+	
+	State confirmForwardStep{
+		
+		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
+		
+		delay 1000
+	}Goto forwardStep
+	
+	State backtracking{
+		
+		run itunibo.planner.moveUtils.backToCompensate(myself)
+		run itunibo.planner.plannerUtil.wallFound()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> turnLeft
+				  
+    State turnLeft{
+    	
+		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+	}
+	Transition t0 whenMsg moveCompleted -> forwardStep
+	
+	State terminazioneboundary{
+		printCurrentMessage
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
+		
+	}
+	Goto startExploration
+	
+	State startExploration{
+		println("---START EXPLORATION ROOM---")
+		println("---SNAKE STRATEGY---")
+		
+	}
+	Goto snakeForwardStep
+	
+	State snakeForwardStep{
+		//assumo che non ci siano ostacoli in questa fase
+		run itunibo.planner.moveUtils.moveAhead(myself)
+		//forward robotmind -m mindCmd : mindCmd(w)
+		
+		//controllo direzione successiva
+		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+		["var dimX="]run itunibo.planner.moveUtils.getMapDimX()
+		["var dimY="]run itunibo.planner.moveUtils.getMapDimY()
+		
+		["if(positionX == 0){
+				nextDir=\"left\"
+		}else{
+			if(positionX == dimX - 2)
+				nextDir=\"right\"
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"left\")" -> snakeTurnLeft
+				  whenMsg moveCompleted and "nextDir.equals(\"right\")" -> snakeTurnRight
+	
+	State snakeTurnLeft{
+		run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+		
+		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
+		
+		["if(direction.equals(\"downDir\")){
+			nextDir=\"forward\"
+		}else{
+			nextDir=\"goAhead\"
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"forward\")" -> snakeForwardStep
+				  whenMsg moveCompleted and "nextDir.equals(\"goAhead\")" -> snakeGoAhead
+	
+	
+	State snakeTurnRight{
+		run itunibo.planner.moveUtils.rotateRight90tuning(myself)
+		
+		["var direction="]run itunibo.planner.moveUtils.getDirection(myself)
+		
+		["if(direction.equals(\"downDir\")){
+			nextDir=\"forward\"
+		}else{
+			nextDir=\"goAhead\"
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"forward\")" -> snakeForwardStep
+				  whenMsg moveCompleted and "nextDir.equals(\"goAhead\")" -> snakeGoAhead
+	
+	State snakeGoAhead{
+		//assumo che non ci siano ostacoli in questa fase
+		run itunibo.planner.moveUtils.moveAhead(myself)
+		
+		//controllo direzione successiva
+		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+		["var dimX="]run itunibo.planner.moveUtils.getMapDimX()
+		["var dimY="]run itunibo.planner.moveUtils.getMapDimY()
+		
+		["nextDir=\"straight\""]
+		["if(positionX == 0){
+				if(positionY == dimY - 3)
+					nextDir=\"completed\"
+				else
+					nextDir=\"left\"
+		}else{
+			if(positionX == dimX - 2){
+				if(positionY == dimY -3 )
+					nextDir=\"completed\"
+				else
+					nextDir=\"right\"
+			}
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("NEXT DIR: ${nextDir.toUpperCase()}")
+	}
+	Transition t0 whenMsg moveCompleted and "nextDir.equals(\"completed\")" -> endExploration
+				  whenMsg moveCompleted and "nextDir.equals(\"left\")" -> snakeTurnLeft
+				  whenMsg moveCompleted and "nextDir.equals(\"right\")" -> snakeTurnRight
+				  whenMsg moveCompleted and "nextDir.equals(\"straight\")" -> snakeGoAhead
+				  whenMsg moveFailed -> findTable
+				  
+	State findTable{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself,"s")
+		run itunibo.planner.moveUtils.backToCompensate(myself)
+		
+		["startX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["startY="]run itunibo.planner.moveUtils.getPosY(myself)
+		["findTableInitDir="]run itunibo.planner.moveUtils.getDirection(myself)
+		
+		["if(findTableInitDir.equals(\"leftDir\")){
+			startX--
+		}"]
+		["if(findTableInitDir.equals(\"rightDir\")){
+			startX++
+		}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> goSouthFT
+	
+	State goSouthFT{
+		printCurrentMessage
+		["var temp="]run itunibo.planner.moveUtils.getDirection(myself)
+		["var positionX="]run itunibo.planner.moveUtils.getPosX(myself)
+		["var positionY="]run itunibo.planner.moveUtils.getPosY(myself)
+		
+		//run itunibo.planner.plannerUtil.setObstacleWall(direction,positionX,positionY)
+		run itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)
+		
+		["if(angle){
+			lengthX++;
+		}else{
+			lengthY++
+		}
+		
+		if(findTableInitDir.equals(\"leftDir\")){"]
+				run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+			["}
+			if(findTableInitDir.equals(\"rightDir\")){"]
+				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
+			["}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> forwardStepFT
+	
+	State forwardStepFT{
+		printCurrentMessage
+		//assumo che non ci siano ostacoli in questa fase
+		run itunibo.planner.moveUtils.moveAhead(myself)
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> goIntern
+	
+	State goIntern{
+		printCurrentMessage
+		["if(findTableInitDir.equals(\"leftDir\")){"]
+				run itunibo.planner.moveUtils.rotateRight90tuning(myself)
+			["}
+			if(findTableInitDir.equals(\"rightDir\")){"]
+				run itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+			["}"]
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> checkTable
+	
+	State checkTable{
+		printCurrentMessage
+		
+		forward movementhandler -m movementCmd : movementCmd(w)
+	}
+	Transition t0 whenMsg moveCompleted -> confirmForwardStepFT
+				  whenMsg moveFailed -> backtrackingFT	  
+	
+	State backtrackingFT{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.backToCompensate(myself)
+	}
+	Transition t0 whenMsg moveCompleted -> goSouthFT
+	
+	State confirmForwardStepFT{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself,"w")
+	}
+	Goto angle
+	
+	State angle{
+		printCurrentMessage
+		["if(angle){
+			finito=true
+		"]
+			["endX="]run itunibo.planner.moveUtils.getPosX(myself)
+			["endY="]run itunibo.planner.moveUtils.getPosY(myself)
+			
+			["if(findTableInitDir.equals(\"leftDir\")){
+				endX++
+			}"]
+			["if(findTableInitDir.equals(\"rightDir\")){
+				endX--
+			}"]
+		["
+		}else{
+			angle=true
+		}"]
+	}
+	Goto endExploration if "finito" else goIntern
+	
+	State endExploration{
+		printCurrentMessage
+		println("END EXPLORATION")
+		println("START_X=$startX")
+		println("START_Y=$startY")
+		println("END_X=$endX")
+		println("END_Y=$endY")
+		println("LENGTH_X=$lengthX")
+		println("LENGTH_Y=$lengthY")
+	
+		run itunibo.planner.moveUtils.setTable(startX,startY,endX,endY,lengthX,lengthY)		
+		
+		["var PosX=startX
+		  var PosY=startY
+		  if(findTableInitDir.equals(\"leftDir\")){
+			PosX++
+		  }
+		  if(findTableInitDir.equals(\"rightDir\")){
+			PosX--
+		  }
+		"]
+		
+		forward planner -m setLocation : setLocation(table,$PosX,$PosY)
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		run itunibo.planner.moveUtils.saveMap(myself,"mapRoom")
+		
+	}
+	Goto goHome
+	
+	State goHome{
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> waitCmd
+}
+
+QActor planner context ctxButler{
+	["
+		var NextMove = \"\"
+		var finito = false
+	"]
+	
+	State s0 initial{
+		println("[PLANNER]: Started...")
+		
+		solve(consult("roomDescription.pl"))
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		printCurrentMessage
+		
+		["if(finito){
+			replyToCaller(\"planningCompleted\",\"planningCompleted\")
+			finito=false
+		}"]
+		
+	}
+	Transition t0 whenMsg goto -> calculatePath
+				  whenMsg setLocation -> updateRoomDescription
+				  
+	State updateRoomDescription{
+		
+		onMsg(setLocation : setLocation(NAME,X,Y)){
+			solve(assert(location($payloadArg(0),$payloadArg(1),$payloadArg(2))))
+			
+			ifSolved{
+				println("Posizione table salvata ${payloadArg(0)} ${payloadArg(1)} ${payloadArg(2)} ")
+			} 
+			else{
+				println("Errore salvataggio posizione table")
+			} 
+		}
+		
+	}
+	Goto waitCmd
+	
+	State calculatePath{
+		printCurrentMessage
+		
+		["storeCurrentMessageForReply()"]
+		onMsg( goto : goto(X)){
+			solve(location($payloadArg(0),X,Y))
+			["
+				var cX=getCurSol(\"X\").toString()
+				var cY=getCurSol(\"Y\").toString()
+			"]
+			println("Voglio andare in ${payloadArg(0)} ${getCurSol(\"X\")} ${getCurSol(\"Y\")}")
+			run itunibo.planner.moveUtils.setGoal(myself,cX,cY)
+			run itunibo.planner.moveUtils.doPlan(myself)
+			println("STORED!!")
+		}
+	}
+	Goto schedulingNextMove
+	
+	State schedulingNextMove{
+		["
+			finito=false
+			NextMove=\"\"
+		"]
+		
+		solve(move(X))
+		ifSolved {
+			["NextMove = getCurSol(\"X\").toString()"]
+		} 
+		else {
+			["finito=true"]
+		} 
+		
+	}
+	Transition t0 whenTime 1000 -> checkFinish
+				  whenMsg stopTask -> schedulingStopped
+				  
+	State checkFinish{
+		printCurrentMessage
+	}
+	Goto execMove if "!finito" else waitCmd
+	
+	State schedulingStopped{
+		printCurrentMessage
+		
+		
+	}
+	Transition t0 whenEvent reactivateTask and "!finito" -> execMove
+				  whenEvent reactivateTask and "finito" -> waitCmd
+	
+	State execMove{
+		//delay 1000
+		printCurrentMessage
+		
+		forward movementhandler -m movementCmd : movementCmd($NextMove)
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	}
+	Transition t0 whenMsg moveCompleted -> confirmStep
+				  whenMsg moveFailed -> backward
+				  
+	State confirmStep{
+		printCurrentMessage
+		run itunibo.planner.moveUtils.doPlannedMove(myself,NextMove)
+		
+		solve(retract(move(_)))
+		ifSolved {
+			println("move cancelled")
+		}
+		else {
+			println("move not cancelled")
+		}
+		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		
+	}
+	Goto schedulingNextMove
+				  
+	State backward{
+		printCurrentMessage
+		forward movementhandler -m movementCmd : movementCmd(s)
+	}
+	Transition t0 whenMsg moveCompleted -> waitObstacleToGo
+	
+	State waitObstacleToGo{
+		printCurrentMessage
+	}
+	Transition t0 whenTime 1500 -> schedulingNextMove
+	
+}
+
+QActor preparehandler context ctxButler {
+	["var isFood : Boolean = false
+	  var DishesToPut = 0
+      var foodToPut = HashMap<String, String>()
+	  var whereToGo = \"\"
+	"]
+	
+	State s0 initial {
+		println("[PREPARE_HANDLER]: starts...")
+		solve(consult("initialFood.pl"))
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		["
+			isFood = false
+			DishesToPut = 0
+     		foodToPut = HashMap<String, String>()
+		"]
+		println("[PREPARE_HANDLER]: waiting for a command...")	
+	}
+	Transition t0 whenMsg startPrepare -> planP
+	
+	State planP {
+		printCurrentMessage
+		forward planner -m goto : goto(pantry)
+		
+	}
+	Transition t0 whenMsg planningCompleted -> takingDishes
+	
+	State takingDishes {
+		printCurrentMessage
+		solve(dish(X))
+		ifSolved {
+			["var Temp=getCurSol(\"X\").toString()"]
+			
+			["forward(\"takeDishPantry\",\"takeDishPantry($Temp)\",\"pantry\")"]
+			
+			["DishesToPut = Integer.parseInt(getCurSol(\"X\").toString())"]
+			println("[PREPARE_HANDLER]: I'm taking ${getCurSol(\"X\")} dishes")
+			emit updateContent : updateContent(pantry, dish, null, $DishesToPut, take)
+		} 
+		else {
+			println("[PREPARE_HANDLER]: error in taking dishes")
+		}
+		
+	}
+	Goto planT
+	
+	State planT {
+		printCurrentMessage
+		forward planner -m goto : goto(table)
+	}
+	Transition t0 whenMsg planningCompleted and "!isFood" -> puttingDishes 
+				  whenMsg planningCompleted and "isFood" -> puttingFood
+	
+	State puttingDishes {
+		printCurrentMessage
+		println("[PREPARE_HANDLER]: I'm putting the dishes")
+		["if(!isFood) isFood = true"]
+		
+		["forward(\"putElementTable\",\"putElementTable(dish, null, $DishesToPut)\",\"table\")"]
+		
+		emit updateContent : updateContent(table, dish, null, $DishesToPut, put)
+	}
+	Goto planF
+	
+	State planF { 
+		printCurrentMessage
+		forward planner -m goto : goto(fridge)
+	}
+	Transition t0 whenMsg planningCompleted -> takingFood 
+	
+	State takingFood {
+		printCurrentMessage
+		println("[PREPARE_HANDLER]: i'm taking all the food")
+	
+		solve(findall(food(X, Y), food(X, Y), L))
+		ifSolved {
+			["var foodList = getCurSol(\"L\").toString().replace(\"]\", \"\").replace(\"[\", \"\").replace(\"food(\",\"\").replace(\"),\",\";\").replace(\")\",\"\").split(\";\")"]
+			["var FoodCode = \"\"; var Qnt =\"\" "]
+			["for(s : String in foodList) {
+				println(s)	
+				FoodCode = s.split(\",\")[0]
+				Qnt = s.split(\",\")[1]
+
+				foodToPut.put(FoodCode, Qnt)
+			"]							
+								
+				["var qntInteger=Integer.parseInt(Qnt)"]
+				//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+				delay 500
+				["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
+				
+				//emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+			["}"]
+		}
+		else {
+			println("[PREPARE_HANDLER]: error in taking food")
+		}
+		
+	}
+	Goto planT
+	
+	State puttingFood {
+		printCurrentMessage
+		println("[PREPARE_HANDLER]: I'm putting all the food on the table")
+		["foodToPut.forEach { (K, V) -> println(\"[PREPARE_HANDLER]: I'm putting on the table $K, $V\")"] 	
+			
+			["forward(\"putElementTable\",\"putElementTable(food, $K, $V)\",\"table\")"]
+			
+			emit updateContent : updateContent(table, food, $K, $V, put)
+		["}"]
+
+	}
+	Goto planRH
+	
+	State planRH {
+		printCurrentMessage
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> endPrepare
+	
+	State endPrepare {
+		printCurrentMessage
+		forward butlermind -m prepareCompleted : prepareCompleted
+	}
+	Goto waitingCmd
+}
+
+
+QActor addfoodhandler context ctxButler {
+	["var isPresent = false
+	var FoodCode = \"\"
+	var Qnt = \"\"
+	"]
+	
+	State s0 initial {
+		println("[ADD_FOOD_HANDLER]: starts...")
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		["isPresent = false"]
+		println("[ADD_FOOD_HANDLER]: waiting for a command...")	
+	}
+	Transition t0 whenMsg startAddFood -> askingFood
+	
+	State askingFood {
+		printCurrentMessage
+		onMsg(startAddFood : startAddFood(FC, QNT)) {
+			["FoodCode = payloadArg(0)
+			Qnt = payloadArg(1)
+			"]
+		}
+		
+		//fake interaction
+		//forward addfoodhandler -m responseFood : responseFood(yes)
+		
+		//real interaction
+		["var QntInt = Integer.parseInt(Qnt)"]
+		run itunibo.robot.fridgeInteraction.ask(myself,FoodCode,QntInt)
+		
+	}
+	Transition t0 whenMsg responseFood -> analyzeResponse
+	
+	State analyzeResponse {
+		printCurrentMessage
+		onMsg(responseFood : responseFood(yes)) {
+			["isPresent = true"]
+		}
+		
+		onMsg(responseFood : responseFood(no)) {
+			emit alert : alert
+			["isPresent = false"]
+		}
+	}
+	Goto endAddFood if "!isPresent" else planF
+	
+	State planF {
+		printCurrentMessage
+		forward planner -m goto : goto(fridge)
+	}
+	Transition t0 whenMsg planningCompleted -> takingFood
+	
+	State takingFood {
+		printCurrentMessage
+		println("[ADD_FOOD_HANDLER]: I'm taking the new food from the fridge")
+		//forward resourcemodelfridge -m modelChangeFridge : modelChangeFridge(fridge, food, take, $FoodCode, $Qnt)
+		
+		["var qntInteger=Integer.parseInt(Qnt)"]
+		//run itunibo.robot.fridgeInteraction.takeFood(myself,FoodCode, qntInteger)
+		["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,take,$FoodCode,$Qnt)\",\"resourcemodelfridge\")"]
+		
+		//emit updateContent : updateContent(fridge, food, $FoodCode, $Qnt, take)
+	}
+	Goto planT
+	
+	State planT {
+		printCurrentMessage
+		forward planner -m goto : goto(table)
+	}
+	Transition t0 whenMsg planningCompleted -> puttingFood
+	
+	State puttingFood {
+		printCurrentMessage
+		println("[ADD_FOOD_HANDLER]: I'm putting the new food to the table")
+		
+		["forward(\"putElementTable\",\"putElementTable(food, $FoodCode, $Qnt)\",\"table\")"]
+		
+		emit updateContent : updateContent(table, food, $FoodCode, $Qnt, put)
+	}
+	Goto planRH
+	
+	State planRH {
+		printCurrentMessage
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> endAddFood
+	
+	State endAddFood {
+		printCurrentMessage
+		println("[ADD_FOOD_HANDLER]: Ended")
+		forward butlermind -m addFoodCompleted : addFoodCompleted
+	}
+	Goto waitingCmd
+	
+}
+
+
+QActor clearhandler context ctxButler {
+	["var isFood = false
+	var foodList = \"\"
+	var foodToPut = HashMap<String, String>()
+	var Qnt=\"\"
+	"]
+	
+	State s0 initial {
+		println("[CLEAR_HANDLER]: starts...")
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		["
+			isFood = true
+			foodList = \"\"
+			foodToPut = HashMap<String, String>()
+			Qnt=\"\"
+		"]
+		println("[CLEAR_HANDLER]: waiting for a clear command...")
+	}
+	Transition t0 whenMsg startClear -> getAllContent
+	
+	State getAllContent {
+		printCurrentMessage
+		forward contentontable -m getContent : getContent
+	}
+	Transition t0 whenMsg responseContent -> planT
+	
+	State planT {
+		printCurrentMessage
+		onMsg(responseContent : responseContent(L)) {
+			["foodList = payloadArg(0)"]
+			println("FOODLIST: ${foodList}")						
+		}
+		
+		forward planner -m goto : goto(table)			
+	}
+	Transition t0 whenMsg planningCompleted and "isFood" -> takingFood
+				  whenMsg planningCompleted and "!isFood" -> takingDishes
+	
+	State takingFood {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm taking food")
+		["if(isFood) isFood = false"]
+
+		["var foodArray = foodList.replace(\"[\",\"\").replace(\"]\",\"\").replace(\"ontable(\", \"\").replace(\"),\", \";\").replace(\")\",\"\").split(\";\")
+		for(s : String in foodArray) {
+			var type = s.split(\",\")[0]
+			if(type == \"food\") {
+				var FoodCode = s.split(\",\")[1]	
+				var Qnt = s.split(\",\")[2]
+				foodToPut.put(FoodCode,Qnt)
+				println(\"prendo $FoodCode $Qnt\")
+		"]
+			
+			["forward(\"takeElementTable\",\"takeElementTable(food, $FoodCode, $Qnt)\",\"table\")"]
+			
+			emit updateContent : updateContent(table, food, $FoodCode, $Qnt, take)	
+		["
+			}
+		}			
+		"]
+
+	}
+	Goto planF
+
+	State planF {
+		printCurrentMessage
+		forward planner -m goto : goto(fridge)	
+	}
+	Transition t0 whenMsg planningCompleted -> puttingFood
+	
+	State puttingFood {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm putting food into the fridge")
+		["foodToPut.forEach { (K, V) -> println(\"[CLEAR_HANDLER]: I'm putting into the fridge $K, $V\")"] 	
+		
+			["var QntInteger=Integer.parseInt(V)"]
+			//run itunibo.robot.fridgeInteraction.putFood(myself, K, qntInteger)
+			["forward(\"modelChangeFridge\",\"modelChangeFridge(fridge,put,$K,$V)\",\"resourcemodelfridge\")"]
+			
+			//emit updateContent : updateContent(fridge, food, $K, $V, put)
+		["}"]
+	}
+	Goto planT
+	
+	State takingDishes {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm taking dishes from the table")
+		["var foodArray = foodList.replace(\"[\",\"\").replace(\"]\",\"\").replace(\"ontable(\", \"\").replace(\"),\", \";\").replace(\")\",\"\").split(\";\")
+		  for(s : String in foodArray) {
+		  	var type = s.split(\",\")[0]
+		  	if(type == \"dish\"){ 
+				Qnt = s.split(\",\")[2]
+				break
+			}
+		}"]
+		
+		["forward(\"takeElementTable\",\"takeElementTable(dish, null, $Qnt)\",\"table\")"]	
+		
+		emit updateContent : updateContent(table, dish, null, $Qnt, take)
+	}
+	Goto planD
+	
+	State planD {
+		printCurrentMessage
+		forward planner -m goto : goto(dishwasher)	
+	}
+	Transition t0 whenMsg planningCompleted -> puttingDishes 
+	
+	State puttingDishes {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm putting dishes into the dishwasher")
+		
+		["forward(\"putDishDishwasher\",\"putDishDishwasher($Qnt)	\",\"dishwasher\")"]
+		
+		emit updateContent : updateContent(dishwasher, dish, null, $Qnt, put)
+	}
+	Goto planRH
+	
+	State planRH {
+		printCurrentMessage
+		forward planner -m goto : goto(rh)
+	}
+	Transition t0 whenMsg planningCompleted -> endClear
+	
+	State endClear {
+		printCurrentMessage
+		println("[CLEAR_HANDLER]: I'm finishing to clear the room")
+		forward butlermind -m clearCompleted : clearCompleted
+	}
+	Goto waitingCmd
+}
+
+QActor contentontable context ctxButler {
+	State s0 initial {
+		println("[contentontable]: starts...")
+		solve(consult("sysRules.pl"))
+	}
+	Goto waitingCmd
+	
+	State waitingCmd {
+		printCurrentMessage
+		println("[contentontable]: I'm waiting for a command...")
+	}
+	Transition t0 whenMsg getContent -> gettingContent
+				  whenEvent updateContent -> settingContent
+	
+	State gettingContent {
+		printCurrentMessage
+		["storeCurrentMessageForReply()"]
+		solve(findall(ontable(X, Y, Z), ontable(X, Y, Z), L))
+		
+		ifSolved {
+			["var response = getCurSol(\"L\").toString()"]
+			["replyToCaller(\"responseContent\",\"responseContent(${response})\")"]
+		}
+		else {
+			println("[contentontable]: error in solving file")
+		}
+	}
+	Goto waitingCmd
+	
+	State settingContent {
+		printCurrentMessage
+		onMsg(updateContent : updateContent(table, TYPE, FC, QNT, OP_T)){
+			
+			solve(ontable($payloadArg(1), $payloadArg(2), X))
+			ifSolved {
+				["
+					var old = Integer.parseInt(getCurSol(\"X\").toString())
+					var difference = Integer.parseInt(payloadArg(3))
+					var New = 0					
+
+					if(payloadArg(4).equals(\"put\")){
+						New = old + difference
+					}
+					if(payloadArg(4).equals(\"take\")){
+						New = old - difference
+					}
+				"]
+				["if(New == 0 ){"]
+					solve(retract(ontable($payloadArg(1), $payloadArg(2), _)))
+				["}else{"]
+					solve(replaceRule(ontable($payloadArg(1), $payloadArg(2), _), ontable($payloadArg(1), $payloadArg(2), $New)))		
+				["}"]
+				ifSolved {
+					println("[stuffontable]: I've replaced a line")	
+				}
+				else {
+					println("[stuffontable]: error in replacing the new line")
+				}			
+			}
+			else {
+				solve(assert(ontable($payloadArg(1), $payloadArg(2), $payloadArg(3))))
+				ifSolved {
+					println("[stuffontable]: I've added a new line")
+				}
+				else {
+					println("[stuffontable]: error in adding a new line")
+				}	
+			}			
+		}
+	}
+	Goto waitingCmd
+	
+}
+
+/*QActor console context ctxButler{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/

@@ -1,0 +1,368 @@
+  <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="./css/issStyle1.css">
+        <!--<script type="text/javascript" src="../css/issStyle.js"></script>-->
+
+        <title>Analisi preliminare</title>
+    </head>
+
+    <body>
+        <div id="top">
+            <h1>ANALISI PRELIMINARE<font size="5"></font> </h1>
+        </div>
+
+        <div class="body">
+            <h2>Introduzione</h2>
+            <p>Una stanza per <kc>Servizio buffet</kc> è equipaggiata con una serie di risorse (smart e non), inclusi
+            un <em>frigo</em><tt> (Fridge)</tt>, una <em>lavastoviglie</em><tt> (Dishwasher)</tt>, una <em>dispensa</em><tt> (Pantry)</tt>,
+            ed un ddr robot capace di lavorare come <em>Room Butler</em> (d'ora in poi chiamato <bc>RBR</bc> (<tt>Room Butler Robot</tt>)).</p>
+
+            <p>Il <em>frigo</em>, la <em>lavastoviglie</em> e la <em>dispensa</em> sono incassati nei muri della stanza;
+            sono, quindi, da escludere eventuali altre protuberanze dei muri.</p>
+
+            <p>Al centro è posto un <em>tavolo</em>, in modo che la configurazione della stanza sia simile a quella della seguente figura:</p>
+
+            <div style = "width:60%"><center><img src="./images/analisi/roomLayout.png" alt="roomLayout" width="75%" height="32%"/></center></div>
+
+            L'andamento del <tt>Buffet</tt> è supervisionato da un <em>Maître de salle</em> (o più semplicemente <bc>Maitre</bc>)
+            il quale dialoga con l'<bc>RBR</bc> per far eseguire una serie di task, inclusi:
+
+            <ol>
+            <li><i>Prepare the room</i>: consiste nel porre sul <em>tavolo</em> i piatti presi dalla
+            <em>dispensa</em> e il cibo contenuto nel <em>frigo</em>. In questa fase, l'insieme degli elementi da porre sul tavolo sono fissi e descritti
+            in maniera appropriata.</li>
+
+            <li><i>Clear the room</i>: consiste nel riportare al <em>frigo</em> il cibo non consumato ed i piatti utilizzati alla <em>lavastoviglie</em>.</li>
+
+            <li><i>Add food</i>: consiste nel portare dal <em>frigo</em> al <em>tavolo</em> un determinato cibo (se presente).
+            </ol>
+
+            Inoltre, il <em>frigo</em> viene considerato un device smart in grado di conoscere il proprio contenuto. Esso dovrebbe essere in grado
+            (via <ks>CoAP</ks>) di rispondere a domande riguardanti il proprio contenuto, siano esse fatte da umani o macchine.
+
+            <br/><br/>
+            Al momento, <em>lavastoviglie</em> e <em>dispensa</em> non sono da intedere come strumenti smart.
+
+            <h2>Requisiti</h2>
+            <div class="req">
+                <div>
+                    Progettare ed implementare un software da installare su <em>frigo</em> e <bc>RBR</bc>. In particolare,
+                    l'<bc>RBR</bc> deve essere in grado di accettare i seguenti comandi inviatogli via <ks>smart-phone</ks> dal <bc>Maitre</bc>:
+
+                    <ul>
+                    <li><em>prepare</em>: l'<bc>RBR</bc> de eseguire autonomamente il task <i>Prepare the room</i>.</li>
+                    <li><em>add food</em>: l'<bc>RBR</bc> de eseguire autonomamente il task <i>Add food</i>.</li>
+                    <li><em>clear</em>: l'<bc>RBR</bc> de eseguire autonomamente il task <i>Clear the room</i>.</li>
+                    </ul>
+
+                    Questi task devono essere eseguiti in sequenza. Un possibile scenario può essere il seguente:
+
+                    <ol>
+                    <li>All'inizio, la stanza è vuota, la <em>dispensa</em> e il <em>frigo</em> sono pieni. L'<bc>RBR</bc> è in <ks>RH</ks>
+                    e la <em>lavastoviglie</em> è vuota.</li>
+                    <li>Il <bc>Maitre</bc> invia al <bc>RBR</bc> il comando di <em>prepare</em> ed aspetta il completamento del relativo task.
+                    Alla fine l'<bc>RBR</bc> è di nuovo in <ks>RH</ks>.
+                    <li>Il <bc>Maitre</bc> apre le porte alle persone. Durante il servizio il <bc>Maitre</bc> può inviare all'<bc>RBR</bc> il
+                    comando <em>add food</em>, specificando un <em>food-code</em>.
+                    L'<bc>RBR</bc> esegue il task solo se il cibo con il codice specificato è disponibile nel <em>frigo</em>, altrimenti manda un warning al <bc>Maitre</bc>.
+                    Dopo il completamento del task l'<bc>RBR</bc> è in <ks>RH</ks>.
+                    </li>
+                    <li>Alla fine del party, il <bc>Maitre</bc> invia all'<bc>RBR</bc> il comando <em>clear</em> e aspetta il completamento del task.
+                      L'<bc>RBR</bc> torna di nuovo in <ks>RH</ks>.
+                    </ol>
+
+                    Ad ogni modo, il <bc>Maitre</bc> può, in ogni momento,
+                    usare il suo smartphone per:
+                    <ul>
+                    <li><em>Consultare</em> lo <kc>stato della stanza</kc>, ad esempio per conoscere gli oggetti attualmente presenti sul
+                      <em>tavolo</em>, nella <em>lavastoviglie</em>,ecc...;</li>
+                    <li><em>Fermare</em> o <em>riattivare</em> un task attivo.</li>
+                    </ul>
+
+                    Infine,l'<bc>RBR</bc>eve essere in grado di
+                    <ul>
+                    <li><em>Evitare </em>l'impatto con ostacoli mobili (es. il <bc>Maitre</bc>
+                    o altre persone/animali nella stanza).</li>
+                    </ul>
+
+                    Il software da mettere sul <em>frigo</em> dovrebbe far si che il device sia in grado di:
+                    <ul>
+                    <li><em>Esporre</em> il suo contenuto corrente al <bc>Maitre</bc>;</li>
+                    <li><em>Rispondere</em> a domande relative al suo contenuto (es. se contiene il cibo con il foodcode specificato ).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>Analisi dei requisiti</h2>
+            <div>
+                <ol>
+                    <li>Il software è un sistema distribuito composto principalmente da sei entità: <bc>RBR</bc>, <bc>Maitre</bc>, <bc>Fridge</bc>,
+                      <bc>Pantry</bc>, <bc>Dishwasher</bc>, <bc>Table</bc>.</li>
+                    <li><bc>Pantry</bc>, <bc>Dishwasher</bc>, <bc>Table</bc> sono da intendersi come dispositivi non smart, ossia non capaci
+                    di accedere al proprio stato. </li>
+                    <li>Il software del <bc>Maitre</bc> deve poter essere acceduto da qualsiasi dispositivo mobile.</li>
+                    <li>Per <bc>RBR</bc> si intende quanto specificato dal documento <a href="">UsingRobot2019.pdf</a>.</li>
+                    <li>Il <bc>Maitre</bc> deve essere in grado di inviare i comandi di <em>prepare</em>, <em>add food</em> e <em>clear</em> all'<bc>RBR</bc>.</li>
+                    <li>L <bc>RBR</bc> deve essere in grado di eseguire in maniera autonoma i tre task.</li>
+                    <li>Il flusso di esecuzione del sistema deve essere, in sequenza: prepare, add food, clear.</li>
+                    <li>L <bc>RBR</bc> deve avere un punto di partenza e di arrivo di ogni task (<em>RH</em>).</li>
+                    <li><bc>Pantry</bc>, <bc>Dishwasher</bc>, <bc>Table</bc>, <bc>Fridge</bc> hanno, ognuno, un certo contenuto iniziale.</li>
+                    <li>Il <bc>Maitre</bc> deve essere in grado di aspettare il completamento del task richiesto.</li>
+                    <li>Ogni cibo ha un <em>food code</em>associato, utile durante l'esecuzione del task add food.</li>
+                    <li>L <bc>RBR</bc> deve essere in grado di chiedere al frigo la presenza o meno di un determinato cibo.</li>
+                    <li>L <bc>RBR</bc> deve essere in grado di notificare con un allarme l'assenza di un preciso cibo nel frigo.</li>
+                    <li>Il <bc>Maitre</bc> deve poter consultare in tempo reale lo stato della stanza in termini di contenuto del tavolo, della pantry, della dishwasher e del frigo.</li>
+                    <li>Il <bc>Maitre</bc> deve poter fermare e riattivare il task attualmente in esecuzione.</li>
+                    <li>L <bc>RBR</bc> deve essere in grado di evitare eventuali ostacoli mobili.</li>
+                    <li>Il <bc>Fridge</bc> deve esporre il suo contenuto.</li>
+                    <li>Il <bc>Fridge</bc> deve poter rispondere a domande riguardo al suo contenuto. Non è ben definito quali siano queste domande, ad esempio, potrebbero
+                        essere relative alla quantità di cibo presente.</li>
+                    <li>Il <bc>Fridge</bc> deve esporre un'interfaccia COAP</li>
+                </ol>
+
+                <h3>Test plan</h3>
+                <div>
+                    <ul>
+                        <li>Se l <bc>RBR</bc> riceve il comando <em>prepare</em> esso deve passare da uno stato di <em>idle</em> ad un stato <em>preparing</em>
+                            che ne indichi l'avvenuta ricezione. Analogamente per gli altri task.</li>
+                        <li>Se l <bc>RBR</bc> riceve il comando di <em>stop</em> deve trovarsi in uno stato di <em>stopped</em>. Se riattivato con il comando
+                        <em>reactivate</em> deve riportarsi nello stato precendente a quello di stop.</li>
+                        <li>Se l <bc>RBR</bc> è in uno stato di stop, l'arrivo del comando reactivate deve farlo tornare nello stesso stato in cui era prima dello stop</li>
+                        <li>Se l <bc>RBR</bc> ha terminato il task <i>Prepare the room</i> deve essere insensibile alla ricezione di altri comandi di <em>prepare</em>.
+                        Deve poter cambiare di stato esclusivamente alla ricezione di un <em>add food</em> o di un <em>clear</em>.</li>
+                        <li>Al termine delle operazioni, l<bc>RBR</bc> deve sempre trovarsi nella posizione RH.</li>
+                        <li>Se viene modificato il contenuto di <bc>Pantry</bc>, <bc>Dishwasher</bc>, <bc>Table</bc> o <bc>Fridge</bc> è necessario controllare che essi siano stati
+                            effettivamente modificati</li>
+                        <li>
+                          ...
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+
+            <h2>Analisi del problema</h2>
+            <div>
+                <ol>
+                    <li>La natura distribuita del sistema porta a dover utilizzare l'<tt>infrastruttura QAK</tt>, presente nella software house di riferimento.
+                    Essa ci permette di astrarre dai dettagli comunicativi consentendo, quindi, di concentrarsi sulla business logic.
+                    </li>
+                    <li>
+                      La possibilità di essere sensibili agli ostacoli in qualsiasi momento implica che il robot debba disporre di un qualche strumento di rilevazione
+                      di tali ostacoli.
+                    </li>
+                    <li>
+                    Il fatto che il robot debba poter operare su <bc>Pantry</bc>, <bc>Dishwasher</bc>, <bc>Table</bc> o <bc>Fridge</bc> porta a dire che si
+                    debba creare una rappresentazione della stanza in cui lavorare nota al robot.
+                    </li>
+                    <li>
+                      La necessità del maitre di avere uno stato aggiornato della stanza porta ad un problema di assegnamento di responsabilità per quanto
+                      riguarda chi debba trasmettere le varie notifiche di aggiornamento.
+                    </li>
+                    <li>La capacità del <bc>RBR</bc> di poter evitare gli ostacoli implica che questo debba avere un
+                    comportamento <em>proattivo</em> nei confronti dei comandi maitre e <em>reattivo</em> verso eventuali ostacoli che possono presentarsi.
+                    </li>
+                    <li>
+                      I requisiti relativi al <bc>Fridge</bc> suggeriscono un tipo di interazione request-response che l'infrastruttura attualmente
+                      non supporta.
+                    </li>
+                    <li>
+                      L'esecuzione del task clear suggerisce che il <bc>RBR</bc> debba sapere cosa si trova in un certo istante sul tavolo.
+                    </li>
+                    <li>
+                      L'utilizzo dell'infrastruttura QAK non permette di creare ASF in cui uno stato è sia reattivo ad un messaggio sia
+                      si porta in un nuovo stato tramite una transizione spontanea.
+                    </li>
+                </ol>
+
+                <div><center><img src="./images/analisi/Relazione_firstPrototype.png" alt="Relazione_firstPrototype" width="110%" height="50%"/></center></div>
+
+                <h3>Comportamento Butler</h3>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/analisi/Z0_ButlerBehaviour.png" alt="Z0_ButlerBehaviour" width="110%" height="50%"/></center>
+                </div></br>
+
+                <h3>Comportamento Fridge</h3>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/analisi/Z0_FridgeBehaviour.png" alt="Z0_FridgeBehaviour" width="80%" height="50%"/></center>
+                </div></br>
+
+                <h3>Comportamento Pantry</h3>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/analisi/Z0_PantryBehaviour.png" alt="Z0_PantryBehaviour" width="80%" height="50%"/></center>
+                </div></br>
+
+                <h3>Comportamento Dishwasher</h3>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/analisi/Z0_DishwasherBehaviour.png" alt="Z0_DishwasherBehaviour" width="80%" height="50%"/></center>
+                </div></br>
+
+                <h3>Comportamento Table</h3>
+                <div class="img" style="width:60%">
+                  <center><img src="./images/analisi/Z0_TableBehaviour.png" alt="Z0_TableBehaviour" width="80%" height="50%"/></center>
+                </div></br>
+
+            </div>
+
+            <h3>Review Test plan</h3>
+            <div>
+              Tutti i componenti sono modellati come automi a stati finiti, come tali i test dovrebbero essere in grado di stabili se effettivamente è avvenuta la transizione di stato desiderata.
+              Al fine di fare questo potrebbe essere una buona idea:
+              <ul>
+                <li>
+	                 Poter <em>identificare</em>univocamente uno stato
+                </li>
+                <li>
+                   Poter <em>accedere allo stato corrente</em> di un componente
+                </li>
+              </ul>
+
+              <div>Questo è necessario per poter realizzare i test delineati precedentemente.
+              Quanto detto suggerisce l'idea che debba essere associato un <em>modello</em> ad ogni componente che tenga
+              traccia degli stati in cui si trova.
+              Un buon modo di modellare queste informazioni potrebbe essere quello di usare dei file <em>Prolog</em> che oltre alla
+              flessibilità e la potenza espressiva che si ha tramite l’unificazione permettono di modificare
+              facilmente le varie voci presenti all’interno.
+              Le informazioni di cui tenere traccia alla luce dei requisiti sono:</br>
+              </div>
+              <div>
+
+              <table>
+                <tr>
+                  <td>
+                    <ul>
+                        <bc>PANTRY</bc>
+                      <li>state(pantry,X)</li>
+                      <li>dish(pantry,QNT)</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <bc>FRIDGE</bc>
+                      <li>state(fridge,X)</li>
+                      <li>food(fridge,FC,QNT)</li>
+                    </ul>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <ul>
+                      <bc>TABLE</bc>
+                      <li>state(table,X)</li>
+                      <li>dish(table,X)</li>
+                      <li>food(table,FC,QNT)</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                        <bc>DISHWASHER</bc>
+                      <li>state(dishwasher,X)</li>
+                      <li>dish(dishwasher,QNT)</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <bc>RBR</bc>
+                      <li>state(butler,X)</li>
+                      <li>task(butler,X)</li>
+                      <li>action(butler,X)</li>
+                      <li>position(butler,[X,Y])</li>
+                      <li>onboardDish(butler,QNT)</li>
+                      <li>onboardFood(butler,QNT)</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+
+            </div>
+
+            </div>
+            <h2>Project</h2>
+            <div>
+              Qui è stato principalmente strutturato il <em>refactoring MVC</em>. Ad ogni componente è stato associato un attore il cui compito
+              è quello di gestire il modello relativo, l'interazione pensata è:
+
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/fridgeArchitecture.png" alt="fridgeArchitecture" width="90%" height="50%"/></center>
+              </div></br>
+
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/DishwasherModelButlerArchitecture.png" alt="DishwasherModelButlerArchitecture" width="90%" height="50%"/></center>
+              </div></br>
+
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/PantryModelButlerArchitecture.png" alt="PantryModelButlerArchitecture" width="90%" height="50%"/></center>
+              </div></br>
+
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/TableModelButlerArchitecture.png" alt="TableModelButlerArchitecture" width="90%" height="50%"/></center>
+              </div></br>
+
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/ButlerModelButlerArchitecture.png" alt="ButlerModelButlerArchitecture" width="90%" height="50%"/></center>
+              </div></br>
+
+              <div>
+                In realtà per il <bc>RBR</bc> la cosa è più articolata perchè a causa della complessità del sistema risulta essere utile
+                adottare un procedimento <em>model-driven</em> e quindi subordinare i cambiamenti del robot a cambiamenti del modello
+                stesso. Ogni cambiamento produrrà un <em>Event</em> <em>modelChange(NAME,ACTION)</em> e solo chi sarà sensibile a questo tipo
+                di informazioni farà scattare la propria logica di business.
+              </div>
+            </div>
+            <h2>Test plans</h2>
+            <p>I test sono stati sviluppati con JUnit</p>
+            <div>
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/testMenu.png" alt="testMenu" width="60%" height="50%"/></center>
+              </div></br>
+            </div>
+            <p>
+              Di seguito alcuni dei test già citati precedentemente:
+            </p>
+
+            <h3>TestLogicButler</h3>
+            <div>
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/TestLogicButler.png" alt="TestLogicButler" width="100%" height="50%"/></center>
+              </div></br>
+            </div>
+
+            <h3>TestLogicPantry</h3>
+            <div>
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/TestLogicPantry.png" alt="TestLogicPantry" width="100%" height="50%"/></center>
+              </div></br>
+            </div>
+
+            <h3>TestMovementRobot</h3>
+            <div>
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/TestMovementRobot.png" alt="TestMovementRobot" width="100%" height="50%"/></center>
+              </div></br>
+            </div>
+
+            <h3>TestObstacleDetection</h3>
+            <div>
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/TestObstacleDetection.png" alt="TestObstacleDetection" width="100%" height="50%"/></center>
+              </div></br>
+            </div>
+
+            <h3>TestPositionRobot</h3>
+            <div>
+              <div class="img" style="width:60%">
+                <center><img src="./images/analisi/TestPositionRobot.png" alt="TestPositionRobot" width="100%" height="50%"/></center>
+              </div></br>
+            </div>
+
+        </div>
+
+
+        <div style="width:60%;text-align:left;font-size:medium;color:black;border:2px solid black">
+            Alessandro Calvio, email: alessandro.calvio@studio.unibo.it
+            </br>
+            Lorenzo Mustich, email: lorenzo.mustich@studio.unibo.it
+        </div>
+    </body>
+</html>

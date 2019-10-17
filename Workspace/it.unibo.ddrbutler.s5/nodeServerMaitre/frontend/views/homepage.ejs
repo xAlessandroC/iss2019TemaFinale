@@ -1,0 +1,107 @@
+<html>
+  <head>
+      <title><%= title %> </title>
+
+      <!-- Bootstrap files-->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+      <!-- custom files-->
+      <link rel="stylesheet" type="text/css" href="/stylesheets/mytheme.css">
+      <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+      <script type="text/javascript" src="/javascripts/socketIo.js"></script>
+      <script type="text/javascript" src="/javascripts/dataManagement.js"></script>
+      <script type="text/javascript" src="/javascripts/eventsHandler.js"></script>
+  </head>
+
+  <body onLoad='loadInitParam(<%-JSON.stringify(pantryInitialContent) %>,
+    <%-JSON.stringify(fridgeInitialContent) %>,
+    <%-JSON.stringify(dishwasherInitialContent) %>,
+    <%-JSON.stringify(tableInitialContent) %>)'>
+    <div id="container" class="container-fluid">
+        <div id="maintitle">
+          <h1>MAITRE</h1>
+        </div>
+        <div id="controlPanel" >
+          <div id="mainCommand" style="float:left">
+            <form id="formTask" action="/task" method="post" >
+              <input  id="prepareButton" type="button" name="task" value="prepare" onclick="send('prepare')"/>
+              <input  id="add_foodButton" type="button" name="task" value="add food" onclick="send('add_food')" disabled/>
+              <input  id="clearButton" type="button" name="task" value="clear" onclick="send('clear')" disabled/>
+            </form>
+
+          </div>
+          <div id="srCommand" style="float:right">
+            <form action="/task" method="post">
+              <input id="stopButton" type="button" name="task" value="stop" onclick="send('stop')" disabled/>
+              <input id="reactivateButton" type="button" name="task" value="reactivate" onclick="send('reactivate')" disabled/>
+            </form>
+          </div>
+        </div>
+        <div id="input" style="display:none">
+          <input id="foodcodeText" type="text" name="foodcode" value="foodcode" disabled/>
+          <input id="quantityText" type="text" name="quantity" value="quantity" disabled/>
+          <p id="alertDiv">
+              
+          </p>
+        </div>
+        <div id="contentRoom" class="row">
+            <div class="col-sm-3" id="pantrySection" >
+              <div id="title">
+                <div style="float:left">
+                  <h3>Pantry</h3>
+                </div>
+                <div  style="float:right">
+                  <img src="/images/pantryIcon.png" />
+                </div>
+              </div>
+              <div id="pantryContent">
+
+              </div>
+            </div>
+            <div class="col-sm-3" id="dishwasherSection">
+              <div id="title">
+                <div style="float:left">
+                  <h3>Dishwasher</h3>
+                </div>
+                <div  style="float:right">
+                  <img src="/images/dishwasherIcon.png" />
+                </div>
+              </div>
+              <div id="dishwasherContent">
+
+              </div>
+            </div>
+            <div class="col-sm-3" id="fridgeSection">
+              <div id="title">
+                <div style="float:left">
+                  <h3>Fridge</h3>
+                </div>
+                <div  style="float:right">
+                  <img src="/images/fridgeIcon.png" />
+                </div>
+              </div>
+
+              <div id="fridgeContent">
+
+              </div>
+            </div>
+            <div class="col-sm-3" id="tableSection">
+              <div id="title">
+                <div style="float:left">
+                    <h3>Table</h3>
+                </div>
+                <div  style="float:right">
+                  <img src="/images/tableIcon.png" />
+                </div>
+              </div>
+
+              <div id="tableContent">
+
+              </div>
+            </div>
+        </div>
+      </div>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+System fridge
+
+mqttBroker "localhost" : 1883 
+
+Dispatch modelChangeFridge : modelChangeFridge(NAME, TASK, FOODCODE, QNT)
+Dispatch modelChangedFridge : modelChangedFridge(NAME, TASK, FOODCODE, QNT)
+Dispatch modelUpdateFridge : modelUpdateFridge(NAME, TASK, FOODCODE, QNT)
+
+Context ctxFridge ip [host="localhost" port=3035] -mqtt
+
+QActor fridge context ctxFridge{
+	["
+		var qnt=-1
+		var foodcode=\"\"
+		var goToPut=false
+	"]
+	State s0 initial{
+		println("[FRIDGE]: Started...")
+		
+		run itunibo.fridge.fridgeSupport.create()
+		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, idle, null, null)
+	}
+	Transition t0 whenMsg modelChangedFridge -> analyzeMessage
+	
+	State analyzeMessage{
+		printCurrentMessage
+		onMsg(modelChangedFridge : modelChangedFridge(NAME, TASK, FOODCODE, QNT)){
+			["if(payloadArg(1).equals(\"put\")){
+				goToPut=true
+			}"]
+			["if(payloadArg(1).equals(\"take\")){
+				goToPut=false
+			}"]
+			["qnt = Integer.parseInt(payloadArg(3))"]
+			["foodcode = payloadArg(2)"]
+		}
+	}
+	Goto putFood if "goToPut" else takeFood
+	
+	State putFood{
+		printCurrentMessage
+		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, put, null, null)
+		run itunibo.fridge.fridgeSupport.putFood(myself,foodcode,qnt)
+	}
+	Goto waitCmd
+	
+	State takeFood{
+		printCurrentMessage
+		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, put, null, null)
+		run itunibo.fridge.fridgeSupport.takeFood(myself,foodcode,qnt)
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodelfridge context ctxFridge{
+	State s0 initial{
+		println("[RESOURCEMODEL FRIDGE]: Started...")
+		
+		solve(consult("sysRules.pl"))
+		solve(consult("fridgeModel.pl"))
+		
+		run itunibo.coap.serverCoap.create(myself)
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelChangeFridge -> handleChange
+				  whenMsg modelUpdateFridge -> handleUpdate
+				  
+	State handleChange{
+		printCurrentMessage
+		
+		onMsg(modelChangeFridge : modelChangeFridge(fridge,OP,FC,QNT)){
+			solve(action(fridge, $payloadArg(1), $payloadArg(2),$payloadArg(3)))
+			ifSolved{
+				forward fridge -m modelChangedFridge : modelChangedFridge($payloadArg(0),$payloadArg(1),$payloadArg(2),$payloadArg(3))
+			}else{
+				println("Cambiamento non permesso!")
+			}
+		}
+	}
+	Goto waitCmd
+	
+	State handleUpdate{
+		
+		onMsg(modelUpdateFridge : modelUpdateFridge(fridge,TASK,FC,QNT)){
+			run itunibo.fridge.resourceModelSupport.updateFridgeModel(myself,payloadArg(1),payloadArg(2),payloadArg(3))
+		}
+	}
+	Goto waitCmd
+}

@@ -1,0 +1,98 @@
+System table
+
+mqttBroker "localhost" : 1883
+
+Dispatch putElementTable : putElementTable(TYPE,FC,QNT)
+Dispatch takeElementTable : takeElementTable(TYPE,FC,QNT)
+Dispatch modelUpdateTable : modelUpdateTable(NAME, TYPE, TASK, FOODCODE, QNT)
+
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+Context ctxTable ip [host="localhost" port=3034] -mqtt
+
+QActor table context ctxTable{
+	["
+		var num = -1
+		var fc = \"\"
+	"]
+	State s0 initial{
+		println("[TABLE]: Started...")
+	
+		run itunibo.table.tableSupport.create()
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		forward resourcemodeltable -m modelUpdateTable : modelUpdateTable(table,null,idle,null,null)
+	}
+	Transition t0 whenMsg putElementTable -> putElement
+				  whenMsg takeElementTable -> takeElement
+	
+	State putElement{
+		printCurrentMessage
+		
+		onMsg(putElementTable:putElementTable(TYPE,FC,QNT)){
+			forward resourcemodeltable -m modelUpdateTable : modelUpdateTable(table,$payloadArg(0),put,$payloadArg(1),$payloadArg(2))
+			["
+				fc=payloadArg(1)
+				num=Integer.parseInt(payloadArg(2))
+			"]
+			["if(payloadArg(0).equals(\"food\"))"]
+				run itunibo.table.tableSupport.putFood(myself,fc,num)
+			["if(payloadArg(0).equals(\"dish\"))"]
+				run itunibo.table.tableSupport.putDish(myself,num)	
+		}
+		
+		
+	}
+	Goto waitCmd
+	
+	State takeElement{
+		printCurrentMessage
+		
+		onMsg(takeElementTable:takeElementTable(TYPE,FC,QNT)){
+			forward resourcemodeltable -m modelUpdateTable : modelUpdateTable(table,$payloadArg(0),take,$payloadArg(1),$payloadArg(2))
+			["
+				fc=payloadArg(1)
+				num=Integer.parseInt(payloadArg(2))
+			"]
+			["if(payloadArg(0).equals(\"food\"))"]
+				run itunibo.table.tableSupport.takeFood(myself,fc,num)
+			["if(payloadArg(0).equals(\"dish\"))"]
+				run itunibo.table.tableSupport.takeDish(myself,num)	
+		}
+			
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodeltable context ctxTable{
+	State s0 initial{
+		println("[RESOURCEMODEL TABLE]: Started...")
+		
+		solve(consult("tableModel.pl"))
+		solve(consult("sysRules.pl"))
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelUpdateTable -> handleUpdate
+	
+	State handleUpdate{
+		
+		onMsg(modelUpdateTable : modelUpdateTable(table,TYPE,TASK,FC,QNT)){
+			run itunibo.table.resourceModelSupport.updateTableModel(myself,payloadArg(1),payloadArg(2),payloadArg(3),payloadArg(4))
+		}
+	}
+	Goto waitCmd
+}
+
+/*QActor console context ctxTable{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/

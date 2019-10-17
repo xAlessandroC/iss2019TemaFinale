@@ -1,0 +1,154 @@
+System ddrbutler
+
+Event sonarRobot : sonar(DISTANCE)
+Event obstacle : obstacle
+
+Dispatch robotCmd : robotCmd(CMD)
+Dispatch mindCmd : mindCmd(CMD)
+
+Dispatch robotChange : robotChange(TARGET, VALUE)
+Dispatch sonarChange : sonarChange(TARGET, VALUE, OBSTACLE)
+
+Context ctxButler ip [host="192.168.43.185" port=3030]
+Context ctxSupport ip [host="localhost" port=3031]
+
+QActor basicrobot context ctxButler{
+	State s0 initial{
+		println("[BASICROBOT]: Started...")
+		
+		solve( consult("basicRobotConfig.pl") )   
+ 		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
+  		ifSolved{
+  			println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  			run itunibo.robot.robotSupport.create(myself, @R, @PORT, null )
+  		} 
+  		else {
+  			println("no robot")
+   		} 
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg robotCmd -> handleCmd
+	
+	State handleCmd{
+		
+		onMsg ( robotCmd : robotCmd(X)){
+			run itunibo.robot.robotSupport.move("msg(${payloadArg(0)})")
+		}
+		
+	}
+	Goto waitCmd
+	
+}
+
+QActor obstacledetector context ctxButler{
+	["var distance=9999"]
+	State s0 initial{
+		println("[OBSTACLE-DETECTOR]: Started...")
+		
+		solve(consult("sonarConfig.pl"))
+		solve( detection(X) )
+		ifSolved {
+			println( "USING DETECTION DISTANCE : ${getCurSol(\"X\")}" )
+  		}
+  		else {
+  		 	println("no distance")
+   		}
+   		["distance=Integer.parseInt(getCurSol(\"X\").toString())"]	
+	}
+	Transition t0 whenMsg sonarRobot -> handleSonarData
+	
+	State handleSonarData{
+		
+		onMsg(sonarRobot : sonar(DISTANCE)){
+			printCurrentMessage
+			[" val D = Integer.parseInt( payloadArg(0) )"]
+			["if(D<=distance){"]
+				forward resourcemodel -m sonarChange : sonarChange(sonar, $payloadArg(0), obstacle)
+				emit obstacle : obstacle
+			["}else{"]
+				forward resourcemodel -m sonarChange : sonarChange(sonar, $payloadArg(0), clear)
+			["}"]
+		}
+	}
+	Transition t0 whenMsg sonarRobot -> handleSonarData
+}
+
+QActor robotmind context ctxButler{
+	State s0 initial{
+		println("[ROBOT MIND]: Started...")
+		
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg mindCmd -> handleCmd
+				  whenEvent obstacle -> turn
+				  
+	State handleCmd {
+		
+		onMsg(mindCmd : mindCmd(X)){
+			printCurrentMessage
+			forward resourcemodel -m robotChange : robotChange(robot, $payloadArg(0))
+			forward basicrobot -m robotCmd : robotCmd($payloadArg(0))
+		}
+	}
+	Goto waitCmd
+	
+	State turn{
+		forward resourcemodel -m robotChange : robotChange(robot, d)
+		forward basicrobot -m robotCmd : robotCmd(d)
+	}
+	Transition t0 whenTime 300 -> stop
+	
+	State stop{
+		forward resourcemodel -m robotChange : robotChange(robot, h)
+		forward basicrobot -m robotCmd : robotCmd(h)
+	}
+	Goto waitCmd
+}
+
+QActor resourcemodel context ctxButler{
+	State s0 initial{
+		println("[RESOURCE MODEL]: Started...")
+		
+		solve( consult("sysRules.pl")	 )
+		solve(consult("robotState.pl"))
+		
+	}
+	Goto waitCmd
+
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg robotChange -> handleChange
+				  whenMsg sonarChange -> handleChange
+	
+	State handleChange{
+		onMsg(robotChange : robotChange(robot, X)){
+			printCurrentMessage
+			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+		}
+		
+		onMsg(sonarChange : sonarChange(sonar, VALUE, OBSTACLE)){
+			printCurrentMessage
+			["var obstacle=payloadArg(2).equals(\"obstacle\")"]
+			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1), obstacle )
+		}
+	}
+	Goto waitCmd
+}
+
+QActor console context ctxSupport{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}

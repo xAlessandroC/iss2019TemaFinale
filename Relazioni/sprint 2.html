@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    <link rel="stylesheet" type="text/css" href="./css/issStyle1.css">
+    <script type="text/javascript" src="../css/issStyle.js"></script>
+
+    <head>
+      <title>Sprint 2</title>
+    </head>
+
+    <body>
+      <div id="main">
+
+        <div id="top">
+            <h1>SPRINT 2<font size="5"></font> </h1>
+        </div>
+
+        <div class="body">
+          <h2>Requisiti</h2>
+          <div class="req">
+            <p>Lo <em>SPRINT 2</em> si divide in due parti:
+              <ul>
+                <li>relativa al <bc>RBR</bc>:</li>
+                  <ul>
+                    <li><i>calibrare</i> la stanza di lavoro</li>
+                    <li>riuscire a raggiungere un <i>punto specifico</i> della stanza</li>
+                  </ul>
+                <li>relativa al <bc>Maitre</bc>:</li>
+                  <ul>
+                    <li>implementare il <i>supporto</i> software</em></li>
+                    <li>permettere la ricezione dei comandi di <i>prepare</i>, <i>add food</i>, <i>clear</i></li>
+                    <li>implementare la possibilità di <i>interrompere</i> e <i>riattivare</i> un task</li>
+                    <li>permette l'accesso allo <i>stato aggiornato</i> della stanza</li>
+                  </ul>
+              </ul>
+            </p>
+
+            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <bc>RBR</bc>:
+              <ul>
+                <li>deve essere in grado di calcolare le dimensioni della stanza (<tt>CALIBRATE</tt>)</li>
+                <li>deve poter raggiungere una posizione specifica della stanza (<tt>REACH</tt>)</li>
+              </ul>
+              Il <bc>Maitre</bc>:
+              <ul>
+                <li>deve poter inviare i comandi <i>prepare</i>, <i>add food</i>, <i>clear</i> (<tt>SEND</tt>)</li>
+                <li>deve poter inviare il comando di <i>stop</i> (<tt>STOP</tt>)</li>
+                <li>deve poter inviare il comando di <i>reactivate</i> (<tt>REACTIVATE</tt>)</li>
+                <li>deve poter conoscere, in ogni momento, lo stato della stanza (<tt>STATE_ROOM</tt>)</li>
+              </ul>
+            </p>
+
+          </div> <!-- req -->
+
+          <h2>Analisi dei requisiti</h2>
+          <div>
+            <p>
+              Tenendo sempre conto anche dell'analisi iniziale dei requisiti:
+              <ul>
+                <li>
+                  Il <bc>robot</bc> deve essere in grado di calibrare la stanza, ossia calcolarne le misure e determinare la disposizione
+                  del tavolo.
+                </li>
+                <li>
+                  Il <bc>robot</bc> deve poter raggiungere un punto specifico della stanza.
+                </li>
+                <li>
+                  Il <bc>Maitre</bc> deve poter mandare i comandi <i>prepare</i>, <i>add food</i>, <i>clear</i> nell'ordine determinato dai requisiti
+                </li>
+                <li>
+                  Il <bc>Maitre</bc> deve poter mandare i comandi di <i>stop</i> e <i>reactivate</i> solo quando il robot sta eseguendo un task
+                </li>
+                <li>
+                  Il <bc>Maitre</bc> deve essere in grado di aggiornare il contenuto dei vari device della stanza in ogni momento
+                </li>
+              </ul>
+            </p>
+
+
+            <h3>Test plans</h3>
+            <div>
+              <ul>
+                <li>Ricevuto un comando di <i>planning</i>, il <em>RBR</em> deve porsi nella posizione desiderata</li>
+                <li>Avvenuto un cambiamento nella stanza, il <em>Maitre</em> deve poter essere a conoscenza di tale cambiamento</li>
+              </ul>
+            </div>
+          </div> <!-- analisi dei requisiti -->
+
+        <h2>Analisi del problema</h2>
+          <div>
+            <p>
+              Il requisito di calibrazione della stanza implica che il robot
+              debba avere una qualche rappresentazione interna della stanza e, quindi, che questa venga opportunamente discretizzata.
+              In particolare è necessario sia sapere le misure della stanza che la posizione e le dimensioni del tavolo.
+              Al fine soddisfare il primo punto si è scelto di utilizzare come unità di misura la lunghezza
+              del robot stesso portando, quindi, ad una divisione della stanza in celle quadrate.
+            </p>
+
+            <p>
+              Il modello creato nel precedente sprint non basta per implementare un tipo di movimento "cell-based" in quanto esso è capace solo di
+              eseguire comandi elementari.
+            </p>
+
+            <p>L'individuazione del <em>table</em> pone un problema non banale a causa sia delle dimensioni del tavolo che della forma.
+              Si rende quindi necessario fare delle assunzioni</p>
+              <ul>
+                <li>il tavolo non è sui bordi</li>
+                <li>il tavolo ha un forma rettangolare</li>
+              </ul>
+              Da ciò deriva che è sufficiente esplorare esclusivamente due lati del tavolo e di conseguenza derivare gli altri due.
+
+              Diverse strategie di esplorazione:
+            </p>
+            <div class="img" style="width:100%">
+              <img src="./images/sprint2/FirstStrategy.png" alt="1strategy" width="30%" height="50%" style="float:left"/>
+              <img src="./images/sprint2/SecondStrategy.png" alt="2strategy" width="30%" height="50%"style="float:left"/>
+              <img src="./images/sprint2/ThirdStrategy.png" alt="3strategy" width="30%" height="50%" />
+            </div>
+
+            <p>
+              La seconda permette un giusto compromesso tra velocità ed efficienza perchè permette di ripassare su un numero
+              relativamente basso di celle già esplorate.
+              Una strategia per il tavolo:
+            </p>
+            <div class="img" style="width:60%">
+              <center><img src="./images/sprint2/TableInfo2.png" alt="strategy" width="50%" height="50%"/></center>
+            </div>
+
+            <div>
+              Il requisito <tt>REACH</tt> permette di poter utilizzare il componente <em>it.unibo.planner</em> già presente
+              nella software house.
+              Il funzionamento del modulo fa si che si debba popolare una mappa interna in maniera tale da delinearne le dimensioni
+              ed eventuali ostacoli nel mezzo. Da questo si può derivare che la fase di calibrazione ha proprio il compito
+              di popolare tale mappa.
+              Tra le altre funzionalità il componente planner ha dei metodi di utilities per aggiornare la posizione del robot nella mappa.
+            </div>
+            <p>
+
+            </p>
+            <div>
+              Il requisito di planning porta a dover specificare le posizioni dei vari device all'interno della stanza (o in generale una posizione qualsiasi)
+               in maniera da
+              poter impostare la route correttamente.
+            </div>
+
+            <p>L'architettura logica del sistema è la seguente:
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/sprint2Architecture.png" alt="logicArch" width="140%" height="60%"/></center>
+              </div></br>
+              In questo sprint, il <em>ResourceModelButler</em> funge da modello vero e proprio e non è più utilizzato a soli fini di test come nello sprint
+              precedente. Sono stati introdotti dei nuovi attori lato <em>RBR</em>:
+              <ul>
+                <li><em>ButlerMind</em>: si occupa di gestire, a livello logico, i vari task e di calibrare la stanza durante la fase iniziale</li>
+                <li><em>Calibration</em>: si occupa di esplorare la stanza e, successivamente, di capire dove il <em>table</em> è stato posto</li>
+                <li><em>Planner</em>: si occupa di calcolare, di volta in volta, l'insieme di passi da fare per raggiungere un determinato punto della stanza</li>
+                <li><em>MovementHandler</em>: al contrario del <em>RobotMind</em> che processava un solo comando di movimento alla volta, si occupa di
+                gestire insiemi di passi</li>
+              </ul>
+              Lato <em>Maitre</em> sono stati introdotti:
+              <ul>
+                <li><em>Maitre</em>: frontend per l'invio dei comandi e la consultazione dello stato della stanza</li>
+                <li><em>ResourceModelMaitre</em>: introdotto ai fini di test</li>
+              </ul>
+            </p>
+
+            <h3>Comportamento del ButlerMind</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/ButlerMindBehaviour.png" alt="mindBehav" width="100%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del MovementHandler</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/MovementHandlerBehaviour.png" alt="movHanBehav" width="100%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del Calibration</h3>
+            </br>
+              <div class="img" style="width:70%">
+                <center><img src="./images/sprint2/CalibrationBehaviour.png" alt="calBehav" width="110%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del Planner</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/PlannerBehaviour.png" alt="planBehav" width="100%" height="50%"/></center>
+              </div></br>
+
+            <h3>Comportamento del Maitre</h3>
+            </br>
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint2/MaitreBehaviour.png" alt="maitreBehav" width="150%" height="70%"/></center>
+              </div></br>
+            <p>
+              Tale diagramma è per una pura questione di gestione dell'interfaccia grafica, realizzata in java in questo primo momento.
+            </p>
+          </div>
+
+          <h2>Progettazione</h2>
+            <div>
+              <p>In questa fase:
+                <ul>
+                  <li>sono stati creati il <i>modello</i> per il <em>Maitre</em>, <em>maitreModel.pl</em>, ed i file contenenti la posizione della RH (<em>RHLocation.pl</em>)
+                  </li>
+                  <li>sono stati implentati i file di supporto al <em>Maitre</em>, <em>maitreGUI.kt</em> e <em>resourceModelSupport.kt</em></li>
+                </ul>
+              </p>
+            </div> <!-- Progettazione -->
+
+          <h2>Deployment</h2>
+          <div>
+            <p> Il deployment è avvenuto tramite la divisione nei due contesti: Butler e Maitre.</br>
+              Per il primo è stato creato uno zip contentente l'eseguibile ed inserito sul raspberry, il secondo è stato eseguito
+              direttamente su PC come primo test.</p>
+          </div>
+
+
+          <br/><br/>
+        </div> <!-- body -->
+
+      <div style="width:60%;text-align:left;font-size:medium;color:black;border:2px solid black">
+          By Alessandro Calvio, email: alessandro.calvio@studio.unibo.it
+          </br>
+          By Lorenzo Mustich, email: lorenzo.mustich@studio.unibo.it
+          <!--<img src="./img/emiglio.png" alt="mbot" width="8%" height="8%">-->
+        </div>
+
+      </div> <!-- main -->
+    </body>
+
+</html>

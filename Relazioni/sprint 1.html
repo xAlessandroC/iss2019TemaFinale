@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    <link rel="stylesheet" type="text/css" href="./css/issStyle1.css">
+    <script type="text/javascript" src="../css/issStyle.js"></script>
+
+    <head>
+      <title>Sprint 1</title>
+    </head>
+
+    <body>
+      <div id="main">
+
+        <div id="top">
+            <h1>SPRINT 1<font size="5"></font> </h1>
+        </div>
+
+        <div class="body">
+          <h2>Requisiti</h2>
+          <div class="req">
+            <p>Lo <em>SPRINT 1</em> si occupa di analizzare e progettare il movimento base del <bc>RBR</bc>
+              e la capacità di rilevare ed evitare gli ostacoli presenti.</p>
+            <p>Come si evince dal Product Backlog redatto in fase di analisi, il <bc>RBR</bc>:
+              <ul>
+                <li>deve essere in grado di poter ricevere i messaggi di movimento (<tt>MOVE</tt>)</li>
+                <li>deve poter identificare ed evitare gli ostacoli (<tt>AVOID</tt>)</li>
+              </ul>
+            </p>
+
+          </div> <!-- req -->
+
+          <h2>Analisi dei requisiti</h2>
+          <div>
+            <p>Obiettivi:
+              <ol>
+                <li>realizzare il supporto robot;</li>
+                <li>far ricevere i comandi dal robot;</li>
+                <li>riconoscere ed evitare gli ostacoli</li>
+              </ol>
+            </p>
+
+            <p>Il <bc>RBR</bc> può ricevere dei comandi molto semplici di movimento:
+              <ul>
+                <li><i>"w"</i> per andare in avanti;</li>
+                <li><i>"a"</i> per la rotazione a sinistra;</li>
+                <li><i>"d"</i> per la rotazione a destra;</li>
+                <li><i>"s"</i> per andare all'indietro;</li>
+                <li><i>"h"</i> per fermarsi</li>
+              </ul>
+            </p>
+
+
+            <h3>Test plans</h3>
+            <div>
+              <ul>
+                <li>Ricevuto un comando, il <bc>RBR</bc> deve muoversi nella direzione data</li>
+                <li>Ricevuto un comando, il <bc>RBR</bc> deve passare da uno stato di <tt>wait command</tt> ad uno di <tt>handle command</tt></li>
+                <li>Rilevato un ostacolo, il <bc>RBR</bc> deve applicare la strategia scelta e fermarsi</li>
+              </ul>
+            </div>
+          </div> <!-- analisi dei requisiti -->
+
+          <h2>Analisi del problema</h2>
+          <div>
+            <ul>
+              <li>
+                Il primo requisito implica che il software prodotto in questo sprint debba operare con il supporto del <bc>RBR</bc>
+              </li>
+              <li>
+                Per rendere portabile per diversi tipi di robot è opportuno utilizzare il componente già presente
+                  <em>robotSupport.kt</em> che permette la compatibilità sia con un robot fisico che virtuale (<tt>Soffritti</tt>).
+              </li>
+              <li>Il secondo requisito rende necessario che il device sia dotato di un sensore di rilevamento ostacoli,
+                Il supporto sopracitato fornisce anche la gestione di un sonar HC-SR04 che è possibile utilizzare.
+                In questa fase non è importante distinguere tra ostacolo mobile, tavolo e o muri della stanza.
+                Una volta rilevato l'impedimento, il <bc>RBR</bc> si ferma ed esegue una politica arbitraria per poi attendere
+                altri comandi.
+              </li>
+              <li>
+                Il <bc>RBR</bc> deve lavorare in maniera <em>reattiva/proattiva</em> (eseguire i comandi stando attento agli ostacoli), per
+                questo potrebbe essere una buona scelta quella di introddure un attore nuovo che si occupi della gestione della rilevazione
+                degli ostacoli, dividendo in questo modo le responsabilità.
+              </li>
+            </ul>
+
+
+            <p>L'architettura logica del sistema è la seguente:
+              <div class="img" style="width:60%">
+                <center><img src="./images/sprint1/sprint1Architecture.png" alt="logicArch" width="110%" height="50%"/></center>
+              </div></br>
+              Il componente <em>RobotMind</em> riceve i comandi dall'esterno e li inoltra al <em>BasicRobot</em>, il quale si occuperà di rendere effettivo il
+              movimento. Quest'ultimo, nel caso di rilevazione di un ostacolo, notifica l'evento all'<em>ObstacleDetector</em> il quale si occuperà di
+              lanciare l'evento dell'avvenuta rilevazione.</p>
+
+            <p>In questo primo sprint, il modello <em>ResourceModel</em> è utilizzato esclusivamente ai fini di testare il sistema:
+            si occupa di aggiungere o modificare fatti all'interno della base di conoscenza del sistema, il <i>RobotState.pl</i></p>
+
+            <h3>Comportamento del RobotMind</h3>
+            </br>
+            <div class="img" style="width:60%">
+              <center><img src="./images/sprint1/RobotMindBehaviour.png" alt="mindBehav" width="78%" height="50%"/></center>
+            </div></br>
+
+            <h3>Comportamento del BasicRobot</h3>
+            </br>
+            <div class="img" style="width:60%">
+              <center><img src="./images/sprint1/BasicRobotBehaviour.png" alt="basicBehav" width="78%" height="50%"/></center>
+            </div></br>
+
+            <h3>Comportamento dell'ObstacleDetector</h3>
+            </br>
+            <div class="img" style="width:60%">
+              <center><img src="./images/sprint1/ObstacleDetectorBehaviour.png" alt="obstDetBehav" width="78%" height="50%"/></center>
+            </div></br>
+
+            <h3>Comportamento del ResourceModel</h3>
+            </br>
+            <div class="img" style="width:60%">
+              <center><img src="./images/sprint1/ResourceModelBehaviour.png" alt="resBehav" width="78%" height="50%"/></center>
+            </div></br>
+
+          </div><!-- analisi dei requisiti -->
+
+          <h2>Progettazione</h2>
+          <div>
+            <ul>
+              <li>
+                Creazione del modello <em>robotState.pl</em>
+              </li>
+          </div>
+
+          <h2>Deployment</h2>
+          <div>
+          </p>Il sistema è stato costruito su un unico contesto, da eseguire sul PC o da caricare sul raspberry.</p>
+          </div>
+
+          <br/><br/>
+        </div> <!-- body -->
+
+      <div style="width:60%;text-align:left;font-size:medium;color:black;border:2px solid black">
+          By Alessandro Calvio, email: alessandro.calvio@studio.unibo.it
+          </br>
+          By Lorenzo Mustich, email: lorenzo.mustich@studio.unibo.it
+          <!--<img src="./img/emiglio.png" alt="mbot" width="8%" height="8%">-->
+        </div>
+
+      </div> <!-- main -->
+    </body>
+
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    <link rel="stylesheet" type="text/css" href="./css/issStyle1.css">
+    <script type="text/javascript" src="../css/issStyle.js"></script>
+
+    <head>
+      <title>Sprint 4</title>
+    </head>
+
+    <body>
+      <div id="main">
+
+        <div id="top">
+            <h1>SPRINT 4<font size="5"></font> </h1>
+        </div>
+
+        <div class="body">
+          <h2>Requisiti</h2>
+          <div class="req">
+            <p>
+              Lo <em>SPRINT 4</em> ha lo scopo di realizzare la parte di interruzione dei task, evasione
+              degli ostacoli dell'<bc>RBR</bc> e il supporto per il <bc>fridge</bc>.
+              Prendendo come riferimento il backlog i requisiti presi in questo sprint sono:
+              <ul>
+                  <li>
+                    Parte 1
+                  </li>
+                  <ul>
+                    <li>Come <bc>RBR</bc> devo poter notificare con un allarme la mancanza del cibo richiesto(<tt>ALERT</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter richiedere informazioni sul contenuto del fridge(<tt>REQUEST_F</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo essere in grado di interrompere un'attività(<tt>STOP_R</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo essere in grado di riprendere un'attività interrotta(<tt>REACTIVATE_R</tt>)</li>
+                    <li>Come <bc>RBR</bc> devo poter riconoscere ed evitare gli ostacoli(<tt>AVOID</tt>)</li>
+                  </ul>
+                  <li>
+                    Parte 2
+                  </li>
+                  <ul>
+                    <li>Come <bc>Fridge</bc> devo permettere l'inserimento di nuovo cibo(<tt>PUT_F</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo permettere la rimozione di un cibo(<tt>TAKE_F</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo poter esporre il contenuto(<tt>EXHIBIT</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo poter rispondere a domande sul contenuto(<tt>ANSWER</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo esporre un'interfaccia CoAP(<tt>COAP</tt>)</li>
+                    <li>Come <bc>Fridge</bc> devo rendere noti eventuali cambiamenti del contenuto(<tt>UPDATE_F</tt>)</li>
+                  </ul>
+              </ul>
+            </p>
+          </div> <!-- req -->
+
+          <h2>Analisi dei requisiti</h2>
+          <div>
+            <ul>
+              <li>
+                Il <bc>Fridge</bc> è un dispositivo smart che espone un interfaccia COAP
+              </li>
+              <li>
+                Per quanto riguarda le richieste di natura informativa, l'interazione con il <bc>Fridge</bc> deve essere del tipo
+                request-response
+              </li>
+            </ul>
+
+          <h3>Test plan</h3>
+          <div>
+            <ul>
+              <li>
+                Se l'<bc>RBR</bc> si trova di fronte un ostacolo il suo stato deve essere di <em>stop</em>, analogamente se riceve
+                un comando di stop
+              </li>
+              <li>
+                Se l'<bc>RBR</bc> riceve un comando di reactivate il suo stato deve diventare lo stesso di quello precedente
+                alla ricezione del comando
+              </li>
+              <li>
+                Dopo aver inserito o tolto qualcosa dal <bc>Fridge</bc>, il numero di elementi all'interno
+                deve essere effettivamente cambiato in base alla quantità espressa
+              </li>
+              <li>
+                Se viene richiesta una quantità di elementi superiore a quella presente, il <bc>Fridge</bc> deve concederne fino al limite
+              </li>
+            </ul>
+          </div>
+          </div>
+          <h2>Analisi del problema</h2>
+          <div>
+            <ul>
+              <li>
+                La nostra software house non possiede alcun supporto che possa permettere l'implementazione del fridge.
+                Ne consegue che occorrerà crearli da zero
+              </li>
+              <li>
+                Dal requisito <tt>REQUEST_F</tt> si deduce che bisogna creare un supporto per l'interazione con il protocollo COAP
+                che al momento <bc>RBR</bc> non ha
+              </li>
+              <li>
+                L'utilizzo dell'infrastruttura QAK fa si che messaggi consecutivi vengano messi in coda. Bisogna evitare
+                che reactivate arrivati prima di uno stop o stop spuri vengano elaborati
+              </li>
+            </ul>
+          </div>
+          <p>L'architettura logica del sistema è la seguente:</p>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint4/sprint4Architecture.png" alt="logicArch" width="150%" height="50%"/></center>
+          </div></br>
+
+          <p>
+            I cambiamenti all'architettura del butler sono solo a livello comportamentale
+          </p>
+          <h3>Comportamento ButlerMind</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint4/ButlerMindBehaviour.png" alt="ButlerMindBehaviour" width="130%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento Planner</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint4/PlannerBehaviour.png" alt="PlannerBehaviour" width="130%" height="50%"/></center>
+          </div></br>
+
+          <h3>Architettura Fridge</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint4/FridgeArchitecture.png" alt="FridgeArchitecture" width="140%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento Fridge</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint4/FridgeBehaviour.png" alt="FridgeBehaviour" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h3>Comportamento resourceModelFridge</h3>
+          </br>
+          <div class="img" style="width:60%">
+            <center><img src="./images/sprint4/ResourceModelFridgeBehaviour.png" alt="ResourceModelFridgeBehaviour" width="80%" height="50%"/></center>
+          </div></br>
+
+          <h2>Progetto</h2>
+          In questa fase c'è stata:
+          <ul>
+            <li>
+              Realizzazione del supporto <em>Fridge.java</em> e del supporto per interagirvi <em>FridgeSupport.kt</em>
+            <li>
+              Creazione del modello <em>FridgeModel.pl</em>
+            </li>
+            <li>
+              Creazione del supporto per l'interazione del <bc>RBR</bc> con il <bc>Fridge</bc> <em>fridgeInteraction.kt</em>
+            </li>
+            <li>
+              Creazione del supporto per l'interazione del <bc>Maitre</bc> con il <bc>Fridge</bc> <em>fridgeInteraction.kt</em>
+            </li>
+
+            <li>
+              Parametrizzazione delle tempistiche di movimento. Sono state aggiunte sia le tempistiche per il fisico
+              che per il virtuale
+            </li>
+          </ul>
+
+          <h2>Deployment</h2>
+          <div>
+            Il deployment è avvenuto tramite la divisione nei tre contesti: Butler,Maitre e Fridge.</br>
+            Per il primo è stato creato uno zip contentente l'eseguibile ed inserito sul raspberry, il secondo ed il terzo
+            sono stati eseguiti direttamente su PC come primo test.
+          </div>
+        </div> <!-- body -->
+
+      </br>
+        <div style="width:60%;text-align:left;font-size:medium;color:black;border:2px solid black">
+          By Alessandro Calvio, email: alessandro.calvio@studio.unibo.it
+          </br>
+          By Lorenzo Mustich, email: lorenzo.mustich@studio.unibo.it
+          <!--<img src="./img/emiglio.png" alt="mbot" width="8%" height="8%">-->
+        </div>
+
+      </div> <!-- main -->
+    </body>
+
+</html>

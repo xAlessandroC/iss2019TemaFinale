@@ -1,0 +1,94 @@
+System dishwasher 
+ 
+mqttBroker "localhost" : 1883
+  
+//external
+Dispatch setLocation : setLocation(NAME,X,Y)
+
+//dishwasher
+Dispatch takeDishDishwasher : takeDishDishwasher(QNT)
+Dispatch putDishDishwasher : putDishDishwasher(QNT)
+Dispatch modelUpdateDishwasher : modelUpdateDishwasher(NAME, OP, QNT)
+
+//Context ctxButler ip [host="localhost" port=3030] -mqtt
+Context ctxDishwasher ip [host="localhost" port=3032] -mqtt
+
+//ExternalQActor planner context ctxButler
+
+QActor dishwasher context ctxDishwasher{
+	["
+		var qnt = -1
+	"]
+	State s0 initial{
+		println("[DISHWASHER]: Started...")
+	
+		//forward planner -m setLocation : setLocation(dishwasher,3,3);
+		//["forward(\"setLocation\",\"setLocation(dishwasher,3,3)\",\"planner\")"]
+		run itunibo.dishwasher.dishwasherSupport.create()
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+		forward resourcemodeldishwasher -m modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, idle, null)
+	}
+	Transition t0 whenMsg putDishDishwasher -> putDish
+				  whenMsg takeDishDishwasher -> takeDish
+	
+	
+	State putDish{
+		printCurrentMessage
+		onMsg(putDishDishwasher : putDishDishwasher(QNT)){
+			forward resourcemodeldishwasher -m modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, put, $payloadArg(0))
+			["qnt = Integer.parseInt(payloadArg(0))"]
+			run itunibo.dishwasher.dishwasherSupport.putDishes(myself, qnt)
+		}
+		
+	}
+	Goto waitCmd
+	
+	State takeDish{
+		printCurrentMessage
+		onMsg(takeDishDishwasher : takeDishDishwasher(QNT)){
+			forward resourcemodeldishwasher -m modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, take, $payloadArg(0))
+			["qnt = Integer.parseInt(payloadArg(0))"]
+			run itunibo.dishwasher.dishwasherSupport.takeDishes(myself, qnt)
+		}
+		
+	}
+	Goto waitCmd
+	
+}
+
+QActor resourcemodeldishwasher context ctxDishwasher{
+	State s0 initial{
+		println("[RESOURCEMODEL DISHWASHER]: Started...")
+		
+		solve( consult("sysRules.pl"))
+		solve(consult("dishwasherModel.pl"))
+	}
+	Goto waitCmd
+	
+	State waitCmd{
+		
+	}
+	Transition t0 whenMsg modelUpdateDishwasher -> handleUpdate
+	
+	State handleUpdate{
+		printCurrentMessage
+		
+		onMsg(modelUpdateDishwasher : modelUpdateDishwasher(dishwasher, OP, QNT) ){
+			run itunibo.dishwasher.resourceModelSupport.updateDishwasherModel(myself,payloadArg(1), payloadArg(2))
+		}
+	}
+	Goto waitCmd
+}
+
+/*QActor console context ctxDishwasher{
+	State s0 initial{
+		println("[CONSOLE]: Started...")
+		
+		run itunibo.utilities.messageGeneratorSupport.create(myself,"CONSOLE")
+		
+	}
+}*/
