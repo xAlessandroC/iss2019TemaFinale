@@ -1,5 +1,19 @@
 # Tema Finale - Ingegneria dei Sistemi Software, 2018/2019
 
+## Struttura Repository
+Tutti i progetti si trovano all'interno della cartella Worskpace, in particolare
+- it.unibo.ddrbutler: analisi iniziale
+- it.unibo.ddrbutler.z1: analisi iniziale,zooming 1
+- it.unibo.ddrbutler.z1-1: analisi iniziale, zooming 1
+- it.unibo.ddrbutler.z2: analisi iniziale, zooming 2
+- it.unibo.ddrbutler.z2-2: analisi iniziale, zooming 2
+- it.unibo.ddrbutler.s1: sprint 1
+- it.unibo.ddrbutler.s2: sprint 2
+- it.unibo.ddrbutler.s3: sprint 3
+- it.unibo.ddrbutler.s4: sprint 4
+- it.unibo.ddrbutler.s5: sprint 5
+
+
 ## Istruzioni per il Deployment
 Il software è composto da tre componenti (contesti) principali: Butler, Maitre e Fridge. Di seguito le istruzioni per eseguire ognuna delle tre parti.
 
