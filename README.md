@@ -1,7 +1,7 @@
 # Tema Finale - Ingegneria dei Sistemi Software, 2018/2019
 
 ## Struttura Repository
-Tutti i progetti si trovano all'interno della cartella Worskpace, in particolare
+Tutti i progetti si trovano all'interno della cartella Workspace, in particolare
 - it.unibo.ddrbutler: analisi iniziale
 - it.unibo.ddrbutler.z1: analisi iniziale,zooming 1
 - it.unibo.ddrbutler.z1-1: analisi iniziale, zooming 1
