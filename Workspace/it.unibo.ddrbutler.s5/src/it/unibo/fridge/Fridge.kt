@@ -62,7 +62,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("takeFood") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("modelUpdateFridge", "modelUpdateFridge(fridge,put,null,null)" ,"resourcemodelfridge" ) 
+						forward("modelUpdateFridge", "modelUpdateFridge(fridge,take,null,null)" ,"resourcemodelfridge" ) 
 						itunibo.fridge.fridgeSupport.takeFood(myself ,foodcode, qnt )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

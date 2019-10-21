@@ -51,7 +51,7 @@ QActor fridge context ctxFridge{
 	
 	State takeFood{
 		printCurrentMessage
-		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, put, null, null)
+		forward resourcemodelfridge -m modelUpdateFridge : modelUpdateFridge(fridge, take, null, null)
 		run itunibo.fridge.fridgeSupport.takeFood(myself,foodcode,qnt)
 	}
 	Goto waitCmd
