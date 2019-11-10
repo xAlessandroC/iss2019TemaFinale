@@ -62,7 +62,7 @@ class TestMovementRobot {
 	 
 	fun rotateLeft( time:Long ) {
 		println(" %%%%%%% TestMovementRobot  rotateLeft %%%")
-		moveRobot( mind!!, "a", 100)			
+		moveRobot( mind!!, "a", 150)			
 		solveCheckGoal( resource!!,  "state( robot, state(rotateLeft) )" )
 		delay(time)
 		solveCheckGoal( resource!!,  "state( robot, state(stopped) )" )

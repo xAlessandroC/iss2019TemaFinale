@@ -26,21 +26,23 @@ class Table ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					action { //it:State
 						println("[TABLE]: Sono in waitCmd")
 					}
-					 transition(edgeName="t056",targetState="puttingElement",cond=whenDispatch("putElement"))
-					transition(edgeName="t057",targetState="takingElement",cond=whenDispatch("takeElement"))
+					 transition(edgeName="t053",targetState="puttingElement",cond=whenDispatch("putElement"))
+					transition(edgeName="t054",targetState="takingElement",cond=whenDispatch("takeElement"))
 				}	 
 				state("puttingElement") { //this:State
 					action { //it:State
-						println("[TABLE]: Sono in puttingDish")
+						println("[TABLE]: Sono in puttingElement")
 						if( checkMsgContent( Term.createTerm("putElement(TYPE,CODE,QNT)"), Term.createTerm("putElement(TYPE,CODE,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								var stringa= "[TABLE]: Sto depositando "+payloadArg(2)+" "+payloadArg(0)
+								println(stringa)
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("takingElement") { //this:State
 					action { //it:State
-						println("[TABLE]: Sono in takingDish")
+						println("[TABLE]: Sono in takingElement")
 						if( checkMsgContent( Term.createTerm("takeElement(TYPE,CODE,QNT)"), Term.createTerm("takeElement(TYPE,CODE,QNT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
