@@ -1,4 +1,5 @@
 # Tema Finale - Ingegneria dei Sistemi Software, 2018/2019
+Il progetto è stato sviluppato assieme a [mustichlorenzo](https://github.com/mustichlorenzo)
 
 ## Struttura Repository
 Tutti i progetti si trovano all'interno della cartella Workspace, in particolare
